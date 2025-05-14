@@ -1,0 +1,10 @@
+{
+    "name": "coderoster",
+    "private": true,
+    "devDependencies": {
+      "concurrently": "^8.0.0"
+    },
+    "scripts": {
+      "dev": "concurrently \"cd backend && php artisan serve\" \"cd frontend && npm run dev --turbopack\""
+    }
+  }

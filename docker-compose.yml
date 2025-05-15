@@ -1,15 +1,15 @@
 services:
-  # Next.js Frontend (Now Full Stack)
+  # Next.js Full Stack Application
   frontend:
     build:
-      context: ./frontend # Context is the frontend directory
-      dockerfile: Dockerfile # Dockerfile is directly in ./frontend
-    container_name: coderoster-frontend
+      context: . # Context is now the project root
+      dockerfile: Dockerfile.frontend # Using a distinctly named Dockerfile at the root
+    container_name: coderoster-app # Renaming for clarity as it's the main app
     restart: unless-stopped
     ports:
       - "3000:3000" # Host port 3000 maps to container port 3000
     volumes:
-      - ./frontend:/app # Mount local frontend code
+      - ./:/app # Mount project root to /app in the container
       - /app/node_modules # Anonymous volume to prevent local node_modules overwriting container's
       - /app/.next # Persist .next folder
     environment:

@@ -10,20 +10,21 @@ body {
   position: relative;
   background: var(--color-bg);
   color: var(--color-text);
-  font-family: 'DM Sans', sans-serif;
+  min-height: 100svh;
   overflow-x: hidden;
   height: auto;
+  // font-family: 'DM Sans', sans-serif;
 
-  display: grid;
-  grid-template-columns:
-    [full-width-start] minmax(var(--padding-main), 1fr)
-    [content-start] var(--width-content)
-    [content-end] minmax(var(--padding-main), 1fr)
-    [full-width-end];
+  // display: grid;
+  // grid-template-columns:
+  //   [full-width-start] minmax(var(--padding-main), 1fr)
+  //   [content-start] var(--width-content)
+  //   [content-end] minmax(var(--padding-main), 1fr)
+  //   [full-width-end];
 
-  & > * {
-    grid-column: content;
-  }
+  // & > * {
+  //   grid-column: content;
+  // }
 }
 
 ul {
@@ -36,18 +37,6 @@ fieldset {
   padding: 0;
   margin: 0;
   border: none;
-}
-
-main {
-  @include fullWidth;
-
-  min-height: 100vh;
-  min-height: 100svh;
-  z-index: 1;
-
-  * {
-    z-index: 1;
-  }
 }
 
 img {

@@ -1,18 +1,13 @@
-@mixin fullWidth() {
-  grid-column: full-width;
+// @mixin fullWidth() {
+//   grid-column: full-width;
 
-  display: grid;
-  grid-template-columns: inherit;
+//   display: grid;
+//   grid-template-columns: inherit;
 
-  & > * {
-    grid-column: content;
-  }
-}
-
-@mixin bluredBg() {
-  backdrop-filter: var(--blur-effect-default);
-  background: var(--color-el-bg);
-}
+//   & > * {
+//     grid-column: content;
+//   }
+// }
 
 @mixin buttonReset() {
   display: flex;
@@ -21,8 +16,26 @@
   transition: var(--transition-button);
   outline: transparent;
   border: none;
+  cursor: pointer;
+}
+
+@mixin inputReset() {
+  border: none;
+  outline: transparent;
+  background: transparent;
+  font-size: var(--font-size-default);
+
+  &::placeholder {
+    color: var(--color-text-secondary);
+    opacity: 0.5;
+  }
 }
 
 @mixin mainShadow() {
-  box-shadow: 0px 0px 4px rgba(137, 137, 230, 0.25);
+  box-shadow: 0px 0px 73.6px 51px var(--color-main);
+}
+
+@mixin bluredBg() {
+  backdrop-filter: var(--blur-effect-default);
+  background: var(--color-bg-semivisible);
 }

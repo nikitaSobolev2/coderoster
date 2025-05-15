@@ -1,18 +1,16 @@
 :root {
   /* -----start Colors----- */
-  --color-primary: #8989e6;
-  --color-primary-ignorant: rgb(137, 137, 230, 0.25);
-  --color-secondary: rgb(33, 33, 33);
-  --color-accent: #dddd22;
+  --color-primary: color-mix(in srgb, #1B1EC8 25%, transparent);
 
-  --color-text: #eaeaeb;
-  --color-text-secondary: rgb(234, 234, 235, 0.7);
-  --color-bg: #0f0f10;
-  --color-el-bg: rgb(234, 234, 235, 0.05);
-  --color-el-bg-active: rgb(234, 234, 235, 0.1);
+  --color-text: #F2E7E7;
+  --color-text-semivisible: color-mix(in srgb, var(--color-text) 20%, transparent);
+  --color-text-secondary: color-mix(in srgb, var(--color-text) 60%, transparent);
+
+  --color-bg: black;
+  --color-bg-semivisible: color-mix(in srgb, var(--color-bg) 25%, transparent);
 
   --color-positive: #31d154;
-  --color-negative: #e23a3a;
+  --color-negative: #C31D1D;
   /* -----end Colors----- */
 
   /* -----start Font Sizes----- */
@@ -20,25 +18,30 @@
   --font-size-h2: 32px;
   --font-size-h3: 24px;
   --font-size-h4: 18px;
-  --font-size-h5: 14px;
+  --font-size-h5: 15px;
   --font-size-h6: 12px;
+
   --font-size-default: 14px;
   /* -----end Font Sizes----- */
 
   /* -----start Sizes----- */
-  --width-content: min(100% - var(--padding-main) * 2, 1200px);
+  --width-content: min(100% - var(--padding-main) * 2, 1536px);
+  // --width-content: min(100% - var(--padding-main) * 2, 1200px);
+  // --width-content: min(100% - var(--padding-main) * 2, 1024px);
 
   --border-radius-button: 0.25em;
-  --border-radius-input: 0.25em;
+  --border-radius-input: 0.15em;
   --border-radius-input-rounded: 0.75em;
 
   --padding-main: 1.5rem;
   /* -----end Sizes----- */
 
-  --blur-effect-default: blur(10px);
+  /* -----start Effects----- */
+  --blur-effect-default: blur(15px);
+  /* -----end Effects----- */
 
   /* -----start Transitions----- */
-  --transition-ui: 300ms;
+  --transition-main: 300ms;
   --transition-button: 300ms;
   /* -----end Transitions----- */
 }

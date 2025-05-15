@@ -4,11 +4,6 @@
 *::before,
 *::after {
   caret-color: var(--color-accent);
-  
-  ::selection {
-    background: var(--color-accent);
-    color: #fff;
-  }
 }
 
 body {
@@ -50,7 +45,7 @@ main {
   min-height: 100svh;
   z-index: 1;
 
-  & > * {
+  & {
     z-index: 1;
   }
 }

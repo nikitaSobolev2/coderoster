@@ -1,0 +1,79 @@
+services:
+  # PHP-FPM Application (Laravel)
+  app:
+    build:
+      context: ./backend # Context is now the backend directory
+      dockerfile: Dockerfile # Dockerfile is directly in ./backend
+    container_name: coderoster-app
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - ./backend:/var/www/html
+    environment:
+      # Ensure these match your backend/.env for Docker
+      DB_CONNECTION: pgsql
+      DB_HOST: db # Service name of the PostgreSQL container
+      DB_PORT: 5432
+      DB_DATABASE: "${DB_DATABASE:-code_roster}" # Use from .env or default
+      DB_USERNAME: "${DB_USERNAME:-postgres}"
+      DB_PASSWORD: "${DB_PASSWORD:-postgres}"
+      APP_KEY: "${APP_KEY}" # Will be read from your backend/.env
+      APP_DEBUG: "${APP_DEBUG:-true}"
+      # Add other Laravel .env variables here if needed for Docker
+    depends_on:
+      - db
+
+  # Nginx Web Server (for Laravel)
+  web:
+    image: nginx:alpine
+    container_name: coderoster-web
+    restart: unless-stopped
+    ports:
+      - "8000:80" # Host port 8000 maps to container port 80
+    volumes:
+      - ./backend:/var/www/html
+      - ./backend/nginx.conf:/etc/nginx/conf.d/default.conf # Adjusted path
+    depends_on:
+      - app
+
+  # Next.js Frontend
+  frontend:
+    build:
+      context: ./frontend # Context is now the frontend directory
+      dockerfile: Dockerfile # Dockerfile is directly in ./frontend
+    container_name: coderoster-frontend
+    ports:
+      - "3000:3000" # Host port 3000 maps to container port 3000
+    volumes:
+      - ./frontend:/app # Mount local frontend code
+      - /app/node_modules # Anonymous volume to prevent local node_modules overwriting container's
+      - /app/.next # Persist .next folder if needed between builds, or let container manage it
+    environment:
+      NODE_ENV: development # For development with hot-reloading
+      NEXT_PUBLIC_API_URL: http://localhost:8000/api # URL to access the Laravel backend via Nginx
+      # WORKOS variables (should be in an .env file for the frontend service if built into image)
+      # Or manage them via docker-compose environment for local dev, or secrets for prod
+      WORKOS_CLIENT_ID: "${WORKOS_CLIENT_ID}"
+      WORKOS_API_KEY: "${WORKOS_API_KEY}"
+      WORKOS_AUTH_REDIRECT_URI: "${WORKOS_AUTH_REDIRECT_URI:-http://localhost:3000/auth/callback}" # Ensure this matches your .env variable name
+      WORKOS_COOKIE_PASSWORD: "${WORKOS_COOKIE_PASSWORD}"
+      NEXT_PUBLIC_LOGIN_URL: "${NEXT_PUBLIC_LOGIN_URL:-/auth/login}"
+    depends_on:
+      - web # Depends on the backend web server being available
+
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine # Or your preferred version
+    container_name: coderoster-db
+    restart: unless-stopped
+    ports:
+      - "54321:5432" # Host port 54321 maps to container port 5432 (to avoid conflict if local PG is running)
+    environment:
+      POSTGRES_DB: "${DB_DATABASE:-code_roster}"
+      POSTGRES_USER: "${DB_USERNAME:-postgres}"
+      POSTGRES_PASSWORD: "${DB_PASSWORD:-postgres}"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data # Persist database data
+
+volumes:
+  postgres_data: # Defines the named volume for PostgreSQL data 

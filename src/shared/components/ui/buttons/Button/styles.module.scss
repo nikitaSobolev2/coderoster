@@ -1,0 +1,20 @@
+@import '/src/shared/assets/styles/mixins';
+
+.button {
+  --hover-bg: var(--color-secondary);
+  --hover-color: var(--color-text);
+
+  @include bluredBg;
+
+  padding: 0.75em 1.25em;
+  justify-content: center;
+  border-radius: var(--border-radius-button);
+  cursor: pointer;
+  font-size: var(--font-size-default);
+
+  &:hover,
+  &:focus:focus-visible {
+    background: var(--hover-bg);
+    color: var(--hover-color);
+  }
+}

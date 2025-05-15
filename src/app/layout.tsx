@@ -32,7 +32,7 @@ export default function RootLayout({
       <body>
         <TRPCReactProvider>
           <AuthKitProvider>
-            <MantineProvider theme={theme}>
+            <MantineProvider theme={theme} defaultColorScheme="dark">
               {children}
             </MantineProvider>
           </AuthKitProvider>

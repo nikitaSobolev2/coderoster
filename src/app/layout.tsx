@@ -25,16 +25,16 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    <html lang="en" >
       <head>
-        <ColorSchemeScript />
+        {/* <ColorSchemeScript /> */}
       </head>
       <body>
         <TRPCReactProvider>
           <AuthKitProvider>
-            <MantineProvider theme={theme} defaultColorScheme="dark">
+            {/* <MantineProvider theme={theme} defaultColorScheme="dark"> */}
               {children}
-            </MantineProvider>
+            {/* </MantineProvider> */}
           </AuthKitProvider>
         </TRPCReactProvider>
       </body>

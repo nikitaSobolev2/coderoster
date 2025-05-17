@@ -1,30 +1,26 @@
 'use client'
 
 import { useCursorFillTarget } from "~/features/home/hooks/useCursorFillTarget";
+import PureButton, { type Props as PureButtonProps } from "~/shared/components/ui/buttons/PureButton";
 import { useRef } from "react";
+import styles from "./styles.module.scss";
 
-// Demo Button Component
-export default function InteractiveButton() {
+export interface Props extends PureButtonProps {
+  children?: React.ReactNode;
+}
+
+export default function InteractiveButton({ children, className, ...props }: Props) {
     const buttonRef = useRef<HTMLButtonElement>(null);
+    
     useCursorFillTarget(buttonRef);
   
     return (
-      <button
+      <PureButton
         ref={buttonRef}
-        style={{
-          position: 'absolute',
-          top: '50px',
-          left: '50px',
-          padding: '20px 30px',
-          fontSize: '1.2em',
-          backgroundColor: 'transparent',
-          color: 'white',
-          border: '2px solid white',
-          borderRadius: '8px',
-          cursor: 'pointer'
-        }}
+        className={`${styles.button} ${className}`}
+        {...props}
       >
-        Hover or Focus Me for Fill!
-      </button>
+        {children}
+      </PureButton>
     );
   }

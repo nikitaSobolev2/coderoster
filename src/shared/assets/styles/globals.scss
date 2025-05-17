@@ -4,15 +4,19 @@
 *::before,
 *::after {
   caret-color: var(--color-accent);
+  box-sizing: border-box;
 }
 
 body {
+  @include fontYandexDisplay;
+  
   position: relative;
   background: var(--color-bg);
   color: var(--color-text);
   min-height: 100svh;
   overflow-x: hidden;
   height: auto;
+  font-size: var(--font-size-default);
   // font-family: 'DM Sans', sans-serif;
 
   // display: grid;

@@ -1,0 +1,9 @@
+@import "~/shared/assets/styles/mixins";
+
+.logo {
+    @include fontYandexDisplay;
+
+    letter-spacing: 8px;
+    color: var(--color-text);
+    font-size: var(--font-size-3);
+}

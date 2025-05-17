@@ -38,7 +38,10 @@ export const useCursorStore = create<CursorState>((set, get) => ({
   setLocked: (locked) => set({ isLocked: locked }),
 
   setPosition: ({ x, y }) => {
-    set({ x, y })
+    const { isLocked } = get()
+    if (!isLocked) {
+      set({ x, y })
+    }
   },
 
   setStyle: (newStyles) =>

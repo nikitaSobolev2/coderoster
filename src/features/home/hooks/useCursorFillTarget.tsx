@@ -23,7 +23,6 @@ export function useCursorFillTarget(elementRef: React.RefObject<HTMLElement | nu
       const element = elementRef.current
       const rect = element.getBoundingClientRect()
       const computedStyle = window.getComputedStyle(element)
-
       const fillStyles: CursorStyleProps = {
         width: rect.width + 'px',
         height: rect.height + 'px',
@@ -33,8 +32,8 @@ export function useCursorFillTarget(elementRef: React.RefObject<HTMLElement | nu
       setStyle(fillStyles)
       // Lock at the CENTER of the element for current SCSS transform
       lockAtPosition({ 
-        x: rect.left + rect.width / 2, 
-        y: rect.top + rect.height / 2 
+        x: rect.left + rect.width / 2 - 2, 
+        y: rect.top + rect.height / 2 - 2 
       })
     }
   }, [elementRef, setStyle, lockAtPosition])

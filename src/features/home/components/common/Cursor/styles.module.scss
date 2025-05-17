@@ -19,16 +19,17 @@
     0
   );
 //   transform: translate3d(var(--cursor-x), var(--cursor-y), 0);
-  transition: opacity var(--transition-main),
-            background-color var(--transition-main),
-            border-color var(--transition-main),
-            width var(--transition-main),
-            height var(--transition-main),
-            border-radius var(--transition-main);
+  transition: opacity var(--transition-long),
+            background-color var(--transition-long),
+            border-color var(--transition-long),
+            width var(--transition-long),
+            height var(--transition-long),
+            border-radius var(--transition-long);
   will-change: transform, background-color, border-color, width, height, border-radius;
   
   background: var(--cursor-bg-color, transparent);
   mix-blend-mode: difference;
+  transform-origin: center center;
 }
 
 @media (max-width: 768px) {

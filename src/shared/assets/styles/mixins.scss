@@ -39,3 +39,11 @@
   backdrop-filter: var(--blur-effect-default);
   background: var(--color-bg-semivisible);
 }
+
+@mixin fontYandexDisplay() {
+  font-family: 'YandexSansDisplay', sans-serif;
+}
+
+@mixin fontYandexSans() {
+  font-family: 'YandexSansText', sans-serif;
+}

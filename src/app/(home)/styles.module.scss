@@ -1,0 +1,43 @@
+.main {
+
+    .main__hero {
+        padding-top: calc(var(--header-height) + 7.6em);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        height: 100svh;
+
+        .hero__title {
+            position: relative;
+            color: var(--color-text);
+            text-align: center;
+            letter-spacing: var(--letter-spacing-title);
+            font-size: var(--font-size-h2);
+            line-height: 1;
+            margin-bottom: 2em;
+
+            &::before {
+                content: '';
+                position: absolute;
+                top: calc(100% + 1em);
+                left: 10%;
+                width: 80%;
+                height: 1px;
+                background: var(--color-text-semivisible);
+                margin-bottom: 1em;
+            }
+        }
+
+        .hero__description {
+            color: var(--color-text-secondary);
+            font-size: var(--font-size-h3);
+            text-align: center;
+            max-width: 50ch;
+            letter-spacing: var(--letter-spacing-title);
+        }
+
+        .hero__button {
+            margin-top: 2em;
+        }
+    }
+}

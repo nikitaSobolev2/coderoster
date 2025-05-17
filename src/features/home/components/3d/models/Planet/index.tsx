@@ -10,7 +10,7 @@ export default function Planet() {
   const { viewport } = useThree() // Get viewport data
 
   // Calculate radius based on viewport width
-  let targetDiameter = viewport.height * 0.45;
+  let targetDiameter = viewport.width * 0.45;
   // Ensure a minimum diameter in case viewport.width is very small initially
   if (targetDiameter < 0.5) targetDiameter = 0.5; // Minimum diameter of 0.5 world units
 
@@ -46,7 +46,7 @@ export default function Planet() {
   // Animate rotation
   useFrame(() => {
     if (mesh.current) {
-      mesh.current.rotation.y += 0.001
+      mesh.current.rotation.y += 0.0003
     }
   })
 

@@ -1,0 +1,38 @@
+.cursor {
+  --cursor-x: 0px;
+  --cursor-y: 0px;
+
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: var(--cursor-width, 2em);
+  height: var(--cursor-height, 2em);
+  border: 2px solid var(--cursor-border-color, var(--color-text-semivisible));
+  border-radius: var(--cursor-border-radius, 50%);
+  pointer-events: none;
+  user-select: none;
+  z-index: 9999;
+  /* Center the circle on the cursor using translate and size */
+  transform: translate3d(
+    calc(var(--cursor-x, 0px) - calc(var(--cursor-width, 2em) / 2)),
+    calc(var(--cursor-y, 0px) - calc(var(--cursor-height, 2em) / 2)),
+    0
+  );
+//   transform: translate3d(var(--cursor-x), var(--cursor-y), 0);
+  transition: opacity var(--transition-main),
+            background-color var(--transition-main),
+            border-color var(--transition-main),
+            width var(--transition-main),
+            height var(--transition-main),
+            border-radius var(--transition-main);
+  will-change: transform, background-color, border-color, width, height, border-radius;
+  
+  background: var(--cursor-bg-color, transparent);
+  mix-blend-mode: difference;
+}
+
+@media (max-width: 768px) {
+  .cursor {
+    display: none;
+  }
+}

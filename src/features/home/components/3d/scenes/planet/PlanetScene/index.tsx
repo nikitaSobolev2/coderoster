@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Canvas } from '@react-three/fiber'
-import Planet from '~/features/home/components/3d/Planet'
+import Planet from '~/features/home/components/3d/models/Planet'
 import styles from './styles.module.scss'
 
 export default function PlanetScene() {

@@ -1,4 +1,8 @@
 .main {
+    position: relative;
+    width: 100%;
+    min-height: 100svh;
+    overflow-x: hidden;
 
     .main__hero {
         padding-top: calc(var(--header-height) + 7.6em);

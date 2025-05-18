@@ -24,7 +24,7 @@ export function useCursorInteraction(
   }))
 
   const handleInteractionStart = useCallback(() => {
-    if (elementRef.current) {
+    if (elementRef?.current) {
       const element = elementRef.current
       const rect = element.getBoundingClientRect()
       const computedStyle = window.getComputedStyle(element)
@@ -44,18 +44,39 @@ export function useCursorInteraction(
   }, [resetStyle, setLocked])
 
   useEffect(() => {
+    if (!elementRef?.current) {
+      return;
+    }
+    
     const node = elementRef.current
     if (node) {
       node.addEventListener('mouseenter', handleInteractionStart)
       node.addEventListener('mouseleave', handleInteractionEnd)
       node.addEventListener('focus', handleInteractionStart)
       node.addEventListener('blur', handleInteractionEnd)
+      node.addEventListener('focusin', handleInteractionStart)
+      node.addEventListener('focusout', handleInteractionEnd)
+
+      // Track focus of children
+      const children = node.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')
+      children.forEach(child => {
+        child.addEventListener('focus', handleInteractionStart)
+        child.addEventListener('blur', handleInteractionEnd)
+      })
 
       return () => {
         node.removeEventListener('mouseenter', handleInteractionStart)
         node.removeEventListener('mouseleave', handleInteractionEnd)
         node.removeEventListener('focus', handleInteractionStart)
         node.removeEventListener('blur', handleInteractionEnd)
+        node.removeEventListener('focusin', handleInteractionStart)
+        node.removeEventListener('focusout', handleInteractionEnd)
+
+        // Clean up child event listeners
+        children.forEach(child => {
+          child.removeEventListener('focus', handleInteractionStart)
+          child.removeEventListener('blur', handleInteractionEnd)
+        })
       }
     }
   }, [elementRef, handleInteractionStart, handleInteractionEnd])

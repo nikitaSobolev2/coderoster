@@ -1,0 +1,13 @@
+@import '~/shared/assets/styles/mixins';
+
+.navMenu {
+    position: fixed;
+    bottom: 4em;
+    left: 4em;
+    z-index: 1500;
+
+    &__list {
+        display: flex;
+        flex-direction: column;
+    }
+}

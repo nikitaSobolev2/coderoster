@@ -1,0 +1,53 @@
+@import '~/shared/assets/styles/mixins';
+
+.navMenuItem {
+    &__button {
+        --cursor-fill-color: var(--color-text);
+        
+        @include buttonReset;
+        
+        position: relative;
+        border-radius: var(--border-radius-button);
+        color: var(--color-text);
+        font-weight: 400;
+        padding: .5em 0 .5em 2em;
+        letter-spacing: var(--letter-spacing-button);
+        color: var(--color-text-secondary);
+        line-height: 1;
+
+        &::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: .25em;
+            transform: translateY(-50%);
+            width: 1em;
+            height: 1px;
+            background: var(--color-text-semivisible);
+            transition: var(--transition-button);
+        }
+
+        &:hover,
+        &:focus-visible {
+            color: var(--color-text);
+
+            &::before {
+                background: var(--color-text);
+            }
+        }
+    }
+
+    &.navMenuItem_active {
+        pointer-events: none;
+
+        .navMenuItem__button {
+            color: var(--color-text);
+            padding: .5em 0 .5em 3em;
+
+            &::before {
+                background: var(--color-text);
+                width: 2em;
+            }
+        }
+    }
+}

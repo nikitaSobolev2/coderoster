@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import debounce from 'lodash.debounce'
 import SearchSpotlightBar from '../SearchSpotlightBar'
 import SearchResults from '../SearchResults'
@@ -8,11 +8,7 @@ import SearchResult from '../SearchResult'
 import SearchSpotlightRoot from '../SearchSpotlightRoot'
 
 export interface Props {
-  results: any
-  searchQuery: string
-  setSearchQuery: React.Dispatch<React.SetStateAction<string>>
-  search: (searchQuery: string) => void
-  placeholder: string
+  placeholder?: string
 }
 
 const data = [
@@ -25,12 +21,14 @@ const data = [
 ]
 
 export default function SearchSpotlight({
-  results,
-  searchQuery,
-  setSearchQuery,
-  search,
-  placeholder,
+  placeholder = 'Поиск',
 }: Props) {
+  const [searchQuery, setSearchQuery] = useState('')
+
+  const search = useCallback((query: string) => {
+    console.log(query)
+  }, [])
+
   const debouncedSearch = useMemo(
     () => debounce(search, 300) as (query: string) => void,
     [search]
@@ -39,9 +37,9 @@ export default function SearchSpotlight({
     item.toLowerCase().includes(searchQuery.toLowerCase().trim())
   )
 
-  const onSearch = (e: React.ChangeEvent) => {
-    debouncedSearch(searchQuery)
-  }
+    const onSearch = (e: React.ChangeEvent) => {
+      debouncedSearch(searchQuery)
+    }
 
   return (
     <SearchSpotlightRoot

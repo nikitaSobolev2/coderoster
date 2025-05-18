@@ -3,18 +3,22 @@
   height: auto;
   display: flex;
   align-items: center;
+  background: var(--color-bg-el);
 
   .search__input {
     border-radius: var(--border-radius-button);
     color: var(--color-text);
     background: var(--color-secondary);
     padding-block: 0.75rem;
+    padding-left: 4rem;
     height: auto;
     font-size: var(--font-size-default);
     transition: var(--transition-ui);
+    border: 1px solid var(--color-bg-el-border);
+    letter-spacing: var(--letter-spacing-button);
 
     &:focus-within:focus-visible {
-      border: 1px solid var(--color-primary);
+      border: 1px solid var(--color-text-semivisible);
     }
 
     &::placeholder {
@@ -28,7 +32,7 @@
     bottom: initial;
     left: initial;
     right: initial;
-    padding: 0.75rem 1.25rem;
+    padding: .75rem 1.25rem 0.75rem 1.25rem;
     height: 100%;
     width: auto;
     font-size: var(--font-size-h4);

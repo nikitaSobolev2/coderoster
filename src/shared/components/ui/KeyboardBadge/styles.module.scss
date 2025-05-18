@@ -1,10 +1,13 @@
-@import '/src/shared/assets/styles/mixins';
+@import '~/shared/assets/styles/mixins';
 
 .key_badge {
   @include bluredBg;
 
   font-size: var(--font-size-h6);
   border-radius: var(--border-radius-button);
+  border: 1px solid var(--color-text-semivisible);
+  padding: .25em .5em;
+  color: var(--color-text);
 
   &__key {
     white-space: nowrap;

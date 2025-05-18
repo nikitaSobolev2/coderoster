@@ -46,7 +46,7 @@ export default function Planet() {
   // Animate rotation
   useFrame(() => {
     if (mesh.current) {
-      mesh.current.rotation.y += 0.0003
+      mesh.current.rotation.y += 0.0006
     }
   })
 

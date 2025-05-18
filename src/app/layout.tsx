@@ -1,3 +1,5 @@
+import '@mantine/core/styles.layer.css';
+
 import "~/shared/assets/styles/normalize.scss";
 import "~/shared/assets/styles/fonts.scss";
 import "~/shared/assets/styles/variables.scss";
@@ -6,7 +8,7 @@ import "~/shared/assets/styles/globals.scss";
 import { type Metadata } from "next";
 
 import { TRPCReactProvider } from "~/trpc/react";
-import { ColorSchemeScript, MantineProvider, createTheme } from "@mantine/core";
+import { ColorSchemeScript, MantineProvider, mantineHtmlProps  } from "@mantine/core";
 import { AuthKitProvider } from "@workos-inc/authkit-nextjs/components";
 
 
@@ -16,25 +18,21 @@ export const metadata: Metadata = {
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 
-const theme = createTheme({
-  /** Put your mantine theme override here */
-});
-
 
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" >
+    <html lang="en" {...mantineHtmlProps}>
       <head>
-        {/* <ColorSchemeScript /> */}
+        <ColorSchemeScript defaultColorScheme="dark" />
       </head>
       <body>
         <TRPCReactProvider>
           <AuthKitProvider>
-            {/* <MantineProvider theme={theme} defaultColorScheme="dark"> */}
+            <MantineProvider defaultColorScheme="dark">
               {children}
-            {/* </MantineProvider> */}
+            </MantineProvider>
           </AuthKitProvider>
         </TRPCReactProvider>
       </body>

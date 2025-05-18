@@ -30,5 +30,13 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
+        z-index: 1;
+
+        .container__right {
+            display: flex;
+            align-items: center;
+            gap: 2em;
+            z-index: 9;
+        }
     }
 }

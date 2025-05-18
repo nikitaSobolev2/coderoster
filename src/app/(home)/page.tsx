@@ -4,6 +4,7 @@ import Cursor from "~/features/home/components/common/Cursor";
 import InteractiveButton from "~/features/home/components/ui/InteractiveButton";
 import Header from "~/features/home/components/common/header/Header";
 import styles from "./styles.module.scss";
+import SearchSpotlight from "~/shared/components/ui/search/SearchSpotlight";
 
 
 export default async function Home() {
@@ -14,6 +15,7 @@ export default async function Home() {
   return (
     <HydrateClient>
       <Cursor />
+      <SearchSpotlight />
       <ClientPlanetSceneLoader />
       <Header />
       <main 

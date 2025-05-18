@@ -24,16 +24,16 @@ export function useCursorFillTarget(elementRef: React.RefObject<HTMLElement | nu
       const rect = element.getBoundingClientRect()
       const computedStyle = window.getComputedStyle(element)
       const fillStyles: CursorStyleProps = {
-        width: rect.width + 'px',
-        height: rect.height + 'px',
+        width: rect.width + 8 + 'px',
+        height: rect.height + 8 + 'px',
         borderRadius: computedStyle.borderRadius,
         backgroundColor: computedStyle.color,
       }
       setStyle(fillStyles)
       // Lock at the CENTER of the element for current SCSS transform
       lockAtPosition({ 
-        x: rect.left + rect.width / 2 - 2, 
-        y: rect.top + rect.height / 2 - 2 
+        x: rect.left + rect.width / 2, 
+        y: rect.top + rect.height / 2 
       })
     }
   }, [elementRef, setStyle, lockAtPosition])

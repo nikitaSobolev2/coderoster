@@ -4,20 +4,12 @@ import { useState } from 'react'
 import Search from '../Search'
 
 export default function SiteSearch() {
-  const [searchQuery, setSearchQuery] = useState<string>('')
-  const [results] = useState<any>([])
-
-  const search = (query: string) => {
-    console.log(query)
-  }
+  const [searchQuery] = useState<string>('')
 
   return (
     <Search
-      search={search}
       searchQuery={searchQuery}
-      setSearchQuery={setSearchQuery}
-      results={results}
-      placeholder='Поиск по сайту'
+      placeholder='Поиск'
     />
   )
 }

@@ -1,24 +1,36 @@
-@import '/src/shared/assets/styles/mixins';
+@import '~/shared/assets/styles/mixins';
 
 .search_spotlight {
   position: relative;
+  z-index: 3000;
 
   &__overlay {
+    @include bluredBg;
+
+    position: fixed;
     padding-top: 2rem;
+    width: 100vw;
+    height: 100vh;
     left: 0;
+    top: 0;
+    // background: var(--color-bg-el);
+    backdrop-filter: blur(100px);
+    background: transparent;
   }
 
   &__inner {
     width: 100%;
-    padding-top: 2rem;
+    padding-top: 3rem;
     padding-inline: 0;
     width: var(--width-content);
-    margin-inline: auto;
+    left: 50%;
+    transform: translateX(-50%);
 
     .inner__content {
       @include bluredBg;
 
       width: 100%;
+      background: none;
     }
   }
 }

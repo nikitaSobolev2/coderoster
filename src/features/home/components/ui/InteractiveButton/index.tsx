@@ -1,8 +1,8 @@
 'use client'
 
+import { useRef } from "react";
 import { useCursorFillTarget } from "~/features/home/hooks/useCursorFillTarget";
 import PureButton, { type Props as PureButtonProps } from "~/shared/components/ui/buttons/PureButton";
-import { useRef } from "react";
 import styles from "./styles.module.scss";
 
 export interface Props extends PureButtonProps {

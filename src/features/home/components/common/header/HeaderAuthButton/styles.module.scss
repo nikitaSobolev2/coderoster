@@ -1,0 +1,13 @@
+@import '~/shared/assets/styles/mixins';
+
+.headerAuthButton {
+    @include buttonReset;
+    @include bluredBg;
+
+    background: transparent;
+    font-size: var(--font-size-h5);
+    gap: 1em;
+    padding: .5em 1em;
+    border-radius: var(--border-radius-button);
+    letter-spacing: var(--letter-spacing-button);
+}

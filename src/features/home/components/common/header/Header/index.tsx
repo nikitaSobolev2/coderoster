@@ -5,6 +5,7 @@ import styles from "./styles.module.scss";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import SiteSearch from "~/shared/components/ui/search/SiteSearch";
+import HeaderAuth from "../HeaderAuth";
 
 export interface Props {
   className?: string;
@@ -29,12 +30,12 @@ export default function Header({ className = "" }: Props) {
       <div className={styles.header__container}>
         <Link href="/" className={styles.container__logo}>
           <Logo />
-
-          <div className="container__right">
-            {/* <SiteSearch />
-            <HeaderAuth /> */}
-          </div>
         </Link>
+
+        <div className={styles.container__right}>
+          <SiteSearch />
+          <HeaderAuth />
+        </div>
       </div>
     </header>
   );

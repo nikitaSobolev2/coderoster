@@ -13,11 +13,15 @@
   user-select: none;
   z-index: 9999;
   /* Center the circle on the cursor using translate and size */
-  transform: translate3d(
-    calc(var(--cursor-x, 0px) - calc(var(--cursor-width, 3em) / 2)),
-    calc(var(--cursor-y, 0px) - calc(var(--cursor-height, 3em) / 2)),
-    0
-  );
+  // transform: translate3d(
+  //   calc(var(--cursor-x, 0px) - calc(var(--cursor-width, 3em) / 2)),
+  //   calc(var(--cursor-y, 0px) - calc(var(--cursor-height, 3em) / 2)),
+  //   0
+  // );
+  top: var(--cursor-y, 0px);
+  left: var(--cursor-x, 0px);
+  translate: -50% -50%;
+
 //   transform: translate3d(var(--cursor-x), var(--cursor-y), 0);
   transition: opacity var(--transition-long),
             background-color var(--transition-long),

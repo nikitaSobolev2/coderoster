@@ -12,14 +12,13 @@ export default function Cursor() {
   const styleProps = useCursorStore((state: CursorState) => state.styleProps)
 
   useEffect(() => {
-    localAnimatedPos.current = { 
-      x: useCursorStore.getState().x, 
-      y: useCursorStore.getState().y 
-    };
+    const initialX = useCursorStore.getState().x;
+    const initialY = useCursorStore.getState().y;
+    localAnimatedPos.current = { x: initialX, y: initialY };
 
     if (cursorRef.current) {
-        cursorRef.current.style.setProperty('--cursor-x', localAnimatedPos.current.x + 'px');
-        cursorRef.current.style.setProperty('--cursor-y', localAnimatedPos.current.y + 'px');
+        cursorRef.current.style.setProperty('--cursor-x', initialX + 'px');
+        cursorRef.current.style.setProperty('--cursor-y', initialY + 'px');
     }
 
     const handleMouseMove = (e: MouseEvent) => {
@@ -52,26 +51,20 @@ export default function Cursor() {
   useEffect(() => {
     if (cursorRef.current) {
       const { width, height, borderRadius, backgroundColor } = styleProps;
-      if (width !== undefined && width !== null) {
-        cursorRef.current.style.setProperty('--cursor-width', width);
-      } else {
-        cursorRef.current.style.removeProperty('--cursor-width');
-      }
-      if (height !== undefined && height !== null) {
-        cursorRef.current.style.setProperty('--cursor-height', height);
-      } else {
-        cursorRef.current.style.removeProperty('--cursor-height');
-      }
-      if (borderRadius !== undefined && borderRadius !== null) {
-        cursorRef.current.style.setProperty('--cursor-border-radius', borderRadius);
-      } else {
-        cursorRef.current.style.removeProperty('--cursor-border-radius');
-      }
-      if (backgroundColor !== undefined && backgroundColor !== null) {
-        cursorRef.current.style.setProperty('--cursor-bg-color', backgroundColor);
-      } else {
-        cursorRef.current.style.removeProperty('--cursor-bg-color');
-      }
+      const updateStyleProp = (propName: string, value: string | null | undefined) => {
+        if (cursorRef.current) {
+          if (value !== undefined && value !== null) {
+            cursorRef.current.style.setProperty(propName, value);
+          } else {
+            cursorRef.current.style.removeProperty(propName);
+          }
+        }
+      };
+
+      updateStyleProp('--cursor-width', width);
+      updateStyleProp('--cursor-height', height);
+      updateStyleProp('--cursor-border-radius', borderRadius);
+      updateStyleProp('--cursor-bg-color', backgroundColor);
     }
   }, [styleProps]);
 

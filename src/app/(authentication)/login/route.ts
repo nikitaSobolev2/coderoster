@@ -1,8 +1,8 @@
-import { getSignInUrl } from '@workos-inc/authkit-nextjs';
-import { redirect } from 'next/navigation';
+import { getSignInUrl } from '@workos-inc/authkit-nextjs'
+import { redirect } from 'next/navigation'
 
 export const GET = async () => {
-  const signInUrl = await getSignInUrl();
+  const signInUrl = await getSignInUrl()
 
-  return redirect(signInUrl);
-};
+  return redirect(signInUrl)
+}

@@ -17,9 +17,7 @@ export default function SearchResults({ children }: Props) {
       {Children.toArray(children).length > 0 ? (
         children
       ) : (
-        <Spotlight.Empty className={styles.actions__empty}>
-          Ничего не найдено
-        </Spotlight.Empty>
+        <Spotlight.Empty className={styles.actions__empty}>Ничего не найдено</Spotlight.Empty>
       )}
     </Spotlight.ActionsList>
   )

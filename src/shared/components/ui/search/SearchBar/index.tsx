@@ -23,10 +23,7 @@ export default function SearchBar({ searchQuery, placeholder, openSearch }: Prop
   return (
     <button className={styles.search__bar} onClick={openSearch} ref={ref}>
       <span className={styles.bar__icon}>
-        <FontAwesomeIcon
-          className={styles.icon__svg}
-          icon={faMagnifyingGlass}
-        />
+        <FontAwesomeIcon className={styles.icon__svg} icon={faMagnifyingGlass} />
       </span>
       <p className={styles.bar__input} data-active={isActive}>
         {value}

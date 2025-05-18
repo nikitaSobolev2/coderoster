@@ -28,7 +28,7 @@ export const defaultCursorStyle: CursorStyleProps = {
   height: null,
   borderRadius: null,
   backgroundColor: null,
-  borderColor: null,
+  borderColor: null
 }
 
 export const useCursorStore = create<CursorState>((set, get) => ({
@@ -37,7 +37,7 @@ export const useCursorStore = create<CursorState>((set, get) => ({
   y: 0,
   styleProps: { ...defaultCursorStyle },
 
-  setLocked: (locked) => set({ isLocked: locked }),
+  setLocked: locked => set({ isLocked: locked }),
 
   setPosition: ({ x, y }) => {
     const { isLocked } = get()
@@ -46,13 +46,12 @@ export const useCursorStore = create<CursorState>((set, get) => ({
     }
   },
 
-  setStyle: (newStyles) =>
-    set((state) => ({
-      styleProps: { ...state.styleProps, ...newStyles },
+  setStyle: newStyles =>
+    set(state => ({
+      styleProps: { ...state.styleProps, ...newStyles }
     })),
 
-  resetStyle: () =>
-    set({ styleProps: { ...defaultCursorStyle } }),
+  resetStyle: () => set({ styleProps: { ...defaultCursorStyle } }),
 
   lockAtCurrentPosition: () => {
     const { x, y } = get()
@@ -61,7 +60,7 @@ export const useCursorStore = create<CursorState>((set, get) => ({
 
   lockAtPosition: ({ x, y }) => {
     set({ isLocked: true, x, y })
-  },
+  }
 }))
 
-export const initialCursorState = useCursorStore.getState();
+export const initialCursorState = useCursorStore.getState()

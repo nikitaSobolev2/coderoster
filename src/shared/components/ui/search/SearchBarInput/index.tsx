@@ -18,7 +18,7 @@ export default function SearchBarInput({
   searchQuery,
   setSearchQuery,
   placeholder,
-  search,
+  search
 }: Props) {
   const debouncedSearch = useMemo(
     () => debounce(search, 300) as DebouncedFunc<(query: string) => void>,
@@ -30,7 +30,6 @@ export default function SearchBarInput({
 
     debouncedSearch(e.target.value)
   }
-
 
   return (
     <label className={styles.search__bar}>

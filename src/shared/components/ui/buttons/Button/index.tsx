@@ -7,7 +7,5 @@ import styles from './styles.module.scss'
 export type Props = PureButtonProps
 
 export default function Button({ className = '', ...defaultProps }: Props) {
-  return (
-    <PureButton className={`${styles.button} ${className}`} {...defaultProps} />
-  )
+  return <PureButton className={`${styles.button} ${className}`} {...defaultProps} />
 }

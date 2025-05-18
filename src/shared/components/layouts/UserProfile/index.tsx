@@ -1,12 +1,9 @@
-import styles from "./styles.module.scss";
+import styles from './styles.module.scss'
 
 export interface Props {
-  className?: string;
+  className?: string
 }
 
-export default function UserProfile({ className = "" }: Props) {
-  return (
-    <div className={`${styles.userProfile} ${className}`}>
-    </div>
-  );
+export default function UserProfile({ className = '' }: Props) {
+  return <div className={`${styles.userProfile} ${className}`}></div>
 }

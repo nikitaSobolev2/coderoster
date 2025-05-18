@@ -9,19 +9,12 @@ export interface Props {
   placeholder: string
 }
 
-export default function Search({
-  searchQuery,
-  placeholder,
-}: Props) {
+export default function Search({ searchQuery, placeholder }: Props) {
   const openSearch = () => spotlight.open()
 
   return (
     <search className={styles.search}>
-      <SearchBar
-        openSearch={openSearch}
-        searchQuery={searchQuery}
-        placeholder={placeholder}
-      />
+      <SearchBar openSearch={openSearch} searchQuery={searchQuery} placeholder={placeholder} />
     </search>
   )
 }

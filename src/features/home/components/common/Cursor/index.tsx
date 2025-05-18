@@ -12,13 +12,13 @@ export default function Cursor() {
   const styleProps = useCursorStore((state: CursorState) => state.styleProps)
 
   useEffect(() => {
-    const initialX = useCursorStore.getState().x;
-    const initialY = useCursorStore.getState().y;
-    localAnimatedPos.current = { x: initialX, y: initialY };
+    const initialX = useCursorStore.getState().x
+    const initialY = useCursorStore.getState().y
+    localAnimatedPos.current = { x: initialX, y: initialY }
 
     if (cursorRef.current) {
-        cursorRef.current.style.setProperty('--cursor-x', initialX + 'px');
-        cursorRef.current.style.setProperty('--cursor-y', initialY + 'px');
+      cursorRef.current.style.setProperty('--cursor-x', initialX + 'px')
+      cursorRef.current.style.setProperty('--cursor-y', initialY + 'px')
     }
 
     const handleMouseMove = (e: MouseEvent) => {
@@ -26,48 +26,48 @@ export default function Cursor() {
     }
     document.addEventListener('mousemove', handleMouseMove)
 
-    let animationFrameId: number;
+    let animationFrameId: number
     const animate = () => {
-      const currentTargetX = useCursorStore.getState().x;
-      const currentTargetY = useCursorStore.getState().y;
+      const currentTargetX = useCursorStore.getState().x
+      const currentTargetY = useCursorStore.getState().y
 
-      localAnimatedPos.current.x += (currentTargetX - localAnimatedPos.current.x) * 0.08;
-      localAnimatedPos.current.y += (currentTargetY - localAnimatedPos.current.y) * 0.08;
+      localAnimatedPos.current.x += (currentTargetX - localAnimatedPos.current.x) * 0.08
+      localAnimatedPos.current.y += (currentTargetY - localAnimatedPos.current.y) * 0.08
 
       if (cursorRef.current) {
-        cursorRef.current.style.setProperty('--cursor-x', localAnimatedPos.current.x + 'px');
-        cursorRef.current.style.setProperty('--cursor-y', localAnimatedPos.current.y + 'px');
+        cursorRef.current.style.setProperty('--cursor-x', localAnimatedPos.current.x + 'px')
+        cursorRef.current.style.setProperty('--cursor-y', localAnimatedPos.current.y + 'px')
       }
-      animationFrameId = requestAnimationFrame(animate);
-    };
-    animate();
+      animationFrameId = requestAnimationFrame(animate)
+    }
+    animate()
 
     return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      cancelAnimationFrame(animationFrameId);
-    };
-  }, [setPosition]);
+      document.removeEventListener('mousemove', handleMouseMove)
+      cancelAnimationFrame(animationFrameId)
+    }
+  }, [setPosition])
 
   useEffect(() => {
     if (cursorRef.current) {
-      const { width, height, borderRadius, backgroundColor, borderColor } = styleProps;
+      const { width, height, borderRadius, backgroundColor, borderColor } = styleProps
       const updateStyleProp = (propName: string, value: string | null | undefined) => {
         if (cursorRef.current) {
           if (value !== undefined && value !== null) {
-            cursorRef.current.style.setProperty(propName, value);
+            cursorRef.current.style.setProperty(propName, value)
           } else {
-            cursorRef.current.style.removeProperty(propName);
+            cursorRef.current.style.removeProperty(propName)
           }
         }
-      };
+      }
 
-      updateStyleProp('--cursor-width', width);
-      updateStyleProp('--cursor-height', height);
-      updateStyleProp('--cursor-border-radius', borderRadius);
-      updateStyleProp('--cursor-bg-color', backgroundColor);
-      updateStyleProp('--cursor-border-color', borderColor);
+      updateStyleProp('--cursor-width', width)
+      updateStyleProp('--cursor-height', height)
+      updateStyleProp('--cursor-border-radius', borderRadius)
+      updateStyleProp('--cursor-bg-color', backgroundColor)
+      updateStyleProp('--cursor-border-color', borderColor)
     }
-  }, [styleProps]);
+  }, [styleProps])
 
   return <div ref={cursorRef} className={styles.cursor} />
 }

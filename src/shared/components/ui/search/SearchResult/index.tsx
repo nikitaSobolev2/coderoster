@@ -12,11 +12,7 @@ export interface Props {
   description?: string
 }
 
-export default function SearchResult({
-  title,
-  image = '',
-  description = '',
-}: Props) {
+export default function SearchResult({ title, image = '', description = '' }: Props) {
   const ref = useRef<HTMLDivElement>(null)
 
   useCursorFillTarget(ref)
@@ -24,13 +20,7 @@ export default function SearchResult({
   return (
     <Spotlight.Action className={styles.actions__action} highlightQuery={true} ref={ref}>
       {image && (
-        <Image
-          className={styles.action__icon}
-          src={image}
-          alt={title}
-          width={50}
-          height={50}
-        />
+        <Image className={styles.action__icon} src={image} alt={title} width={50} height={50} />
       )}
       <div className={styles.action__info}>
         <h5 className={styles.action__title}>{title}</h5>

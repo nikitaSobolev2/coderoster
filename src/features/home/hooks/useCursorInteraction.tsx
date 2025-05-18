@@ -2,25 +2,26 @@
 
 import type React from 'react'
 import { useEffect, useCallback } from 'react'
-import { useCursorStore, type CursorStyleProps } from '~/features/home/components/common/Cursor/cursor.store'
+import {
+  useCursorStore,
+  type CursorStyleProps
+} from '~/features/home/components/common/Cursor/cursor.store'
 
-export type GetInteractionStyles = (element: HTMLElement, computedStyle: CSSStyleDeclaration) => CursorStyleProps;
+export type GetInteractionStyles = (
+  element: HTMLElement,
+  computedStyle: CSSStyleDeclaration
+) => CursorStyleProps
 
 // Hook to be used by elements that should trigger a cursor effect
 export function useCursorInteraction(
   elementRef: React.RefObject<HTMLElement | null>,
   getInteractionStyles: GetInteractionStyles
 ) {
-  const {
-    setStyle,
-    resetStyle,
-    lockAtPosition,
-    setLocked,
-  } = useCursorStore((state) => ({
+  const { setStyle, resetStyle, lockAtPosition, setLocked } = useCursorStore(state => ({
     setStyle: state.setStyle,
     resetStyle: state.resetStyle,
     lockAtPosition: state.lockAtPosition,
-    setLocked: state.setLocked,
+    setLocked: state.setLocked
   }))
 
   const handleInteractionStart = useCallback(() => {
@@ -29,11 +30,11 @@ export function useCursorInteraction(
       const rect = element.getBoundingClientRect()
       const computedStyle = window.getComputedStyle(element)
       const interactionStyles = getInteractionStyles(element, computedStyle)
-      
+
       setStyle(interactionStyles)
-      lockAtPosition({ 
-        x: rect.left + rect.width / 2, 
-        y: rect.top + rect.height / 2 
+      lockAtPosition({
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2
       })
     }
   }, [elementRef, setStyle, lockAtPosition, getInteractionStyles])
@@ -45,9 +46,9 @@ export function useCursorInteraction(
 
   useEffect(() => {
     if (!elementRef?.current) {
-      return;
+      return
     }
-    
+
     const node = elementRef.current
     if (node) {
       node.addEventListener('mouseenter', handleInteractionStart)
@@ -58,10 +59,14 @@ export function useCursorInteraction(
       node.addEventListener('focusout', handleInteractionEnd)
 
       // Track focus of children
-      const children = node.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')
+      const children = node.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      )
       children.forEach(child => {
-        child.addEventListener('focus', handleInteractionStart)
-        child.addEventListener('blur', handleInteractionEnd)
+        if (child instanceof HTMLElement) {
+          child.addEventListener('focus', handleInteractionStart)
+          child.addEventListener('blur', handleInteractionEnd)
+        }
       })
 
       return () => {
@@ -74,10 +79,12 @@ export function useCursorInteraction(
 
         // Clean up child event listeners
         children.forEach(child => {
-          child.removeEventListener('focus', handleInteractionStart)
-          child.removeEventListener('blur', handleInteractionEnd)
+          if (child instanceof HTMLElement) {
+            child.removeEventListener('focus', handleInteractionStart)
+            child.removeEventListener('blur', handleInteractionEnd)
+          }
         })
       }
     }
   }, [elementRef, handleInteractionStart, handleInteractionEnd])
-} 
+}

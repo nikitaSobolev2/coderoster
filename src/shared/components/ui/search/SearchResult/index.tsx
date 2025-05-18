@@ -3,6 +3,8 @@
 import Image from 'next/image'
 import { Spotlight } from '@mantine/spotlight'
 import styles from './styles.module.scss'
+import { useRef } from 'react'
+import { useCursorFillTarget } from '~/features/home/hooks/useCursorFillTarget'
 
 export interface Props {
   image?: string
@@ -15,8 +17,12 @@ export default function SearchResult({
   image = '',
   description = '',
 }: Props) {
+  const ref = useRef<HTMLDivElement>(null)
+
+  useCursorFillTarget(ref)
+
   return (
-    <Spotlight.Action className={styles.actions__action} highlightQuery={true}>
+    <Spotlight.Action className={styles.actions__action} highlightQuery={true} ref={ref}>
       {image && (
         <Image
           className={styles.action__icon}

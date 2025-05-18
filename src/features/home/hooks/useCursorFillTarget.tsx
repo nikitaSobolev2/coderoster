@@ -1,62 +1,21 @@
 'use client'
 
 import type React from 'react'
-import { useEffect, useCallback } from 'react'
-import { useCursorStore, type CursorStyleProps } from '~/features/home/components/common/Cursor/cursor.store'
+import { useCallback } from 'react'
+import { type CursorStyleProps } from '~/features/home/components/common/Cursor/cursor.store'
+import { useCursorInteraction, type GetInteractionStyles } from './useCursorInteraction'
 
-// Hook to be used by elements that should trigger the cursor fill effect
 export function useCursorFillTarget(elementRef: React.RefObject<HTMLElement | null>) {
-  const {
-    setStyle,
-    resetStyle,
-    lockAtPosition,
-    setLocked,
-  } = useCursorStore((state) => ({
-    setStyle: state.setStyle,
-    resetStyle: state.resetStyle,
-    lockAtPosition: state.lockAtPosition,
-    setLocked: state.setLocked,
-  }))
-
-  const handleInteractionStart = useCallback(() => {
-    if (elementRef.current) {
-      const element = elementRef.current
-      const rect = element.getBoundingClientRect()
-      const computedStyle = window.getComputedStyle(element)
-      const fillStyles: CursorStyleProps = {
-        width: rect.width + 8 + 'px',
-        height: rect.height + 8 + 'px',
-        borderRadius: computedStyle.borderRadius,
-        backgroundColor: computedStyle.color,
-      }
-      setStyle(fillStyles)
-      // Lock at the CENTER of the element for current SCSS transform
-      lockAtPosition({ 
-        x: rect.left + rect.width / 2, 
-        y: rect.top + rect.height / 2 
-      })
+  const getFillStyles: GetInteractionStyles = useCallback((_element, computedStyle) => {
+    const rect = elementRef.current!.getBoundingClientRect() // Safe to use ! because elementRef.current is checked in useCursorInteraction
+    const fillStyles: CursorStyleProps = {
+      width: rect.width + 8 + 'px',
+      height: rect.height + 8 + 'px',
+      borderRadius: computedStyle.borderRadius,
+      backgroundColor: computedStyle.color,
     }
-  }, [elementRef, setStyle, lockAtPosition])
+    return fillStyles
+  }, [elementRef])
 
-  const handleInteractionEnd = useCallback(() => {
-    resetStyle()
-    setLocked(false) // Unlock the cursor
-  }, [resetStyle, setLocked])
-
-  useEffect(() => {
-    const node = elementRef.current
-    if (node) {
-      node.addEventListener('mouseenter', handleInteractionStart)
-      node.addEventListener('mouseleave', handleInteractionEnd)
-      node.addEventListener('focus', handleInteractionStart)
-      node.addEventListener('blur', handleInteractionEnd)
-
-      return () => {
-        node.removeEventListener('mouseenter', handleInteractionStart)
-        node.removeEventListener('mouseleave', handleInteractionEnd)
-        node.removeEventListener('focus', handleInteractionStart)
-        node.removeEventListener('blur', handleInteractionEnd)
-      }
-    }
-  }, [elementRef, handleInteractionStart, handleInteractionEnd])
+  useCursorInteraction(elementRef, getFillStyles)
 }

@@ -6,6 +6,7 @@ import { faArrowRightToBracket } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import styles from "./styles.module.scss";
 import { useCursorFillTarget } from "~/features/home/hooks/useCursorFillTarget";
+import { useCursorOutlineTarget } from "~/features/home/hooks/useCursorOutlineTarget";
 
 export interface Props {
   className?: string;

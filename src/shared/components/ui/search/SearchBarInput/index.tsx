@@ -1,7 +1,7 @@
 'use client'
 
-import type { DebouncedFunc } from 'lodash'
 import { useMemo } from 'react'
+import type { DebouncedFunc } from 'lodash'
 import debounce from 'lodash.debounce'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons'
@@ -30,6 +30,7 @@ export default function SearchBarInput({
 
     debouncedSearch(e.target.value)
   }
+
 
   return (
     <label className={styles.search__bar}>

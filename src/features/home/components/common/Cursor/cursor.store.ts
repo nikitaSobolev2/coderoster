@@ -5,6 +5,7 @@ export interface CursorStyleProps {
   height?: string | null
   borderRadius?: string | null
   backgroundColor?: string | null
+  borderColor?: string | null
 }
 
 export interface CursorState {
@@ -27,6 +28,7 @@ export const defaultCursorStyle: CursorStyleProps = {
   height: null,
   borderRadius: null,
   backgroundColor: null,
+  borderColor: null,
 }
 
 export const useCursorStore = create<CursorState>((set, get) => ({

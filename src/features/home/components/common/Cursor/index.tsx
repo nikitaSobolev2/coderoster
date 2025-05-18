@@ -50,7 +50,7 @@ export default function Cursor() {
 
   useEffect(() => {
     if (cursorRef.current) {
-      const { width, height, borderRadius, backgroundColor } = styleProps;
+      const { width, height, borderRadius, backgroundColor, borderColor } = styleProps;
       const updateStyleProp = (propName: string, value: string | null | undefined) => {
         if (cursorRef.current) {
           if (value !== undefined && value !== null) {
@@ -65,6 +65,7 @@ export default function Cursor() {
       updateStyleProp('--cursor-height', height);
       updateStyleProp('--cursor-border-radius', borderRadius);
       updateStyleProp('--cursor-bg-color', backgroundColor);
+      updateStyleProp('--cursor-border-color', borderColor);
     }
   }, [styleProps]);
 

@@ -2,14 +2,14 @@
 
 import { useEffect, useRef } from 'react'
 import styles from './styles.module.scss'
-import { useCursorStore, type CursorState } from './cursor.store'
+import { useCursorStore, type CursorStore } from './cursor.store'
 
 export default function Cursor() {
   const cursorRef = useRef<HTMLDivElement>(null)
   const localAnimatedPos = useRef({ x: 0, y: 0 })
 
-  const setPosition = useCursorStore((state: CursorState) => state.setPosition)
-  const styleProps = useCursorStore((state: CursorState) => state.styleProps)
+  const setPosition = useCursorStore((state: CursorStore) => state.setPosition)
+  const styleProps = useCursorStore((state: CursorStore) => state.styleProps)
 
   useEffect(() => {
     const initialX = useCursorStore.getState().x
@@ -50,7 +50,7 @@ export default function Cursor() {
 
   useEffect(() => {
     if (cursorRef.current) {
-      const { width, height, borderRadius, backgroundColor, borderColor } = styleProps
+      const { width, height, borderRadius, backgroundColor, borderColor, rotate } = styleProps
       const updateStyleProp = (propName: string, value: string | null | undefined) => {
         if (cursorRef.current) {
           if (value !== undefined && value !== null) {
@@ -66,6 +66,7 @@ export default function Cursor() {
       updateStyleProp('--cursor-border-radius', borderRadius)
       updateStyleProp('--cursor-bg-color', backgroundColor)
       updateStyleProp('--cursor-border-color', borderColor)
+      updateStyleProp('--cursor-rotate', rotate ? rotate + 'deg' : null)
     }
   }, [styleProps])
 

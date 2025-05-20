@@ -6,13 +6,17 @@ export interface CursorStyleProps {
   borderRadius?: string | null
   backgroundColor?: string | null
   borderColor?: string | null
+  rotate?: number | null
 }
 
-export interface CursorState {
+export type CursorType = 'default' | 'arrow'
+
+export interface CursorStore {
   isLocked: boolean
   x: number
   y: number
   styleProps: CursorStyleProps
+  type: CursorType
 
   // Actions
   setLocked: (locked: boolean) => void
@@ -21,6 +25,8 @@ export interface CursorState {
   resetStyle: () => void
   lockAtCurrentPosition: () => void
   lockAtPosition: (pos: { x: number; y: number }) => void
+  setType: (type: CursorType) => void
+  resetType: () => void
 }
 
 export const defaultCursorStyle: CursorStyleProps = {
@@ -28,13 +34,15 @@ export const defaultCursorStyle: CursorStyleProps = {
   height: null,
   borderRadius: null,
   backgroundColor: null,
-  borderColor: null
+  borderColor: null,
+  rotate: null
 }
 
-export const useCursorStore = create<CursorState>((set, get) => ({
+export const useCursorStore = create<CursorStore>((set, get) => ({
   isLocked: false,
   x: 0,
   y: 0,
+  type: 'default',
   styleProps: { ...defaultCursorStyle },
 
   setLocked: locked => set({ isLocked: locked }),
@@ -60,7 +68,11 @@ export const useCursorStore = create<CursorState>((set, get) => ({
 
   lockAtPosition: ({ x, y }) => {
     set({ isLocked: true, x, y })
-  }
+  },
+
+  setType: type => set({ type }),
+
+  resetType: () => set({ type: 'default' })
 }))
 
 export const initialCursorState = useCursorStore.getState()

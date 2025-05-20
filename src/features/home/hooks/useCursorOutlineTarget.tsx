@@ -3,34 +3,43 @@
 import type React from 'react'
 import { useCallback } from 'react'
 import { type CursorStyleProps } from '~/features/home/components/common/Cursor/cursor.store'
-import { useCursorInteraction, type GetInteractionStyles } from './useCursorInteraction'
+import { useCursorInteraction } from '~/features/home/hooks/useCursorInteraction'
 
 export function useCursorOutlineTarget(
-  elementRef: React.RefObject<HTMLElement | null>,
+  elementRef: React.RefObject<HTMLElement>,
   rawOutlineColor?: string | null
 ) {
-  const getOutlineStyles: GetInteractionStyles = useCallback(
-    (_element, computedStyle) => {
-      let outlineColor = null
-      if (rawOutlineColor) {
-        outlineColor = rawOutlineColor
-      } else if (computedStyle.getPropertyValue('--cursor-outline-color')) {
-        outlineColor = computedStyle.getPropertyValue('--cursor-outline-color')
-      } else {
-        outlineColor = computedStyle.color
-      }
+  const applyActiveStyles = useCallback(
+    (element: HTMLElement) => {
+      const rect = element.getBoundingClientRect()
+      const computedStyle = window.getComputedStyle(element)
+      const outlineColor = getOutlineColor(element, rawOutlineColor)
 
-      const rect = elementRef.current!.getBoundingClientRect() // Safe to use ! because elementRef.current is checked in useCursorInteraction
-      const outlineStyles: CursorStyleProps = {
+      const cursorStyles: CursorStyleProps = {
         width: rect.width + 8 + 'px',
         height: rect.height + 8 + 'px',
         borderRadius: computedStyle.borderRadius,
         borderColor: outlineColor
       }
-      return outlineStyles
+
+      return cursorStyles
     },
-    [elementRef, rawOutlineColor]
+    [rawOutlineColor]
   )
 
-  useCursorInteraction(elementRef, getOutlineStyles)
+  return useCursorInteraction(elementRef, {
+    applyActiveStyles: applyActiveStyles
+  })
+}
+
+function getOutlineColor(element: HTMLElement, rawFillColor?: string | null) {
+  const computedStyle = window.getComputedStyle(element)
+
+  if (rawFillColor) {
+    return rawFillColor
+  } else if (computedStyle.getPropertyValue('--cursor-outline-color')) {
+    return computedStyle.getPropertyValue('--cursor-outline-color')
+  } else {
+    return computedStyle.color
+  }
 }

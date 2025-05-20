@@ -22,15 +22,16 @@
   left: var(--cursor-x, 0px);
   translate: -50% -50%;
 
-//   transform: translate3d(var(--cursor-x), var(--cursor-y), 0);
-  transition: opacity var(--transition-long),
-            background-color var(--transition-long),
-            border-color var(--transition-long),
-            width var(--transition-long),
-            height var(--transition-long),
-            border-radius var(--transition-long);
-  will-change: transform, background-color, border-color, width, height, border-radius;
-  
+  //   transform: translate3d(var(--cursor-x), var(--cursor-y), 0);
+  transition:
+    opacity var(--transition-long),
+    background-color var(--transition-long),
+    border-color var(--transition-long),
+    width var(--transition-long),
+    height var(--transition-long),
+    border-radius var(--transition-long);
+  will-change: transform, background-color, border-color, width, height, border-radius, rotate;
+  rotate: var(--cursor-rotate, 0deg);
   background: var(--cursor-bg-color, transparent);
   mix-blend-mode: difference;
   transform-origin: center center;

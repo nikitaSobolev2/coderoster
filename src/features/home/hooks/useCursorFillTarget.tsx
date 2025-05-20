@@ -3,34 +3,43 @@
 import type React from 'react'
 import { useCallback } from 'react'
 import { type CursorStyleProps } from '~/features/home/components/common/Cursor/cursor.store'
-import { useCursorInteraction, type GetInteractionStyles } from './useCursorInteraction'
+import { useCursorInteraction } from '~/features/home/hooks/useCursorInteraction'
 
 export function useCursorFillTarget(
-  elementRef: React.RefObject<HTMLElement | null>,
+  elementRef: React.RefObject<HTMLElement>,
   rawFillColor?: string | null
 ) {
-  const getFillStyles: GetInteractionStyles = useCallback(
-    (_element, computedStyle) => {
-      let fillColor = null
-      if (rawFillColor) {
-        fillColor = rawFillColor
-      } else if (computedStyle.getPropertyValue('--cursor-fill-color')) {
-        fillColor = computedStyle.getPropertyValue('--cursor-fill-color')
-      } else {
-        fillColor = computedStyle.color
-      }
+  const applyActiveStyles = useCallback(
+    (element: HTMLElement) => {
+      const rect = element.getBoundingClientRect()
+      const computedStyle = window.getComputedStyle(element)
+      const fillColor = getFillColor(element, rawFillColor)
 
-      const rect = elementRef.current!.getBoundingClientRect() // Safe to use ! because elementRef.current is checked in useCursorInteraction
-      const fillStyles: CursorStyleProps = {
+      const cursorStyles: CursorStyleProps = {
         width: rect.width + 8 + 'px',
         height: rect.height + 8 + 'px',
         borderRadius: computedStyle.borderRadius,
         backgroundColor: fillColor
       }
-      return fillStyles
+
+      return cursorStyles
     },
-    [elementRef, rawFillColor]
+    [rawFillColor]
   )
 
-  useCursorInteraction(elementRef, getFillStyles)
+  return useCursorInteraction(elementRef, {
+    applyActiveStyles: applyActiveStyles
+  })
+}
+
+function getFillColor(element: HTMLElement, rawFillColor?: string | null) {
+  const computedStyle = window.getComputedStyle(element)
+
+  if (rawFillColor) {
+    return rawFillColor
+  } else if (computedStyle.getPropertyValue('--cursor-fill-color')) {
+    return computedStyle.getPropertyValue('--cursor-fill-color')
+  } else {
+    return computedStyle.color
+  }
 }

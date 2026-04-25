@@ -12,7 +12,7 @@ export const planetDimensions = {
   atmosphereRadius: BASE_PLANET_RADIUS * 1.025
 }
 
-interface PlanetSettings {
+export interface PlanetSettings {
   rotationSpeed: number
   normalScale: ThreeVector2
   bumpScale: number
@@ -32,6 +32,10 @@ interface PlanetStore {
   setBumpScale: (scale: number) => void
   setEmissiveColor: (color: ThreeColor) => void
   setEmissiveIntensity: (intensity: number) => void
+  setAtmosphereColor: (color: ThreeColor) => void
+  setAtmosphereIntensity: (intensity: number) => void
+  /** Merge per-section material tweaks (e.g. from `planetSectionPresets`). */
+  applyPlanetSectionVisuals: (patch: Partial<PlanetSettings>) => void
 }
 
 export const usePlanetStore = create<PlanetStore>(set => ({
@@ -68,5 +72,28 @@ export const usePlanetStore = create<PlanetStore>(set => ({
   setEmissiveIntensity: intensity =>
     set(state => ({
       settings: { ...state.settings, emissiveIntensity: intensity }
-    }))
+    })),
+
+  setAtmosphereColor: color =>
+    set(state => ({
+      settings: { ...state.settings, atmosphereColor: color.clone() }
+    })),
+
+  setAtmosphereIntensity: intensity =>
+    set(state => ({
+      settings: { ...state.settings, atmosphereIntensity: intensity }
+    })),
+
+  applyPlanetSectionVisuals: patch =>
+    set(state => {
+      const s = { ...state.settings }
+      if (patch.rotationSpeed !== undefined) s.rotationSpeed = patch.rotationSpeed
+      if (patch.normalScale !== undefined) s.normalScale = patch.normalScale.clone()
+      if (patch.bumpScale !== undefined) s.bumpScale = patch.bumpScale
+      if (patch.emissiveColor !== undefined) s.emissiveColor = patch.emissiveColor.clone()
+      if (patch.emissiveIntensity !== undefined) s.emissiveIntensity = patch.emissiveIntensity
+      if (patch.atmosphereColor !== undefined) s.atmosphereColor = patch.atmosphereColor.clone()
+      if (patch.atmosphereIntensity !== undefined) s.atmosphereIntensity = patch.atmosphereIntensity
+      return { settings: s }
+    })
 }))

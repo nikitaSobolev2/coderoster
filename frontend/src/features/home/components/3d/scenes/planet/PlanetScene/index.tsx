@@ -1,19 +1,50 @@
 'use client'
 
-import React, { useLayoutEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { gsap } from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { usePlanetScaleStore } from '~/features/home/components/3d/scenes/planet/PlanetScene/planet-scale.store'
+import { getPlanetPresetForIndex } from '~/features/home/components/3d/scenes/planet/planetSectionPresets'
+import { usePlanetGroupRefStore } from '~/features/home/components/3d/scenes/planet/planet-group-ref.store'
+import { usePlanetStore } from '~/features/home/components/3d/models/Planet/planet.store'
+import { useSectionScrollerStore } from '~/features/home/components/common/SectionScroller/section-scroller.store'
 import { readRootCssColorVar } from '~/shared/utils/cssCustomProperties'
 import { CameraSetup } from '../CameraSetup'
 import { ScalablePlanet } from '../ScalablePlanet'
 import styles from './styles.module.scss'
 
-gsap.registerPlugin(ScrollTrigger)
-
 const FALLBACK_R3F_LIGHT_WARM = '#fff1e0'
 const FALLBACK_R3F_DIRECTIONAL = '#1B1EC8'
+const SECTION_TWEEN_S = 1.15
+const FOOTER_SECTION_INDEX = 5
+
+function PlanetR3FLights({
+  warmBase,
+  directionalBase
+}: {
+  warmBase: string
+  directionalBase: string
+}) {
+  const activeIndex = useSectionScrollerStore(s => s.activeIndex)
+  const preset = getPlanetPresetForIndex(activeIndex)
+  const { warmIntensity, directionalIntensity, warmColor, directionalColor } = preset.lighting
+
+  return (
+    <>
+      <ambientLight intensity={0.2} />
+      <directionalLight
+        color={warmColor ?? warmBase}
+        position={[5000, 6000, 10000]}
+        intensity={warmIntensity}
+      />
+      <directionalLight
+        color={directionalColor ?? directionalBase}
+        position={[5000, 6000, 10000]}
+        intensity={directionalIntensity}
+      />
+    </>
+  )
+}
 
 export default function PlanetScene() {
   const animatedContainerRef = useRef<HTMLDivElement>(null)
@@ -22,8 +53,14 @@ export default function PlanetScene() {
     width: number
     height: number
   } | null>(null)
+  const [layoutTick, setLayoutTick] = useState(0)
+
   const setPlanetScale = usePlanetScaleStore(state => state.setPlanetScale)
   const planetScale = usePlanetScaleStore(state => state.planetScale)
+  const activeIndex = useSectionScrollerStore(s => s.activeIndex)
+  const prevIndexRef = useRef(activeIndex)
+  const didInitRef = useRef(false)
+
   const r3fLightColors = useMemo(
     () => ({
       warm: readRootCssColorVar('--color-r3f-light-warm', FALLBACK_R3F_LIGHT_WARM),
@@ -31,6 +68,12 @@ export default function PlanetScene() {
     }),
     []
   )
+
+  useEffect(() => {
+    const onResize = () => setLayoutTick(t => t + 1)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
 
   useLayoutEffect(() => {
     const el = animatedContainerRef.current
@@ -58,45 +101,88 @@ export default function PlanetScene() {
   }, [canvasSize])
 
   useLayoutEffect(() => {
-    const animatedContainer = animatedContainerRef.current
-    const canvasHolder = canvasHolderRef.current
-    if (!animatedContainer || !canvasHolder || !canvasSize) return
+    const el = animatedContainerRef.current
+    if (!el || !canvasSize) return
 
-    const bigTrueSection = document.getElementById('big-true')
-    if (!bigTrueSection) return
+    const w = window.innerWidth
+    const h = window.innerHeight
+    const preset = getPlanetPresetForIndex(activeIndex)
+    const t = preset.getTranslate({ innerWidth: w, innerHeight: h })
+    const targetScale = preset.targetScale
 
-    const initialRect = animatedContainer.getBoundingClientRect()
-    const initialWidth = initialRect.width
-    const initialHeight = initialRect.height
+    const applySectionVisuals = () => {
+      const patch = preset.getPlanetSettingsPatch()
+      usePlanetStore.getState().applyPlanetSectionVisuals(patch)
+    }
 
-    const timeline = gsap.timeline({
-      scrollTrigger: {
-        trigger: 'main',
-        start: 'top top',
-        endTrigger: '#big-true',
-        end: 'start center',
-        scrub: true,
-        invalidateOnRefresh: true,
-        onUpdate: self => {
-          const newScale = 1.0 - 0.2 * self.progress
-          setPlanetScale(newScale)
+    applySectionVisuals()
+
+    if (!didInitRef.current) {
+      didInitRef.current = true
+      gsap.set(el, { x: t.x, y: t.y, overwrite: 'auto' })
+      setPlanetScale(targetScale)
+      prevIndexRef.current = activeIndex
+      return
+    }
+
+    const prev = prevIndexRef.current
+    const indexChanged = prev !== activeIndex
+    const delta = activeIndex - prev
+    prevIndexRef.current = activeIndex
+
+    const group = usePlanetGroupRefStore.getState().group
+    const enterFromTop =
+      preset.enterFromTop === true &&
+      activeIndex === FOOTER_SECTION_INDEX &&
+      prev !== FOOTER_SECTION_INDEX
+
+    gsap.killTweensOf(el)
+    if (group) {
+      gsap.killTweensOf(group.rotation)
+    }
+
+    const scaleProxy = { s: usePlanetScaleStore.getState().planetScale }
+
+    const tl = gsap.timeline({ defaults: { ease: 'power2.inOut' } })
+
+    if (enterFromTop) {
+      gsap.set(el, { x: t.x, y: t.y - h * 0.4 })
+      tl.to(el, { x: t.x, y: t.y, duration: SECTION_TWEEN_S, overwrite: 'auto' }, 0)
+    } else {
+      tl.to(el, { x: t.x, y: t.y, duration: SECTION_TWEEN_S, overwrite: 'auto' }, 0)
+    }
+
+    tl.to(
+      scaleProxy,
+      {
+        s: targetScale,
+        duration: SECTION_TWEEN_S,
+        ease: 'power2.inOut',
+        onUpdate: () => {
+          setPlanetScale(scaleProxy.s)
         }
-      }
-    })
+      },
+      0
+    )
 
-    timeline.to(animatedContainer, {
-      x: () => window.innerWidth * 0.85 - initialWidth / 2,
-      y: () => window.innerHeight / 2 - initialHeight / 2,
-      ease: 'power1.inOut'
-    })
+    if (indexChanged && group && delta !== 0) {
+      const sign = delta > 0 ? 1 : -1
+      const endY = group.rotation.y + sign * 4 * Math.PI
+      gsap.to(group.rotation, {
+        y: endY,
+        duration: 2,
+        ease: 'power2.inOut',
+        overwrite: 'auto'
+      })
+    }
 
     return () => {
-      timeline.kill()
-      ScrollTrigger.getAll().forEach(trigger => trigger.kill())
-      gsap.set(animatedContainer, { clearProps: 'transform' })
-      setPlanetScale(1.0)
+      tl.kill()
+      if (group) {
+        gsap.killTweensOf(group.rotation)
+      }
     }
-  }, [canvasSize, setPlanetScale])
+  }, [activeIndex, canvasSize, setPlanetScale, layoutTick])
 
   return (
     <div ref={animatedContainerRef} className={styles.container}>
@@ -104,16 +190,9 @@ export default function PlanetScene() {
         {canvasSize && (
           <Canvas>
             <CameraSetup fixedSize={canvasSize} />
-            <ambientLight intensity={0.2} />
-            <directionalLight
-              color={r3fLightColors.warm}
-              position={[5000, 6000, 10000]}
-              intensity={2.2}
-            />
-            <directionalLight
-              color={r3fLightColors.directional}
-              position={[5000, 6000, 10000]}
-              intensity={2.5}
+            <PlanetR3FLights
+              warmBase={r3fLightColors.warm}
+              directionalBase={r3fLightColors.directional}
             />
             <React.Suspense
               fallback={

@@ -109,7 +109,7 @@ const howToStart: PlanetSectionPreset = {
 
 /** Section 4 — viewport center, large. */
 const features: PlanetSectionPreset = {
-  getTranslate: ({ innerWidth, innerHeight }) => {
+  getTranslate: ({ innerHeight }) => {
     const targetCx = 0
     const targetCy = -innerHeight * 1.45
     return { x: targetCx, y: targetCy }

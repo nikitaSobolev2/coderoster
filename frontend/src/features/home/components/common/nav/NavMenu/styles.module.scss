@@ -1,4 +1,5 @@
 @use '~/shared/assets/styles/mixins' as *;
+@use '~/shared/assets/styles/breakpoints' as bp;
 
 .navMenu {
   position: fixed;
@@ -9,5 +10,11 @@
   &__list {
     display: flex;
     flex-direction: column;
+  }
+}
+
+@include bp.max-width(bp.$bp-nav) {
+  .navMenu {
+    display: none;
   }
 }

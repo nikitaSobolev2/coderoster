@@ -7,11 +7,11 @@ export interface SectionDescriptor {
 }
 
 export interface SectionScrollerStore {
-  sections: SectionDescriptor[]
+  sections: readonly SectionDescriptor[]
   activeIndex: number
   isAnimating: boolean
 
-  setSections: (sections: SectionDescriptor[]) => void
+  setSections: (sections: readonly SectionDescriptor[]) => void
   setActiveIndex: (index: number) => void
   setAnimating: (animating: boolean) => void
 }

@@ -12,12 +12,21 @@
     var(--padding-footer-bottom);
   background: linear-gradient(180deg, transparent, var(--color-footer-section-fade));
   overflow: hidden;
+
+  @include bp.max-width(bp.$bp-nav) {
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding: var(--section-padding-top-mobile) var(--padding-main) var(--padding-footer-bottom);
+  }
 }
 
 .footer__bgWordmark {
   position: absolute;
-  inset: auto 0 var(--offset-footer-bg-word) 0;
-  width: 100%;
+  left: 50%;
+  bottom: var(--offset-footer-bg-word);
+  transform: translateX(-50%);
+  width: max(100%, max-content);
+  min-width: 100%;
   height: auto;
   pointer-events: none;
   user-select: none;

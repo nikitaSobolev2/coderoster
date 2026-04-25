@@ -18,7 +18,7 @@ const SCROLL_DURATION_S = 1
 const OBSERVER_TOLERANCE = 12
 
 export interface Props {
-  sections: SectionDescriptor[]
+  sections: readonly SectionDescriptor[]
   children: React.ReactNode
 }
 

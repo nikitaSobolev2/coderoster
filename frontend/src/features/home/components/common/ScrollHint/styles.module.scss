@@ -1,4 +1,5 @@
 @use '~/shared/assets/styles/mixins' as *;
+@use '~/shared/assets/styles/breakpoints' as bp;
 
 .scrollHint {
   @include buttonReset;
@@ -73,5 +74,16 @@
   }
   50% {
     transform: translateY(var(--offset-scroll-hint-bounce));
+  }
+}
+
+@include bp.max-width(bp.$bp-nav) {
+  .scrollHint {
+    top: 1.5em;
+    bottom: auto;
+  }
+
+  .scrollHint_hidden {
+    translate: -50% -1em;
   }
 }

@@ -1,6 +1,14 @@
+@use '~/shared/assets/styles/breakpoints' as bp;
+
 .main {
   position: relative;
   width: 100%;
   min-height: 100svh;
   overflow-x: hidden;
+}
+
+@include bp.max-width(bp.$bp-nav) {
+  .main {
+    padding-bottom: var(--padding-main-with-island);
+  }
 }

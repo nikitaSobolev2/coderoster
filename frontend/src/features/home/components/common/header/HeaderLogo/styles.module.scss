@@ -1,5 +1,10 @@
 .headerLogo {
-    padding: .5em 1em;
-    font-size: var(--font-size-h5);
-    border-radius: var(--border-radius-button);
+  padding: 0.5em 1em;
+  font-size: var(--font-size-h5);
+  border-radius: var(--border-radius-button);
+}
+
+.headerLogo_island {
+  padding: 0.35em 0.5em;
+  font-size: clamp(0.8rem, 2.4vw, 0.9rem);
 }

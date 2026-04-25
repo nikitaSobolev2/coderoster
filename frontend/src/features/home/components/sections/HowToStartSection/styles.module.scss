@@ -11,6 +11,15 @@
     var(--padding-section-bottom-xl);
 }
 
+@include bp.max-width(bp.$bp-nav) {
+  .howToStart {
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding: var(--section-padding-top-mobile) var(--padding-main)
+      var(--padding-section-bottom-mobile);
+  }
+}
+
 .howToStart__inner {
   width: var(--width-content);
   display: grid;

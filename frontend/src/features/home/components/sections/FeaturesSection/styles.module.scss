@@ -1,4 +1,5 @@
 @use '~/shared/assets/styles/mixins' as *;
+@use '~/shared/assets/styles/breakpoints' as bp;
 
 .features {
   position: relative;
@@ -9,6 +10,21 @@
   justify-content: center;
   padding: calc(var(--header-height) + var(--spacing-footer-below-header)) var(--padding-main)
     var(--padding-section-bottom-xl);
+}
+
+@include bp.max-width(bp.$bp-nav) {
+  .features {
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding: var(--section-padding-top-mobile) var(--padding-main)
+      var(--padding-section-bottom-mobile);
+  }
+
+  .features__cta,
+  .features__ctaTitle,
+  .features__ctaButton {
+    display: none;
+  }
 }
 
 .features__inner {

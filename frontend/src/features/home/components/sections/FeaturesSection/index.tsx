@@ -82,7 +82,9 @@ export default function FeaturesSection() {
         </ul>
         <div className={styles.features__cta}>
           <p className={styles.features__ctaTitle}>готов начать?</p>
-          <InteractiveButton href="/login">Начать бесплатно</InteractiveButton>
+          <InteractiveButton className={styles.features__ctaButton} href="/login">
+            Начать бесплатно
+          </InteractiveButton>
         </div>
       </div>
     </section>

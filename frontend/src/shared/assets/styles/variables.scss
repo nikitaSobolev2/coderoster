@@ -38,8 +38,8 @@
   --font-size-default: 14px;
 
   /* Footer hero wordmark */
-  --size-footer-wordmark-min: 120px;
-  --size-footer-wordmark-prefer: 22vw;
+  --size-footer-wordmark-min: 100px;
+  --size-footer-wordmark-prefer: min(22vw, 16rem);
   --size-footer-wordmark-max: 360px;
   --font-size-footer-wordmark: clamp(
     var(--size-footer-wordmark-min),
@@ -65,6 +65,18 @@
   --padding-main: 1.5rem;
 
   --header-height: 76px;
+  /* Bottom island (mobile): offset from viewport bottom + safe area */
+  --island-inset: max(env(safe-area-inset-bottom, 0px), 0.75rem);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  /* Space under last section so content clears bottom header island */
+  --padding-main-with-island: calc(
+    var(--header-height) + var(--island-inset) + var(--padding-main)
+  );
+  --spacing-hero-top-mobile: max(env(safe-area-inset-top, 0px), 0.75rem);
+  /* Below fixed scroll-hint pill (top + chip height) + gap before section content */
+  --spacing-scroll-hint-below: calc(1.5em + 2.75rem + max(env(safe-area-inset-top, 0px), 0px));
+  --hero-padding-top-mobile: var(--spacing-scroll-hint-below);
+  --section-padding-top-mobile: calc(var(--spacing-scroll-hint-below) + 0.75rem);
   --offset-header-top: 1em;
   --padding-header-inline: 2em;
   --padding-header-block: 1em;
@@ -75,6 +87,9 @@
   --padding-footer-bottom: 4em;
   /* Section “how to” + shared large bottom padding */
   --padding-section-bottom-xl: 6em;
+  --padding-section-bottom-mobile: 3.5em;
+  --padding-feature-card-block-mobile: 1.25em;
+  --padding-fear-card-mobile: 1.25em 1.1em;
   --spacing-hero-top-extra: 2em;
   --gap-whatdo-inner: 4em;
   --padding-solution-row: 2.5em 0;
@@ -166,6 +181,9 @@
   --z-loader: 9000;
   --z-cursor: 9999;
   --z-search: 3000;
+  --z-mobile-menu-backdrop: 2400;
+  --z-mobile-menu-panel: 2450;
+  --z-header-island: 2600;
   /* -----end Z-Index----- */
 
   /* Search overlay (padding uses rem from design) */

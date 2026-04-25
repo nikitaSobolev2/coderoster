@@ -1,3 +1,5 @@
+@use '~/shared/assets/styles/breakpoints' as bp;
+
 .content__search {
   border-radius: var(--border-radius-button);
   height: auto;
@@ -37,5 +39,11 @@
     width: auto;
     font-size: var(--font-size-h4);
     color: var(--color-text);
+  }
+}
+
+@include bp.max-width(bp.$bp-nav) {
+  .content__search {
+    display: none;
   }
 }

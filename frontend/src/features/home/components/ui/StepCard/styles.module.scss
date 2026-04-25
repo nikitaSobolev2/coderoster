@@ -1,4 +1,5 @@
 @use '~/shared/assets/styles/mixins' as *;
+@use '~/shared/assets/styles/breakpoints' as bp;
 
 .step {
   display: grid;
@@ -71,4 +72,10 @@
   font-size: var(--font-size-default);
   line-height: 1.6;
   max-width: 60ch;
+}
+
+@include bp.max-width(bp.$bp-nav) {
+  .step__body {
+    padding: 0 0 1.5em 0;
+  }
 }

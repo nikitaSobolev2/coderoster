@@ -1,4 +1,5 @@
 @use '~/shared/assets/styles/mixins' as *;
+@use '~/shared/assets/styles/breakpoints' as bp;
 
 .featureCard {
   @include bluredBg;
@@ -57,4 +58,15 @@
   font-size: var(--font-size-default);
   line-height: 1.6;
   max-width: 60ch;
+}
+
+@include bp.max-width(bp.$bp-nav) {
+  .featureCard {
+    padding: var(--padding-feature-card-block-mobile) var(--padding-feature-card-block-mobile);
+  }
+
+  .featureCard__badge {
+    top: 1em;
+    right: 1em;
+  }
 }

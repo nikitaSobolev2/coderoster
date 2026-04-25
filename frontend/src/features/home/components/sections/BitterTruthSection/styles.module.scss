@@ -1,4 +1,5 @@
 @use '~/shared/assets/styles/mixins' as *;
+@use '~/shared/assets/styles/breakpoints' as bp;
 
 .bitterTruth {
   position: relative;
@@ -9,6 +10,19 @@
   justify-content: center;
   padding: calc(var(--header-height) + var(--spacing-footer-below-header)) var(--padding-main)
     var(--padding-section-bottom-xl);
+}
+
+@include bp.max-width(bp.$bp-nav) {
+  .bitterTruth {
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding: var(--section-padding-top-mobile) var(--padding-main)
+      var(--padding-section-bottom-mobile);
+  }
+
+  .fearFact {
+    padding: var(--padding-fear-card-mobile);
+  }
 }
 
 .bitterTruth__inner {

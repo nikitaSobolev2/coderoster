@@ -5,7 +5,7 @@ import type { SectionDescriptor } from './section-scroller.store'
  * (used after full reload / bfcache when scrollY does not start at 0).
  */
 export function getSectionIndexFromScroll(
-  sections: SectionDescriptor[],
+  sections: readonly SectionDescriptor[],
   scrollY: number,
   viewportHeight: number
 ): number {

@@ -1,7 +1,7 @@
 'use client'
 
 import type React from 'react'
-import { useEffect, useCallback, useRef } from 'react'
+import { useEffect, useLayoutEffect, useCallback, useRef } from 'react'
 import {
   useCursorStore,
   type CursorStyleProps,
@@ -48,7 +48,9 @@ export function useCursorInteraction(
 
   const isInteracting = useRef(false)
   const applyActiveStylesRef = useRef(applyActiveStyles)
-  applyActiveStylesRef.current = applyActiveStyles
+  useLayoutEffect(() => {
+    applyActiveStylesRef.current = applyActiveStyles
+  }, [applyActiveStyles])
 
   const reapplyActiveStyles = useCallback(() => {
     if (!applyActiveStylesRef.current) return

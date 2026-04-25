@@ -124,3 +124,31 @@ a {
   text-decoration: none;
   color: inherit;
 }
+
+@include bp.max-width(bp.$bp-nav) {
+  main button:not([type='reset']),
+  [data-section='footer'] button,
+  [data-home-header] button,
+  [data-home-mobile-chrome] button {
+    min-height: 2.75rem;
+  }
+
+  main input,
+  main textarea,
+  main select,
+  [data-section='footer'] input,
+  [data-section='footer'] textarea,
+  [data-section='footer'] select,
+  [data-home-mobile-chrome] input,
+  [data-home-mobile-chrome] textarea,
+  [data-home-mobile-chrome] select {
+    min-height: 2.75rem;
+    max-width: 100%;
+  }
+
+  main a[href],
+  [data-section='footer'] a[href] {
+    font-size: var(--font-size-h4);
+    line-height: 1.35;
+  }
+}

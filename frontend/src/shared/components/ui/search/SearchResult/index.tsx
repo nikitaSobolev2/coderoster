@@ -13,7 +13,7 @@ export interface Props {
 }
 
 export default function SearchResult({ title, image = '', description = '' }: Props) {
-  const ref = useRef<HTMLDivElement>(null)
+  const ref = useRef<HTMLButtonElement>(null)
 
   useCursorFillTarget(ref)
 

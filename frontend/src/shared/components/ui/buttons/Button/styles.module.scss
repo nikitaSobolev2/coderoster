@@ -1,4 +1,4 @@
-@import '/src/shared/assets/styles/mixins';
+@use '/src/shared/assets/styles/mixins' as *;
 
 .button {
   --hover-bg: var(--color-secondary);
@@ -9,7 +9,7 @@
   padding: 0.75em 1.25em;
   justify-content: center;
   border-radius: var(--border-radius-button);
-  cursor: pointer;
+  cursor: none;
   font-size: var(--font-size-default);
 
   &:hover,

@@ -1,4 +1,4 @@
-@import '~/shared/assets/styles/mixins';
+@use '~/shared/assets/styles/mixins' as *;
 
 .content__actions {
   // @include bluredBg;

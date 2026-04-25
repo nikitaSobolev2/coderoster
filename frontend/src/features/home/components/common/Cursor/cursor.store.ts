@@ -9,16 +9,27 @@ export interface CursorStyleProps {
   rotate?: number | null
 }
 
-export type CursorType = 'default' | 'arrow'
+export type CursorMediaType = 'image' | 'video'
+
+export interface CursorMedia {
+  type: CursorMediaType
+  src: string
+}
+
+export type CursorType = 'default' | 'arrow' | 'image' | 'video'
 
 export interface CursorStore {
   isLocked: boolean
+  /** Viewport X/Y for the custom cursor lerp target (may stay fixed while locked). */
   x: number
   y: number
+  /** Last real pointer position, always updated on mousemove; use for hit-testing (e.g. after scroll). */
+  pointerX: number
+  pointerY: number
   styleProps: CursorStyleProps
   type: CursorType
+  media: CursorMedia | null
 
-  // Actions
   setLocked: (locked: boolean) => void
   setPosition: (pos: { x: number; y: number }) => void
   setStyle: (style: Partial<CursorStyleProps>) => void
@@ -27,6 +38,8 @@ export interface CursorStore {
   lockAtPosition: (pos: { x: number; y: number }) => void
   setType: (type: CursorType) => void
   resetType: () => void
+  setMedia: (media: CursorMedia | null) => void
+  resetMedia: () => void
 }
 
 export const defaultCursorStyle: CursorStyleProps = {
@@ -42,14 +55,17 @@ export const useCursorStore = create<CursorStore>((set, get) => ({
   isLocked: false,
   x: 0,
   y: 0,
+  pointerX: 0,
+  pointerY: 0,
   type: 'default',
   styleProps: { ...defaultCursorStyle },
+  media: null,
 
   setLocked: locked => set({ isLocked: locked }),
 
   setPosition: ({ x, y }) => {
-    const { isLocked } = get()
-    if (!isLocked) {
+    set({ pointerX: x, pointerY: y })
+    if (!get().isLocked) {
       set({ x, y })
     }
   },
@@ -72,7 +88,11 @@ export const useCursorStore = create<CursorStore>((set, get) => ({
 
   setType: type => set({ type }),
 
-  resetType: () => set({ type: 'default' })
+  resetType: () => set({ type: 'default' }),
+
+  setMedia: media => set({ media }),
+
+  resetMedia: () => set({ media: null })
 }))
 
 export const initialCursorState = useCursorStore.getState()

@@ -1,0 +1,86 @@
+@use '~/shared/assets/styles/mixins' as *;
+
+.contactForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25em;
+}
+
+.contactForm__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4em;
+}
+
+.contactForm__label {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-h6);
+  letter-spacing: var(--letter-spacing-button);
+  text-transform: uppercase;
+}
+
+.contactForm__input,
+.contactForm__textarea {
+  @include inputReset;
+
+  width: 100%;
+  border: 1px solid var(--color-bg-el-border);
+  border-radius: var(--border-radius-input);
+  padding: 0.85em 1em;
+  background: var(--color-bg-el);
+  color: var(--color-text);
+  font-size: var(--font-size-default);
+  backdrop-filter: blur(0);
+  transition:
+    border-color var(--transition-default) ease,
+    background-color var(--transition-default) ease,
+    backdrop-filter var(--transition-default) ease,
+    box-shadow var(--transition-default) ease;
+
+  &:hover,
+  &:focus,
+  &:not(:placeholder-shown) {
+    border-color: var(--color-text-secondary);
+    background: var(--color-bg-semivisible);
+    backdrop-filter: var(--blur-effect-default);
+    box-shadow: 0 0 24px -8px var(--color-primary);
+  }
+}
+
+.contactForm__textarea {
+  resize: vertical;
+  min-height: 6em;
+  font-family: inherit;
+}
+
+.contactForm__submit {
+  @include buttonReset;
+
+  align-self: flex-start;
+  background: var(--color-text);
+  color: var(--color-bg);
+  font-size: var(--font-size-h5);
+  letter-spacing: var(--letter-spacing-button);
+  padding: 0.9em 1.5em;
+  border-radius: var(--border-radius-button);
+  font-weight: 500;
+
+  &:hover:not(:disabled) {
+    opacity: 0.85;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: none;
+  }
+}
+
+.contactForm__feedback_success {
+  color: var(--color-positive);
+  font-size: var(--font-size-default);
+}
+
+.contactForm__feedback_error {
+  color: var(--color-negative);
+  font-size: var(--font-size-default);
+}

@@ -4,38 +4,32 @@ import type React from 'react'
 import { type CursorStyleProps } from '~/features/home/components/common/Cursor/cursor.store'
 import { useCursorInteraction } from '~/features/home/hooks/useCursorInteraction'
 
+const CURSOR_PADDING_PX = 8
+
 export function useCursorFillTarget(
-  elementRef: React.RefObject<HTMLElement>,
+  elementRef: React.RefObject<HTMLElement | null>,
   rawFillColor?: string | null
 ) {
-  const applyActiveStyles = (element: HTMLElement) => {
+  const applyActiveStyles = (element: HTMLElement): CursorStyleProps => {
     const rect = element.getBoundingClientRect()
     const computedStyle = window.getComputedStyle(element)
-    const fillColor = getFillColor(element, rawFillColor)
 
-    const cursorStyles: CursorStyleProps = {
-      width: rect.width + 8 + 'px',
-      height: rect.height + 8 + 'px',
+    return {
+      width: `${rect.width + CURSOR_PADDING_PX}px`,
+      height: `${rect.height + CURSOR_PADDING_PX}px`,
       borderRadius: computedStyle.borderRadius,
-      backgroundColor: fillColor
+      backgroundColor: getFillColor(element, rawFillColor)
     }
-
-    return cursorStyles
   }
 
-  return useCursorInteraction(elementRef, {
-    applyActiveStyles: applyActiveStyles
-  })
+  return useCursorInteraction(elementRef, { applyActiveStyles })
 }
 
 function getFillColor(element: HTMLElement, rawFillColor?: string | null) {
   const computedStyle = window.getComputedStyle(element)
+  const cssVar = computedStyle.getPropertyValue('--cursor-fill-color')
 
-  if (rawFillColor) {
-    return rawFillColor
-  } else if (computedStyle.getPropertyValue('--cursor-fill-color')) {
-    return computedStyle.getPropertyValue('--cursor-fill-color')
-  } else {
-    return computedStyle.color
-  }
+  if (rawFillColor) return rawFillColor
+  if (cssVar) return cssVar
+  return computedStyle.color
 }

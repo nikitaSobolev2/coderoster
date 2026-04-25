@@ -1,14 +1,14 @@
-@import '~/shared/assets/styles/mixins';
+@use '~/shared/assets/styles/mixins' as *;
 
 .search__bar {
   @include bluredBg;
-  
+
   position: relative;
   // box-shadow: 0px 0px 10px 0px rgba(137, 137, 230, 0.25);
   border-radius: var(--border-radius-input);
   overflow: hidden;
   display: flex;
-  cursor: pointer;
+  cursor: none;
 
   .bar__icon {
     padding: 0.75rem 1.25rem;

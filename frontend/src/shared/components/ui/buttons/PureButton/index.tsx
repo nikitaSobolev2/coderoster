@@ -4,13 +4,14 @@ import { forwardRef } from 'react'
 import Link from 'next/link'
 import { Tooltip } from '@mantine/core'
 import type { Url } from 'next/dist/shared/lib/router/router'
+import { scrollToSectionById } from '~/features/home/components/common/SectionScroller/section-scroll-api'
 import styles from './styles.module.scss'
 
 export interface Props extends React.HTMLAttributes<HTMLButtonElement | HTMLAnchorElement> {
   disabled?: boolean
   label?: string
   href?: Url
-  onClick?: () => void
+  onClick?: (event?: React.MouseEvent) => void
   preserveOnClick?: boolean
 }
 
@@ -25,21 +26,20 @@ const PureButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, Props>(func
   },
   ref
 ) {
-  function onClickHandler() {
+  function onClickHandler(event: React.MouseEvent<HTMLAnchorElement | HTMLButtonElement>) {
     if (
       preserveOnClick &&
       typeof defaultProps.href === 'string' &&
       defaultProps.href.startsWith('#')
     ) {
-      const element = document.querySelector(defaultProps.href)
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      event.preventDefault()
+      const id = defaultProps.href.slice(1)
+      if (id) {
+        scrollToSectionById(id)
       }
     }
 
-    if (onClick) {
-      onClick()
-    }
+    onClick?.(event)
   }
 
   const getContent = () => {
@@ -51,8 +51,8 @@ const PureButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, Props>(func
           aria-disabled={disabled}
           tabIndex={disabled ? -1 : 1}
           aria-label={label}
-          onClick={onClickHandler}
           {...defaultProps}
+          onClick={e => onClickHandler(e)}
           ref={ref as React.RefObject<HTMLAnchorElement>}
         />
       )
@@ -65,6 +65,7 @@ const PureButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, Props>(func
         aria-disabled={disabled}
         tabIndex={disabled ? -1 : 1}
         {...defaultProps}
+        onClick={e => onClickHandler(e)}
         ref={ref as React.RefObject<HTMLButtonElement>}
       />
     )

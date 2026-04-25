@@ -1,0 +1,69 @@
+@use '~/shared/assets/styles/mixins' as *;
+
+.bitterTruth {
+  position: relative;
+  width: 100%;
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: calc(var(--header-height) + 3em) var(--padding-main) 6em;
+}
+
+.bitterTruth__inner {
+  width: var(--width-content);
+  display: flex;
+  flex-direction: column;
+  gap: 4em;
+}
+
+.bitterTruth__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.5em;
+}
+
+.fearFact {
+  @include bluredBg;
+
+  position: relative;
+  border: 1px solid var(--color-bg-el-border);
+  border-radius: var(--border-radius-el);
+  padding: 2em 1.75em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75em;
+  cursor: none;
+  background: var(--color-bg-el);
+  transition: border-color var(--transition-default) ease;
+
+  &:hover {
+    border-color: var(--color-text-secondary);
+  }
+}
+
+.fearFact__icon {
+  width: 2.5em;
+  height: 2.5em;
+  border-radius: 0.6em;
+  border: 1px solid var(--color-bg-el-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text);
+  font-size: var(--font-size-h4);
+  margin-bottom: 0.5em;
+}
+
+.fearFact__title {
+  color: var(--color-text);
+  font-size: var(--font-size-h3);
+  letter-spacing: var(--letter-spacing-button);
+  margin: 0;
+}
+
+.fearFact__description {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-default);
+  line-height: 1.6;
+}

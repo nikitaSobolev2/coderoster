@@ -1,0 +1,41 @@
+@use '~/shared/assets/styles/mixins' as *;
+
+.features {
+  position: relative;
+  width: 100%;
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: calc(var(--header-height) + 3em) var(--padding-main) 6em;
+}
+
+.features__inner {
+  width: var(--width-content);
+  display: flex;
+  flex-direction: column;
+  gap: 3em;
+}
+
+.features__grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5em;
+}
+
+.features__cta {
+  margin-top: 2em;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1em;
+}
+
+.features__ctaTitle {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-h3);
+  letter-spacing: var(--letter-spacing-title);
+}

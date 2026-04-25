@@ -1,0 +1,71 @@
+@use '~/shared/assets/styles/mixins' as *;
+
+.scrollHint {
+  @include bluredBg;
+
+  position: fixed;
+  bottom: 1.5em;
+  left: 50%;
+  translate: -50% 0;
+  z-index: var(--z-hint);
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
+  padding: 0.65em 1.1em;
+  border: 1px solid var(--color-bg-el-border);
+  border-radius: 999px;
+  color: var(--color-text);
+  font-size: var(--font-size-h6);
+  letter-spacing: var(--letter-spacing-button);
+  text-transform: uppercase;
+  opacity: 1;
+  pointer-events: none;
+  transition:
+    opacity var(--transition-long) ease,
+    translate var(--transition-long) ease;
+}
+
+.scrollHint_hidden {
+  opacity: 0;
+  translate: -50% 1em;
+}
+
+.scrollHint__label {
+  color: var(--color-text-secondary);
+}
+
+.scrollHint__divider {
+  width: 1.5em;
+  height: 1px;
+  background: var(--color-text-semivisible);
+}
+
+.scrollHint__nextShell {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  min-width: 0;
+  will-change: width;
+}
+
+.scrollHint__next {
+  color: var(--color-text);
+  display: inline-block;
+  white-space: nowrap;
+  will-change: transform, opacity, filter;
+}
+
+.scrollHint__icon {
+  font-size: var(--font-size-h6);
+  animation: bounce 1.6s infinite ease-in-out;
+}
+
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(3px);
+  }
+}

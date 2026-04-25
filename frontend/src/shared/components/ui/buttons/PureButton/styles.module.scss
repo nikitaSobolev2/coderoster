@@ -1,4 +1,4 @@
-@import '~/shared/assets/styles/mixins';
+@use '~/shared/assets/styles/mixins' as *;
 
 .pure_button__tip {
   @include bluredBg;
@@ -16,6 +16,6 @@
   font-weight: 400;
 
   &[aria-disabled='true'] {
-    cursor: default;
+    cursor: none;
   }
 }

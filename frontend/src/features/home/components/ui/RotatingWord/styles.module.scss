@@ -1,0 +1,14 @@
+.rotatingWord {
+  position: relative;
+  display: inline-flex;
+  align-items: baseline;
+  vertical-align: baseline;
+  overflow: hidden;
+  color: var(--color-text);
+}
+
+.rotatingWord__current {
+  display: inline-block;
+  white-space: nowrap;
+  will-change: transform, opacity, filter;
+}

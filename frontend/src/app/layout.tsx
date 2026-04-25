@@ -1,4 +1,5 @@
 import '@mantine/core/styles.layer.css'
+import '@mantine/spotlight/styles.layer.css'
 
 import '~/shared/assets/styles/normalize.scss'
 import '~/shared/assets/styles/fonts.scss'

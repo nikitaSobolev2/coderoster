@@ -1,0 +1,32 @@
+@use '~/shared/assets/styles/mixins' as *;
+
+.howToStart {
+  position: relative;
+  width: 100%;
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: calc(var(--header-height) + 3em) var(--padding-main) 6em;
+}
+
+.howToStart__inner {
+  width: var(--width-content);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: 4em;
+  align-items: start;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+    gap: 3em;
+  }
+}
+
+.howToStart__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}

@@ -1,4 +1,4 @@
-@import './mixins';
+@use './mixins' as *;
 
 *,
 *::before,
@@ -9,7 +9,7 @@
 
 body {
   @include fontYandexDisplay;
-  
+
   position: relative;
   background: var(--color-bg);
   color: var(--color-text);
@@ -17,7 +17,51 @@ body {
   overflow-x: hidden;
   height: auto;
   font-size: var(--font-size-default);
-  // font-family: 'DM Sans', sans-serif;
+  cursor: none;
+}
+
+@media (max-width: 768px) {
+  body {
+    cursor: auto;
+  }
+}
+
+a,
+button,
+input,
+textarea,
+select,
+[role='button'],
+[role='link'],
+[role='tab'],
+[role='menuitem'],
+[role='option'],
+[role='switch'],
+[role='checkbox'],
+[role='radio'],
+label[for],
+summary {
+  cursor: none;
+}
+
+@media (max-width: 768px) {
+  a,
+  button,
+  input,
+  textarea,
+  select,
+  [role='button'],
+  [role='link'],
+  [role='tab'],
+  [role='menuitem'],
+  [role='option'],
+  [role='switch'],
+  [role='checkbox'],
+  [role='radio'],
+  label[for],
+  summary {
+    cursor: auto;
+  }
 
   // display: grid;
   // grid-template-columns:
@@ -32,7 +76,7 @@ body {
 }
 
 main {
-  min-height: 100svh;  
+  min-height: 100svh;
 }
 
 ul {

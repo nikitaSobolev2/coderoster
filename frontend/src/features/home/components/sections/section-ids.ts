@@ -1,0 +1,6 @@
+export const HERO_SECTION_ID = 'home'
+export const BITTER_TRUTH_SECTION_ID = 'bitter-truth'
+export const WHAT_TO_DO_SECTION_ID = 'what-to-do'
+export const HOW_TO_START_SECTION_ID = 'how-to-start'
+export const FEATURES_SECTION_ID = 'features'
+export const FOOTER_SECTION_ID = 'contact-us'

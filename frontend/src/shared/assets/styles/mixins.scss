@@ -16,7 +16,7 @@
   transition: var(--transition-button);
   outline: transparent;
   border: none;
-  cursor: pointer;
+  cursor: none;
 }
 
 @mixin inputReset() {

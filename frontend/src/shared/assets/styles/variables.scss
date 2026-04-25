@@ -52,5 +52,18 @@
   --transition-default: 300ms;
   --transition-button: 300ms;
   --transition-long: 400ms;
+  --transition-cursor: 350ms;
+  --easing-cursor: cubic-bezier(0.22, 1, 0.36, 1);
   /* -----end Transitions----- */
+
+  /* -----start Z-Index----- */
+  --z-planet: -1;
+  --z-base: 1;
+  --z-section-active: 5;
+  --z-hint: 700;
+  --z-nav: 800;
+  --z-header: 1000;
+  --z-loader: 9000;
+  --z-cursor: 9999;
+  /* -----end Z-Index----- */
 }

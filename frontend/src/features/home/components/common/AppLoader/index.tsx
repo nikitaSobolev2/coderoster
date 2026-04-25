@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { DefaultLoadingManager } from 'three'
 import Logo from '~/shared/components/common/Logo'
 import { useLoadingStore } from './loading.store'
@@ -17,6 +17,11 @@ export default function AppLoader() {
   const markReady = useLoadingStore(state => state.markReady)
 
   const [hasUnmounted, setHasUnmounted] = useState(false)
+  const fillRef = useRef<HTMLDivElement>(null)
+
+  useLayoutEffect(() => {
+    fillRef.current?.style.setProperty('--loader-progress', String(progress))
+  }, [progress])
 
   useEffect(() => {
     DefaultLoadingManager.onProgress = (_url, loaded, total) => {
@@ -47,7 +52,7 @@ export default function AppLoader() {
       <div className={styles.loader__inner}>
         <Logo className={styles.loader__logo} />
         <div className={styles.loader__bar}>
-          <div className={styles.loader__fill} style={{ width: `${progress * 100}%` }} />
+          <div ref={fillRef} className={styles.loader__fill} />
         </div>
         <div className={styles.loader__meta}>
           <span className={styles.loader__percent}>{Math.round(progress * 100)}%</span>

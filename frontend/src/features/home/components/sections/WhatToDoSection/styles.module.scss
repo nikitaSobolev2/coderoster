@@ -7,14 +7,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: calc(var(--header-height) + 3em) var(--padding-main) 6em;
+  padding: calc(var(--header-height) + var(--spacing-footer-below-header)) var(--padding-main)
+    var(--padding-section-bottom-xl);
 }
 
 .whatToDo__inner {
   width: var(--width-content);
   display: flex;
   flex-direction: column;
-  gap: 4em;
+  gap: var(--gap-whatdo-inner);
 }
 
 .whatToDo__list {
@@ -25,16 +26,16 @@
 
 .solution {
   display: grid;
-  grid-template-columns: 6em 1fr;
+  grid-template-columns: var(--size-solution-index-col) 1fr;
   align-items: baseline;
-  gap: 1.5em;
-  padding: 2.5em 0;
-  border-top: 1px solid var(--color-bg-el-border);
+  gap: var(--gap-solution-row);
+  padding: var(--padding-solution-row);
+  border-top: var(--border-width-hair) solid var(--color-bg-el-border);
   cursor: none;
   transition: padding var(--transition-default) ease;
 
   &:last-child {
-    border-bottom: 1px solid var(--color-bg-el-border);
+    border-bottom: var(--border-width-hair) solid var(--color-bg-el-border);
   }
 
   &:hover .solution__title {

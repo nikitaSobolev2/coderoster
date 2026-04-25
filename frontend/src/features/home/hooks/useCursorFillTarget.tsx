@@ -3,8 +3,9 @@
 import type React from 'react'
 import { type CursorStyleProps } from '~/features/home/components/common/Cursor/cursor.store'
 import { useCursorInteraction } from '~/features/home/hooks/useCursorInteraction'
+import { readRootCssVarPx } from '~/shared/utils/cssCustomProperties'
 
-const CURSOR_PADDING_PX = 8
+const CURSOR_FILL_PADDING_VAR = '--size-cursor-fill-padding'
 
 export function useCursorFillTarget(
   elementRef: React.RefObject<HTMLElement | null>,
@@ -13,10 +14,11 @@ export function useCursorFillTarget(
   const applyActiveStyles = (element: HTMLElement): CursorStyleProps => {
     const rect = element.getBoundingClientRect()
     const computedStyle = window.getComputedStyle(element)
+    const paddingPx = readRootCssVarPx(CURSOR_FILL_PADDING_VAR, 8)
 
     return {
-      width: `${rect.width + CURSOR_PADDING_PX}px`,
-      height: `${rect.height + CURSOR_PADDING_PX}px`,
+      width: `${rect.width + paddingPx}px`,
+      height: `${rect.height + paddingPx}px`,
       borderRadius: computedStyle.borderRadius,
       backgroundColor: getFillColor(element, rawFillColor)
     }

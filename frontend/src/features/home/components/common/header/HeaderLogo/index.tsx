@@ -1,6 +1,5 @@
 'use client'
 
-import { useCursorFillTarget } from '~/features/home/hooks/useCursorFillTarget'
 import { useRef } from 'react'
 import Logo from '~/shared/components/common/Logo'
 import PureButton from '~/shared/components/ui/buttons/PureButton'

@@ -35,11 +35,11 @@ const NAV_LINKS = [
 export default function FooterSection() {
   const sectionRef = useRef<HTMLElement>(null)
   useFooterEntrance(sectionRef, {
-    wordmark: styles.footer__bgWordmark as string,
-    intro: styles.footer__intro as string,
-    brand: styles.footer__brand as string,
-    form: styles.footer__form as string,
-    bottom: styles.footer__bottom as string
+    wordmark: styles.footer__bgWordmark!,
+    intro: styles.footer__intro!,
+    brand: styles.footer__brand!,
+    form: styles.footer__form!,
+    bottom: styles.footer__bottom!
   })
 
   return (

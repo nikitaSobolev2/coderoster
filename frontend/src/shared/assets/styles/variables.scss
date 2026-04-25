@@ -1,8 +1,8 @@
 :root {
   /* -----start Colors----- */
-  --color-primary: color-mix(in srgb, #1B1EC8 25%, transparent);
+  --color-primary: color-mix(in srgb, #1b1ec8 25%, transparent);
 
-  --color-text: #F2E7E7;
+  --color-text: #f2e7e7;
   --color-text-semivisible: color-mix(in srgb, var(--color-text) 20%, transparent);
   --color-text-secondary: color-mix(in srgb, var(--color-text) 60%, transparent);
 
@@ -12,7 +12,19 @@
   --color-bg-semivisible: color-mix(in srgb, var(--color-bg) 25%, transparent);
 
   --color-positive: #31d154;
-  --color-negative: #C31D1D;
+  --color-negative: #c31d1d;
+
+  --color-accent: var(--color-text);
+
+  /* Solid hex for WebGL / R3F (Three.js color prop); mirror when changing scene lights */
+  --color-r3f-light-warm: #fff1e0;
+  --color-r3f-directional: #1b1ec8;
+
+  /* Cursor arrow on difference blend (matches previous “black”) */
+  --color-cursor-arrow-glyph: #000000;
+
+  /* Section overlays (single source for rgba that SCSS cannot var() from mix alone) */
+  --color-footer-section-fade: color-mix(in srgb, var(--color-bg) 60%, transparent);
   /* -----end Colors----- */
 
   /* -----start Font Sizes----- */
@@ -24,6 +36,17 @@
   --font-size-h6: 12px;
 
   --font-size-default: 14px;
+
+  /* Footer hero wordmark */
+  --size-footer-wordmark-min: 120px;
+  --size-footer-wordmark-prefer: 22vw;
+  --size-footer-wordmark-max: 360px;
+  --font-size-footer-wordmark: clamp(
+    var(--size-footer-wordmark-min),
+    var(--size-footer-wordmark-prefer),
+    var(--size-footer-wordmark-max)
+  );
+  --letter-spacing-footer-wordmark: -0.04em;
 
   --letter-spacing-title: 4px;
   --letter-spacing-button: 2px;
@@ -42,10 +65,85 @@
   --padding-main: 1.5rem;
 
   --header-height: 76px;
+  --offset-header-top: 1em;
+  --padding-header-inline: 2em;
+  --padding-header-block: 1em;
+  --gap-header-actions: 2em;
+
+  /* Footer section */
+  --spacing-footer-below-header: 3em;
+  --padding-footer-bottom: 4em;
+  /* Section “how to” + shared large bottom padding */
+  --padding-section-bottom-xl: 6em;
+  --spacing-hero-top-extra: 2em;
+  --gap-whatdo-inner: 4em;
+  --padding-solution-row: 2.5em 0;
+  --size-solution-index-col: 6em;
+  --gap-solution-row: 1.5em;
+  --gap-howto-row: 4em;
+  --gap-howto-stacked: 3em;
+  --gap-section-column: 4em;
+  --gap-section-heading: 3em;
+  --gap-section-card-grid: 1.5em;
+  --padding-fear-card: 2em 1.75em;
+  --radius-fear-icon: 0.6em;
+  --size-fear-icon: 2.5em;
+  /* Form */
+  --gap-contact-form: 1.25em;
+  --gap-contact-field: 0.4em;
+  --padding-contact-input-block: 0.85em;
+  --padding-contact-input-inline: 1em;
+  --min-height-contact-textarea: 6em;
+  --padding-contact-submit-block: 0.9em;
+  --padding-contact-submit-inline: 1.5em;
+  --opacity-contact-submit-hover: 0.85;
+  --opacity-contact-submit-disabled: 0.6;
+  --shadow-form-input-focus: 0 0 24px -8px var(--color-primary);
+  --gap-footer-inner: 3em;
+  --gap-footer-grid: 4em;
+  --gap-footer-grid-stacked: 3em;
+  --gap-footer-brand: 1.5em;
+  --gap-footer-social: 0.75em;
+  --gap-footer-nav: 0.5em;
+  --gap-footer-bottom: 0.5em;
+  --size-footer-logo-social: 2.4em;
+  --offset-footer-bg-word: -2vw;
+  --padding-footer-bottom-row: 2em;
+
+  /* Cursor / interactive */
+  --size-cursor-fill-padding: 8px;
+  --size-cursor-default: 3em;
+  --size-cursor-arrow-glyph: 32%;
+  /* Default for useCursorScaleTarget `size` option (px) */
+  --size-cursor-scale-target-default: 100px;
+
+  /* Loader */
+  --loader-progress: 0;
+  --size-loader-inner-max: 420px;
+  --size-loader-inner-vw: 80vw;
+  --size-loader-bar-height: 1px;
+  --size-loader-section-gap: 1.75em;
   /* -----end Sizes----- */
+
+  /* -----start Borders----- */
+  --border-width-hair: 1px;
+  --border-width-cursor: 2px;
+  --radius-pill: 999px;
+  /* Decorative huge radius (glow, planet) */
+  --radius-orbit: 99999px;
+  /* Layout */
+  --size-header-content-max: 1200px;
+  --size-header-content-pref: 95%;
+  --shadow-header-scrolled: 0 0 10px 0 var(--color-bg-el-border);
+  --size-grid-min-feature-card: 280px;
+  --size-grid-min-bitter: 260px;
+  --offset-scroll-hint-bounce: 3px;
+  /* -----end Borders----- */
 
   /* -----start Effects----- */
   --blur-effect-default: blur(15px);
+  --blur-spotlight: blur(100px);
+  --blur-none: blur(0);
   /* -----end Effects----- */
 
   /* -----start Transitions----- */
@@ -53,6 +151,7 @@
   --transition-button: 300ms;
   --transition-long: 400ms;
   --transition-cursor: 350ms;
+  --transition-loader-fill: 200ms;
   --easing-cursor: cubic-bezier(0.22, 1, 0.36, 1);
   /* -----end Transitions----- */
 
@@ -63,7 +162,13 @@
   --z-hint: 700;
   --z-nav: 800;
   --z-header: 1000;
+  --z-header-sticky: 2000;
   --z-loader: 9000;
   --z-cursor: 9999;
+  --z-search: 3000;
   /* -----end Z-Index----- */
+
+  /* Search overlay (padding uses rem from design) */
+  --padding-search-overlay-top: 2rem;
+  --padding-search-inner-top: 3rem;
 }

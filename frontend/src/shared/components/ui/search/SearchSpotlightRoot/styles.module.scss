@@ -2,25 +2,24 @@
 
 .search_spotlight {
   position: relative;
-  z-index: 3000;
+  z-index: var(--z-search);
 
   &__overlay {
     @include bluredBg;
 
     position: fixed;
-    padding-top: 2rem;
+    padding-top: var(--padding-search-overlay-top);
     width: 100vw;
     height: 100vh;
     left: 0;
     top: 0;
-    // background: var(--color-bg-el);
-    backdrop-filter: blur(100px);
+    backdrop-filter: var(--blur-spotlight);
     background: transparent;
   }
 
   &__inner {
     width: 100%;
-    padding-top: 3rem;
+    padding-top: var(--padding-search-inner-top);
     padding-inline: 0;
     width: var(--width-content);
     left: 50%;

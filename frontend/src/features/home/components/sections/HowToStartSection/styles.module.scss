@@ -1,4 +1,4 @@
-@use '~/shared/assets/styles/mixins' as *;
+@use '~/shared/assets/styles/breakpoints' as bp;
 
 .howToStart {
   position: relative;
@@ -7,19 +7,20 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: calc(var(--header-height) + 3em) var(--padding-main) 6em;
+  padding: calc(var(--header-height) + var(--spacing-footer-below-header)) var(--padding-main)
+    var(--padding-section-bottom-xl);
 }
 
 .howToStart__inner {
   width: var(--width-content);
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
-  gap: 4em;
+  gap: var(--gap-howto-row);
   align-items: start;
 
-  @media (max-width: 900px) {
+  @include bp.max-width(bp.$bp-md) {
     grid-template-columns: 1fr;
-    gap: 3em;
+    gap: var(--gap-howto-stacked);
   }
 }
 

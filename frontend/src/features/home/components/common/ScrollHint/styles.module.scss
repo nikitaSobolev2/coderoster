@@ -12,8 +12,8 @@
   align-items: center;
   gap: 0.75em;
   padding: 0.65em 1.1em;
-  border: 1px solid var(--color-bg-el-border);
-  border-radius: 999px;
+  border: var(--border-width-hair) solid var(--color-bg-el-border);
+  border-radius: var(--radius-pill);
   color: var(--color-text);
   font-size: var(--font-size-h6);
   letter-spacing: var(--letter-spacing-button);
@@ -36,7 +36,7 @@
 
 .scrollHint__divider {
   width: 1.5em;
-  height: 1px;
+  height: var(--border-width-hair);
   background: var(--color-text-semivisible);
 }
 
@@ -66,6 +66,6 @@
     transform: translateY(0);
   }
   50% {
-    transform: translateY(3px);
+    transform: translateY(var(--offset-scroll-hint-bounce));
   }
 }

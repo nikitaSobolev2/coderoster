@@ -1,0 +1,10 @@
+$bp-sm: 600px;
+$bp-md: 900px;
+$bp-nav: 768px;
+$bp-search: 770px;
+
+@mixin max-width($breakpoint) {
+  @media (max-width: $breakpoint) {
+    @content;
+  }
+}

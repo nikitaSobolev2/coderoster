@@ -37,7 +37,7 @@ const SOLUTIONS: Solution[] = [
 
 export default function WhatToDoSection() {
   const sectionRef = useRef<HTMLElement>(null)
-  useWhatToDoEntrance(sectionRef, { solution: styles.solution as string })
+  useWhatToDoEntrance(sectionRef, { solution: styles.solution! })
 
   return (
     <section

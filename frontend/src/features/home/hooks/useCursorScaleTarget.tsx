@@ -2,8 +2,9 @@
 
 import type React from 'react'
 import { useCursorInteraction } from '~/features/home/hooks/useCursorInteraction'
+import { readRootCssVarPx } from '~/shared/utils/cssCustomProperties'
 
-const DEFAULT_SCALE_PX = 100
+const CURSOR_SCALE_DEFAULT_VAR = '--size-cursor-scale-target-default'
 
 export interface ScaleTargetOptions {
   size?: number
@@ -12,15 +13,18 @@ export interface ScaleTargetOptions {
 
 export function useCursorScaleTarget(
   elementRef: React.RefObject<HTMLElement | null>,
-  { size = DEFAULT_SCALE_PX, filled = true }: ScaleTargetOptions = {}
+  { size, filled = true }: ScaleTargetOptions = {}
 ) {
-  const applyActiveStyles = () => ({
-    width: `${size}px`,
-    height: `${size}px`,
-    borderRadius: '50%',
-    backgroundColor: filled ? 'var(--color-text)' : 'transparent',
-    borderColor: 'var(--color-text)'
-  })
+  const applyActiveStyles = () => {
+    const px = size ?? readRootCssVarPx(CURSOR_SCALE_DEFAULT_VAR, 100)
+    return {
+      width: `${px}px`,
+      height: `${px}px`,
+      borderRadius: '50%',
+      backgroundColor: filled ? 'var(--color-text)' : 'transparent',
+      borderColor: 'var(--color-text)'
+    }
+  }
 
   return useCursorInteraction(elementRef, {
     lockPosition: false,

@@ -23,7 +23,7 @@ export default function SearchSpotlight({ placeholder = 'Поиск' }: Props) {
   const debouncedSearch = useMemo(() => debounce(search, 300) as (query: string) => void, [search])
   const items = data.filter(item => item.toLowerCase().includes(searchQuery.toLowerCase().trim()))
 
-  const onSearch = (e: React.ChangeEvent) => {
+  const onSearch = (_e: React.ChangeEvent) => {
     debouncedSearch(searchQuery)
   }
 

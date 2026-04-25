@@ -27,8 +27,11 @@ export function CameraSetup({ fixedSize }: CameraSetupProps) {
     const D = targetFrustumWidthForObject / (2 * Math.tan(verticalFovRadians / 2) * aspectRatio)
 
     camera.position.set(0, 0, D)
+    // PerspectiveCamera from @react-three/fiber is expected to be mutated in layout.
+    /* eslint-disable react-hooks/immutability */
     camera.fov = INITIAL_CAMERA_FOV
     camera.aspect = aspectRatio
+    /* eslint-enable react-hooks/immutability */
     camera.updateProjectionMatrix()
   }, [camera, fixedSize])
 

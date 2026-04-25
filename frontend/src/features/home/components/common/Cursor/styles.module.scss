@@ -1,3 +1,5 @@
+@use '~/shared/assets/styles/breakpoints' as bp;
+
 .cursor {
   --cursor-x: 0px;
   --cursor-y: 0px;
@@ -5,9 +7,9 @@
   position: fixed;
   top: var(--cursor-y, 0px);
   left: var(--cursor-x, 0px);
-  width: var(--cursor-width, 3em);
-  height: var(--cursor-height, 3em);
-  border: 2px solid var(--cursor-border-color, var(--color-text-semivisible));
+  width: var(--cursor-width, var(--size-cursor-default));
+  height: var(--cursor-height, var(--size-cursor-default));
+  border: var(--border-width-cursor) solid var(--cursor-border-color, var(--color-text-semivisible));
   border-radius: var(--cursor-border-radius, 50%);
   background: var(--cursor-bg-color, transparent);
   rotate: var(--cursor-rotate, 0deg);
@@ -38,9 +40,9 @@
 }
 
 .cursor__arrow {
-  width: 32%;
-  height: 32%;
-  color: black;
+  width: var(--size-cursor-arrow-glyph);
+  height: var(--size-cursor-arrow-glyph);
+  color: var(--color-cursor-arrow-glyph);
 }
 
 .cursor__media {
@@ -50,7 +52,7 @@
   display: block;
 }
 
-@media (max-width: 768px) {
+@include bp.max-width(bp.$bp-nav) {
   .cursor {
     display: none;
   }

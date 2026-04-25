@@ -1,4 +1,5 @@
 @use './mixins' as *;
+@use './breakpoints' as bp;
 
 *,
 *::before,
@@ -20,7 +21,7 @@ body {
   cursor: none;
 }
 
-@media (max-width: 768px) {
+@include bp.max-width(bp.$bp-nav) {
   body {
     cursor: auto;
   }
@@ -44,7 +45,7 @@ summary {
   cursor: none;
 }
 
-@media (max-width: 768px) {
+@include bp.max-width(bp.$bp-nav) {
   a,
   button,
   input,
@@ -77,6 +78,11 @@ summary {
 
 main {
   min-height: 100svh;
+}
+
+/* Toggled from SectionScroller when full-page section mode is active */
+body.section-scroller-active {
+  overflow: hidden;
 }
 
 ul {

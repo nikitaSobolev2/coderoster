@@ -18,11 +18,11 @@
 }
 
 .loader__inner {
-  width: min(420px, 80vw);
+  width: min(var(--size-loader-inner-max), var(--size-loader-inner-vw));
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 1.75em;
+  gap: var(--size-loader-section-gap);
 }
 
 .loader__logo {
@@ -34,17 +34,19 @@
 .loader__bar {
   position: relative;
   width: 100%;
-  height: 1px;
+  height: var(--size-loader-bar-height);
   background: var(--color-text-semivisible);
   overflow: hidden;
 }
 
 .loader__fill {
+  --loader-progress: 0;
+
   position: absolute;
   inset: 0;
-  width: 0%;
+  width: calc(var(--loader-progress) * 100%);
   background: var(--color-text);
-  transition: width 200ms ease;
+  transition: width var(--transition-loader-fill) ease;
 }
 
 .loader__meta {

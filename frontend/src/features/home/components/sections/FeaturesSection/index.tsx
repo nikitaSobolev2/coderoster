@@ -50,9 +50,9 @@ const FEATURES: Feature[] = [
 export default function FeaturesSection() {
   const sectionRef = useRef<HTMLElement>(null)
   useFeaturesEntrance(sectionRef, {
-    cta: styles.features__cta as string,
-    ctaTitle: styles.features__ctaTitle as string,
-    card: featureCardStyles.featureCard as string
+    cta: styles.features__cta!,
+    ctaTitle: styles.features__ctaTitle!,
+    card: featureCardStyles.featureCard!
   })
 
   return (

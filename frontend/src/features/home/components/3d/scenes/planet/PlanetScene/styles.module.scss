@@ -1,16 +1,16 @@
 @use '~/shared/assets/styles/mixins' as *;
 
 .container {
-  --planet-scale: 1; // Default scale value
+  --planet-scale: 1;
 
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 200%;
-  z-index: -1;
+  z-index: var(--z-planet);
   will-change: transform;
-  transform: translateZ(0); // Force hardware acceleration layer
+  transform: translateZ(0);
 
   &::before {
     @include mainShadow;
@@ -18,7 +18,7 @@
     content: '';
     width: 50%;
     aspect-ratio: 1/1;
-    border-radius: 99999px;
+    border-radius: var(--radius-orbit);
     position: absolute;
     left: 50%;
     top: 50%;
@@ -28,9 +28,9 @@
 }
 
 .canvasHolder {
-  width: 100%;
-  height: 100%;
+  width: var(--canvas-width, 100%);
+  height: var(--canvas-height, 100%);
   position: relative;
   will-change: contents;
-  transform: translateZ(0); // Force hardware acceleration layer
+  transform: translateZ(0);
 }

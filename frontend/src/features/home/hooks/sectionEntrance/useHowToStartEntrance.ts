@@ -20,9 +20,7 @@ export function useHowToStartEntrance(sectionRef: RefObject<HTMLElement | null>)
     ensureScrollTrigger()
 
     const { eyebrow, title, subtitle } = querySectionHeader(root)
-    const stepEls = Array.from(
-      root.querySelectorAll<HTMLElement>(`.${stepCardStyles.step as string}`)
-    )
+    const stepEls = Array.from(root.querySelectorAll<HTMLElement>(`.${stepCardStyles.step!}`))
     if (!eyebrow || !title) return
 
     const ctx = gsap.context(() => {

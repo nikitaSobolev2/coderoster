@@ -19,9 +19,9 @@ const ROTATING_OUTCOMES = [
 export default function HeroSection() {
   const sectionRef = useRef<HTMLElement>(null)
   useHeroEntrance(sectionRef, {
-    title: styles.hero__title as string,
-    description: styles.hero__description as string,
-    button: styles.hero__button as string
+    title: styles.hero__title!,
+    description: styles.hero__description!,
+    button: styles.hero__button!
   })
 
   return (

@@ -23,7 +23,7 @@
 
 .sectionHeader__divider {
   flex: 0 0 1.5em;
-  height: 1px;
+  height: var(--border-width-hair);
   background: var(--color-text-semivisible);
 }
 

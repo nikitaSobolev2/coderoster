@@ -23,5 +23,7 @@ export default function InteractiveHeading({
   const ref = useRef<HTMLHeadingElement>(null)
   useCursorScaleTarget(ref, { size, filled })
 
+  // Polymorphic heading; ref is for useCursorScaleTarget, not read during render.
+  // eslint-disable-next-line react-hooks/refs -- createElement needs ref for cursor hook
   return createElement(as, { ref, className }, children)
 }

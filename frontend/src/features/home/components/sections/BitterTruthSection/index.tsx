@@ -39,7 +39,7 @@ const FEAR_FACTS: FearFact[] = [
 
 export default function BitterTruthSection() {
   const sectionRef = useRef<HTMLElement>(null)
-  useBitterTruthEntrance(sectionRef, { item: styles.fearFact as string })
+  useBitterTruthEntrance(sectionRef, { item: styles.fearFact! })
 
   return (
     <section

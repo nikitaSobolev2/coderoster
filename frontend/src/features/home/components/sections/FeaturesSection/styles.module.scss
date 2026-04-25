@@ -7,14 +7,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: calc(var(--header-height) + 3em) var(--padding-main) 6em;
+  padding: calc(var(--header-height) + var(--spacing-footer-below-header)) var(--padding-main)
+    var(--padding-section-bottom-xl);
 }
 
 .features__inner {
   width: var(--width-content);
   display: flex;
   flex-direction: column;
-  gap: 3em;
+  gap: var(--gap-section-heading);
 }
 
 .features__grid {
@@ -22,8 +23,8 @@
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5em;
+  grid-template-columns: repeat(auto-fit, minmax(var(--size-grid-min-feature-card), 1fr));
+  gap: var(--gap-section-card-grid);
 }
 
 .features__cta {

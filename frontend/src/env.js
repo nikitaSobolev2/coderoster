@@ -1,5 +1,6 @@
 import { createEnv } from '@t3-oss/env-nextjs'
 import { z } from 'zod'
+import { resolveDatabaseUrl } from './lib/databaseUrl.js'
 
 export const env = createEnv({
   /**
@@ -7,7 +8,18 @@ export const env = createEnv({
    * isn't built with invalid env vars.
    */
   server: {
+    /**
+     * If unset, derived from POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB, optional POSTGRES_PORT / POSTGRES_HOST.
+     * See `resolveDatabaseUrl` in `./lib/databaseUrl.js`.
+     */
     DATABASE_URL: z.string().url(),
+    /** Docker Compose / local Postgres; used to build DATABASE_URL when it is not set. */
+    POSTGRES_USER: z.string().optional(),
+    POSTGRES_PASSWORD: z.string().optional(),
+    POSTGRES_DB: z.string().optional(),
+    POSTGRES_PORT: z.string().optional(),
+    /** Default `localhost` when building DATABASE_URL (host port mapping). */
+    POSTGRES_HOST: z.string().optional(),
     NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
     WORKOS_API_KEY: z.string(),
     WORKOS_CLIENT_ID: z.string(),
@@ -29,7 +41,12 @@ export const env = createEnv({
    * middlewares) or client-side so we need to destruct manually.
    */
   runtimeEnv: {
-    DATABASE_URL: process.env.DATABASE_URL,
+    DATABASE_URL: resolveDatabaseUrl(process.env),
+    POSTGRES_USER: process.env.POSTGRES_USER,
+    POSTGRES_PASSWORD: process.env.POSTGRES_PASSWORD,
+    POSTGRES_DB: process.env.POSTGRES_DB,
+    POSTGRES_PORT: process.env.POSTGRES_PORT,
+    POSTGRES_HOST: process.env.POSTGRES_HOST,
     NODE_ENV: process.env.NODE_ENV,
     WORKOS_API_KEY: process.env.WORKOS_API_KEY,
     WORKOS_CLIENT_ID: process.env.WORKOS_CLIENT_ID,
@@ -43,7 +60,7 @@ export const env = createEnv({
    */
   skipValidation: !!process.env.SKIP_ENV_VALIDATION,
   /**
-   * Makes it so that empty strings are treated as undefined. `SOME_VAR: z.string()` and
+   * Makes it so that empty strings are treated as undefined. The `SOME_VAR: z.string()` and
    * `SOME_VAR=''` will throw an error.
    */
   emptyStringAsUndefined: true

@@ -7,29 +7,30 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: calc(var(--header-height) + 3em) var(--padding-main) 6em;
+  padding: calc(var(--header-height) + var(--spacing-footer-below-header)) var(--padding-main)
+    var(--padding-section-bottom-xl);
 }
 
 .bitterTruth__inner {
   width: var(--width-content);
   display: flex;
   flex-direction: column;
-  gap: 4em;
+  gap: var(--gap-section-column);
 }
 
 .bitterTruth__list {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 1.5em;
+  grid-template-columns: repeat(auto-fit, minmax(var(--size-grid-min-bitter), 1fr));
+  gap: var(--gap-section-card-grid);
 }
 
 .fearFact {
   @include bluredBg;
 
   position: relative;
-  border: 1px solid var(--color-bg-el-border);
+  border: var(--border-width-hair) solid var(--color-bg-el-border);
   border-radius: var(--border-radius-el);
-  padding: 2em 1.75em;
+  padding: var(--padding-fear-card);
   display: flex;
   flex-direction: column;
   gap: 0.75em;
@@ -43,10 +44,10 @@
 }
 
 .fearFact__icon {
-  width: 2.5em;
-  height: 2.5em;
-  border-radius: 0.6em;
-  border: 1px solid var(--color-bg-el-border);
+  width: var(--size-fear-icon);
+  height: var(--size-fear-icon);
+  border-radius: var(--radius-fear-icon);
+  border: var(--border-width-hair) solid var(--color-bg-el-border);
   display: flex;
   align-items: center;
   justify-content: center;

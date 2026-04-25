@@ -1,6 +1,7 @@
 @use '~/shared/assets/styles/mixins' as *;
 
 .scrollHint {
+  @include buttonReset;
   @include bluredBg;
 
   position: fixed;
@@ -8,21 +9,26 @@
   left: 50%;
   translate: -50% 0;
   z-index: var(--z-hint);
-  display: flex;
-  align-items: center;
   gap: 0.75em;
   padding: 0.65em 1.1em;
   border: var(--border-width-hair) solid var(--color-bg-el-border);
   border-radius: var(--radius-pill);
   color: var(--color-text);
+  font: inherit;
   font-size: var(--font-size-h6);
   letter-spacing: var(--letter-spacing-button);
   text-transform: uppercase;
+  width: max-content;
+  max-width: min(100vw - 2em, 32rem);
   opacity: 1;
-  pointer-events: none;
   transition:
     opacity var(--transition-long) ease,
     translate var(--transition-long) ease;
+}
+
+.scrollHint:disabled,
+.scrollHint_hidden {
+  pointer-events: none;
 }
 
 .scrollHint_hidden {

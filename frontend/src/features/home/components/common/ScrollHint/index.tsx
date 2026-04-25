@@ -1,11 +1,13 @@
 'use client'
 
-import { useEffect, useLayoutEffect, useRef } from 'react'
+import { useEffect, useLayoutEffect, useRef, useCallback } from 'react'
 import { gsap } from 'gsap'
 import { faChevronDown } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { useSectionScrollerStore } from '~/features/home/components/common/SectionScroller/section-scroller.store'
+import { scrollToSectionById } from '~/features/home/components/common/SectionScroller/section-scroll-api'
 import { useLoadingStore } from '~/features/home/components/common/AppLoader/loading.store'
+import { useCursorFillTarget } from '~/features/home/hooks/useCursorFillTarget'
 import styles from './styles.module.scss'
 
 const LABEL_ANIM_S = 0.45
@@ -16,13 +18,22 @@ export default function ScrollHint() {
   const activeIndex = useSectionScrollerStore(state => state.activeIndex)
   const isReady = useLoadingStore(state => state.isReady)
 
+  const actionRef = useRef<HTMLButtonElement>(null)
   const nextLabelRef = useRef<HTMLSpanElement>(null)
   const nextShellRef = useRef<HTMLSpanElement>(null)
   const widthTween = useRef<gsap.core.Tween | null>(null)
 
+  useCursorFillTarget(actionRef)
+
   const nextSection = sections[activeIndex + 1]
   const nextLabel = nextSection?.label ?? ''
   const isVisible = isReady && nextSection != null
+
+  const goToNextSection = useCallback(() => {
+    if (!nextSection) return
+    if (useSectionScrollerStore.getState().isAnimating) return
+    scrollToSectionById(nextSection.id)
+  }, [nextSection])
 
   useLayoutEffect(() => {
     const shell = nextShellRef.current
@@ -67,15 +78,23 @@ export default function ScrollHint() {
   }, [activeIndex, nextLabel])
 
   return (
-    <div className={`${styles.scrollHint} ${isVisible ? '' : styles.scrollHint_hidden}`}>
+    <button
+      type="button"
+      ref={actionRef}
+      className={`${styles.scrollHint} ${isVisible ? '' : styles.scrollHint_hidden}`}
+      onClick={goToNextSection}
+      disabled={!isVisible}
+      tabIndex={isVisible ? 0 : -1}
+      aria-label={isVisible && nextLabel ? `Следующий раздел: ${nextLabel}` : undefined}
+    >
       <span className={styles.scrollHint__label}>Прокрутите</span>
-      <span className={styles.scrollHint__divider} />
+      <span className={styles.scrollHint__divider} aria-hidden="true" />
       <span ref={nextShellRef} className={styles.scrollHint__nextShell}>
         <span ref={nextLabelRef} className={styles.scrollHint__next}>
           {nextLabel}
         </span>
       </span>
-      <FontAwesomeIcon className={styles.scrollHint__icon} icon={faChevronDown} />
-    </div>
+      <FontAwesomeIcon className={styles.scrollHint__icon} icon={faChevronDown} aria-hidden />
+    </button>
   )
 }

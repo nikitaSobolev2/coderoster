@@ -8,6 +8,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useLoadingStore } from '~/features/home/components/common/AppLoader/loading.store'
 import { registerSectionScrollToIdHandler } from '~/features/home/components/common/SectionScroller/section-scroll-api'
 import { getSectionIndexFromScroll } from './getSectionIndexFromScroll'
+import { getSectionScrollObserverType } from './getSectionScrollObserverType'
 import { useSectionScrollerStore, type SectionDescriptor } from './section-scroller.store'
 import styles from './styles.module.scss'
 
@@ -90,7 +91,7 @@ export default function SectionScroller({ sections, children }: Props) {
     const wheelOff = prefersReducedMotion()
     const observer = !wheelOff
       ? Observer.create({
-          type: 'wheel,touch,pointer',
+          type: getSectionScrollObserverType(),
           wheelSpeed: -1,
           tolerance: OBSERVER_TOLERANCE,
           preventDefault: true,

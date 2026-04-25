@@ -47,8 +47,25 @@ export function useCursorInteraction(
   const resetMedia = useCursorStore(state => state.resetMedia)
 
   const isInteracting = useRef(false)
+  const applyActiveStylesRef = useRef(applyActiveStyles)
+  applyActiveStylesRef.current = applyActiveStyles
+
+  const reapplyActiveStyles = useCallback(() => {
+    if (!applyActiveStylesRef.current) return
+    if (!isInteracting.current) return
+    const node = elementRef.current
+    if (!node) return
+    if (lockPosition) {
+      lockAtPosition(getElementCenter(node))
+    }
+    const next = applyActiveStylesRef.current(node)
+    if (next) {
+      setStyle(next)
+    }
+  }, [lockPosition, lockAtPosition, elementRef, setStyle])
 
   const handleInteractionStart = useCallback(() => {
+    if (isInteracting.current) return
     const node = elementRef.current
     if (!node) return
 
@@ -65,7 +82,7 @@ export function useCursorInteraction(
       setMedia(media)
     }
 
-    const activeStyles = applyActiveStyles?.(node)
+    const activeStyles = applyActiveStylesRef.current?.(node)
     if (activeStyles) {
       setStyle(activeStyles)
     }
@@ -78,7 +95,6 @@ export function useCursorInteraction(
     setType,
     media,
     setMedia,
-    applyActiveStyles,
     setStyle
   ])
 
@@ -86,7 +102,8 @@ export function useCursorInteraction(
     const node = elementRef.current
     if (!node) return
     onInteraction?.(node)
-  }, [onInteraction, elementRef])
+    reapplyActiveStyles()
+  }, [onInteraction, elementRef, reapplyActiveStyles])
 
   const handleInteractionEnd = useCallback(() => {
     const node = elementRef.current
@@ -102,6 +119,23 @@ export function useCursorInteraction(
     }
   }, [resetStyle, setLocked, onInteractionEnd, resetType, resetMedia, elementRef])
 
+  const syncInteractionWithLastPointer = useCallback(() => {
+    const node = elementRef.current
+    if (!node) return
+    const { pointerX, pointerY } = useCursorStore.getState()
+    if (!isPointerOverElement(node, pointerX, pointerY)) {
+      if (isInteracting.current) {
+        handleInteractionEnd()
+      }
+      return
+    }
+    if (!isInteracting.current) {
+      handleInteractionStart()
+    } else {
+      reapplyActiveStyles()
+    }
+  }, [elementRef, handleInteractionStart, handleInteractionEnd, reapplyActiveStyles])
+
   useEffect(() => {
     const node = elementRef.current
     if (!node) return
@@ -110,25 +144,39 @@ export function useCursorInteraction(
     attachMoveEvents(node, handleInteraction)
     attachLeaveEvents(node, handleInteractionEnd)
 
+    let ro: ResizeObserver | null = null
+    let rafId = 0
+    if (applyActiveStylesRef.current) {
+      const schedule = () => {
+        cancelAnimationFrame(rafId)
+        rafId = requestAnimationFrame(() => reapplyActiveStyles())
+      }
+      ro = new ResizeObserver(schedule)
+      ro.observe(node)
+    }
+
     return () => {
+      cancelAnimationFrame(rafId)
+      ro?.disconnect()
       detachAllEvents(node, handleInteractionStart, handleInteraction, handleInteractionEnd)
     }
-  }, [elementRef, handleInteractionStart, handleInteraction, handleInteractionEnd])
+  }, [
+    elementRef,
+    handleInteractionStart,
+    handleInteraction,
+    handleInteractionEnd,
+    reapplyActiveStyles
+  ])
 
   useEffect(() => {
-    const endIfPointerLeftTarget = () => {
-      if (!isInteracting.current) return
-      const node = elementRef.current
-      if (!node) return
-      const { pointerX, pointerY } = useCursorStore.getState()
-      if (!isPointerOverElement(node, pointerX, pointerY)) {
-        handleInteractionEnd()
-      }
+    const options: AddEventListenerOptions = { capture: true }
+    globalThis.addEventListener('scroll', syncInteractionWithLastPointer, options)
+    globalThis.addEventListener('resize', syncInteractionWithLastPointer)
+    return () => {
+      globalThis.removeEventListener('scroll', syncInteractionWithLastPointer, options)
+      globalThis.removeEventListener('resize', syncInteractionWithLastPointer)
     }
-
-    window.addEventListener('scroll', endIfPointerLeftTarget, true)
-    return () => window.removeEventListener('scroll', endIfPointerLeftTarget, true)
-  }, [handleInteractionEnd, elementRef])
+  }, [syncInteractionWithLastPointer])
 
   return {
     cursorStyles: styleProps,

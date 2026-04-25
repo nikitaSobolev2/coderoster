@@ -1,6 +1,7 @@
 'use client'
 
 import type React from 'react'
+import { useCallback } from 'react'
 import { useCursorInteraction } from '~/features/home/hooks/useCursorInteraction'
 import { readRootCssVarPx } from '~/shared/utils/cssCustomProperties'
 
@@ -15,7 +16,7 @@ export function useCursorScaleTarget(
   elementRef: React.RefObject<HTMLElement | null>,
   { size, filled = true }: ScaleTargetOptions = {}
 ) {
-  const applyActiveStyles = () => {
+  const applyActiveStyles = useCallback(() => {
     const px = size ?? readRootCssVarPx(CURSOR_SCALE_DEFAULT_VAR, 100)
     return {
       width: `${px}px`,
@@ -24,7 +25,7 @@ export function useCursorScaleTarget(
       backgroundColor: filled ? 'var(--color-text)' : 'transparent',
       borderColor: 'var(--color-text)'
     }
-  }
+  }, [size, filled])
 
   return useCursorInteraction(elementRef, {
     lockPosition: false,

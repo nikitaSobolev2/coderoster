@@ -1,0 +1,77 @@
+@use '~/shared/assets/styles/mixins' as *;
+
+.section {
+  width: min(100%, var(--platform-shell-max-width));
+  margin: 0 auto;
+  padding: 4rem var(--platform-shell-padding-inline);
+  display: flex;
+  justify-content: center;
+}
+
+.section__inner {
+  max-width: 540px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 3rem 2rem;
+  border-radius: var(--platform-card-radius);
+  border: var(--border-width-hair) solid var(--platform-color-border);
+  background: var(--platform-color-surface);
+}
+
+.section__eyebrow {
+  align-self: center;
+  font-size: var(--font-size-h6);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.section__title {
+  margin: 0;
+  font-size: var(--font-size-h2);
+  color: var(--color-text);
+}
+
+.section__copy {
+  color: var(--color-text-secondary);
+  line-height: 1.55;
+}
+
+.section__actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.section__button,
+.section__buttonGhost {
+  padding: 0.65rem 1.4rem;
+  border-radius: 999px;
+  font-weight: 500;
+  text-decoration: none;
+  letter-spacing: 0.04em;
+  transition:
+    background var(--transition-default),
+    border-color var(--transition-default);
+}
+
+.section__button {
+  background: var(--color-cta-bg);
+  color: var(--color-cta-fg);
+
+  &:hover {
+    background: var(--color-cta-bg-hover);
+  }
+}
+
+.section__buttonGhost {
+  border: var(--border-width-hair) solid var(--platform-color-border);
+  color: var(--color-text);
+
+  &:hover {
+    border-color: var(--platform-color-accent);
+  }
+}

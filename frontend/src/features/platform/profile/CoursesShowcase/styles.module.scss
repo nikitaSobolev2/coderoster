@@ -1,0 +1,77 @@
+@use '~/shared/assets/styles/mixins' as *;
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: var(--platform-card-padding);
+  border-radius: var(--platform-card-radius);
+  border: var(--border-width-hair) solid var(--platform-color-border);
+  background: var(--platform-color-surface);
+}
+
+.section__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.section__title {
+  margin: 0;
+  font-size: var(--font-size-h3);
+  color: var(--color-text);
+}
+
+.tab {
+  color: var(--color-text-secondary);
+
+  &[data-active] {
+    color: var(--color-text);
+  }
+}
+
+.panel {
+  padding-top: 0.75rem;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 120px 60px;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: var(--platform-card-radius-sm);
+  border: var(--border-width-hair) solid transparent;
+  background: var(--platform-color-surface);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color var(--transition-default);
+
+  &:hover {
+    border-color: var(--platform-color-border);
+  }
+}
+
+.row__title {
+  color: var(--color-text);
+}
+
+.row__progress,
+.row__date {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-h6);
+  letter-spacing: 0.04em;
+  text-align: right;
+}
+
+.empty {
+  padding: 1.5rem 0;
+  text-align: center;
+  color: var(--color-text-secondary);
+}

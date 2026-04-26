@@ -1,0 +1,36 @@
+@use '~/shared/assets/styles/mixins' as *;
+
+.page {
+  width: min(100%, var(--platform-shell-max-width));
+  margin: 0 auto;
+  padding: 1.5rem var(--platform-shell-padding-inline) 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.page__hero {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  max-width: 720px;
+}
+
+.page__eyebrow {
+  font-size: var(--font-size-h6);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.page__title {
+  margin: 0;
+  font-size: var(--font-size-h1);
+  color: var(--color-text);
+}
+
+.page__copy {
+  color: var(--color-text-secondary);
+  line-height: 1.55;
+  font-size: var(--font-size-h4);
+}

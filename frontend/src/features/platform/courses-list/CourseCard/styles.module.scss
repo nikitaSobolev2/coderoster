@@ -1,0 +1,81 @@
+@use '~/shared/assets/styles/mixins' as *;
+
+.card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1.25rem;
+  padding: var(--platform-card-padding);
+  border-radius: var(--platform-card-radius);
+  border: var(--border-width-hair) solid var(--platform-color-border);
+  background: var(--platform-color-surface);
+  color: inherit;
+  text-decoration: none;
+  transition:
+    border-color var(--transition-default),
+    background var(--transition-default),
+    transform var(--transition-default);
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--platform-color-accent);
+    background: var(--platform-color-surface-hover);
+    transform: translateY(-2px);
+  }
+}
+
+.card__head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.card__badges {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.card__title {
+  margin: 0;
+  font-size: var(--font-size-h3);
+  color: var(--color-text);
+  line-height: 1.25;
+}
+
+.card__description {
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.card__tags {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.card__tag {
+  font-size: var(--font-size-h6);
+  color: var(--color-text-secondary);
+  letter-spacing: 0.04em;
+}
+
+.card__foot {
+  display: flex;
+  gap: 1.25rem;
+  padding-top: 0.75rem;
+  border-top: var(--border-width-hair) solid var(--platform-color-divider);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-h6);
+  letter-spacing: 0.04em;
+}
+
+.stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.stat__icon {
+  opacity: 0.7;
+}

@@ -1,0 +1,49 @@
+@use '~/shared/assets/styles/mixins' as *;
+@use '~/shared/assets/styles/breakpoints' as bp;
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+}
+
+.card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--platform-card-radius-sm);
+  border: var(--border-width-hair) solid var(--platform-color-border);
+  background: var(--platform-color-surface);
+}
+
+.card__icon {
+  color: var(--platform-color-accent);
+  font-size: 1.05rem;
+}
+
+.card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.card__value {
+  color: var(--color-text);
+  font-size: var(--font-size-h3);
+  font-weight: 500;
+  line-height: 1;
+}
+
+.card__label {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-h6);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+@include bp.max-width(bp.$bp-md) {
+  .cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

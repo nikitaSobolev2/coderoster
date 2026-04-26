@@ -1,0 +1,56 @@
+@use '~/shared/assets/styles/mixins' as *;
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form__row {
+  display: flex;
+  align-items: stretch;
+  border-radius: 999px;
+  background: var(--platform-color-surface);
+  border: var(--border-width-hair) solid var(--platform-color-border);
+  overflow: hidden;
+  transition: border-color var(--transition-default);
+
+  &:focus-within {
+    border-color: var(--platform-color-accent);
+  }
+}
+
+.form__input {
+  @include inputReset;
+
+  flex: 1;
+  padding: 0.6rem 0.9rem;
+  color: var(--color-text);
+  background: transparent;
+}
+
+.form__submit {
+  @include buttonReset;
+
+  padding: 0 1rem;
+  background: var(--color-cta-bg);
+  color: var(--color-cta-fg);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  transition: opacity var(--transition-default);
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: progress;
+  }
+}
+
+.form__success {
+  font-size: var(--font-size-h6);
+  color: var(--color-positive);
+}
+
+.form__error {
+  font-size: var(--font-size-h6);
+  color: var(--color-negative);
+}

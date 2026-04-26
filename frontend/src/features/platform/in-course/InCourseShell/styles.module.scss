@@ -1,0 +1,79 @@
+@use '~/shared/assets/styles/mixins' as *;
+@use '~/shared/assets/styles/breakpoints' as bp;
+
+.shell {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr) minmax(0, 1.15fr);
+  height: calc(100svh - var(--platform-header-height));
+  background: var(--color-bg);
+}
+
+.workspace {
+  display: grid;
+  grid-template-rows: auto 1fr 280px auto;
+  height: 100%;
+  border-left: var(--border-width-hair) solid var(--platform-color-divider);
+  background: color-mix(in srgb, var(--color-bg) 96%, transparent);
+}
+
+.workspace__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.6rem 0.85rem;
+  border-bottom: var(--border-width-hair) solid var(--platform-color-divider);
+  background: color-mix(in srgb, var(--color-bg) 92%, transparent);
+}
+
+.workspace__lang,
+.workspace__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.workspace__editor {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.workspace__execution {
+  border-top: var(--border-width-hair) solid var(--platform-color-divider);
+  min-height: 0;
+  overflow: hidden;
+}
+
+.workspace__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border-top: var(--border-width-hair) solid var(--platform-color-divider);
+  background: color-mix(in srgb, var(--color-bg) 92%, transparent);
+}
+
+.workspace__footActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.workspace__hint {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-h6);
+  letter-spacing: 0.04em;
+}
+
+@include bp.max-width(bp.$bp-md) {
+  .shell {
+    grid-template-columns: 1fr;
+    grid-auto-rows: auto;
+    height: auto;
+  }
+
+  .workspace {
+    grid-template-rows: auto 360px 240px auto;
+  }
+}

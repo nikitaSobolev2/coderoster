@@ -85,6 +85,37 @@ body.section-scroller-active {
   overflow: hidden;
 }
 
+/* Platform pages do not render the custom cursor — restore native pointer everywhere. */
+body[data-platform-shell='true'],
+body[data-platform-shell='true'] *,
+body[data-platform-shell='true'] *::before,
+body[data-platform-shell='true'] *::after {
+  cursor: auto;
+}
+
+body[data-platform-shell='true'] a,
+body[data-platform-shell='true'] button,
+body[data-platform-shell='true'] input,
+body[data-platform-shell='true'] textarea,
+body[data-platform-shell='true'] select,
+body[data-platform-shell='true'] [role='button'],
+body[data-platform-shell='true'] [role='link'],
+body[data-platform-shell='true'] [role='tab'],
+body[data-platform-shell='true'] [role='menuitem'],
+body[data-platform-shell='true'] [role='option'],
+body[data-platform-shell='true'] [role='switch'],
+body[data-platform-shell='true'] [role='checkbox'],
+body[data-platform-shell='true'] [role='radio'],
+body[data-platform-shell='true'] label[for],
+body[data-platform-shell='true'] summary {
+  cursor: pointer;
+}
+
+body[data-platform-shell='true'] input,
+body[data-platform-shell='true'] textarea {
+  cursor: text;
+}
+
 ul {
   list-style: none;
   padding: 0;

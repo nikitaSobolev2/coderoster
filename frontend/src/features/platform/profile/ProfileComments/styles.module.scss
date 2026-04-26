@@ -1,0 +1,110 @@
+@use '~/shared/assets/styles/mixins' as *;
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: var(--platform-card-padding);
+  border-radius: var(--platform-card-radius);
+  border: var(--border-width-hair) solid var(--platform-color-border);
+  background: var(--platform-color-surface);
+}
+
+.section__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.section__title {
+  margin: 0;
+  font-size: var(--font-size-h3);
+  color: var(--color-text);
+}
+
+.section__count {
+  font-size: var(--font-size-h6);
+  letter-spacing: 0.04em;
+  color: var(--color-text-secondary);
+}
+
+.composer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.composer__actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.composer__signin {
+  margin: 0;
+  color: var(--color-text-secondary);
+
+  a {
+    color: var(--color-text);
+    text-decoration: underline;
+  }
+}
+
+.empty {
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--color-text-secondary);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.comment {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.85rem;
+  border-radius: var(--platform-card-radius-sm);
+  border: var(--border-width-hair) solid var(--platform-color-divider);
+  background: var(--platform-color-surface);
+}
+
+.comment__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.comment__head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: baseline;
+}
+
+.comment__name {
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.comment__handle {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-h6);
+}
+
+.comment__time {
+  margin-left: auto;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-h6);
+}
+
+.comment__text {
+  margin: 0;
+  color: var(--color-text);
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+}

@@ -1,0 +1,16 @@
+.editor {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  background: #0b0b14;
+  border-bottom: var(--border-width-hair) solid var(--platform-color-divider);
+}
+
+.editor__loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-default);
+}

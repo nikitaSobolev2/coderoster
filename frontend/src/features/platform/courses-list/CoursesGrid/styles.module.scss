@@ -1,0 +1,28 @@
+@use '~/shared/assets/styles/mixins' as *;
+@use '~/shared/assets/styles/breakpoints' as bp;
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.25rem;
+  transition: opacity var(--transition-default);
+}
+
+.grid_loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.empty {
+  padding: 3rem;
+  text-align: center;
+  color: var(--color-text-secondary);
+  border: var(--border-width-hair) dashed var(--platform-color-border);
+  border-radius: var(--platform-card-radius);
+}
+
+@include bp.max-width(bp.$bp-sm) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

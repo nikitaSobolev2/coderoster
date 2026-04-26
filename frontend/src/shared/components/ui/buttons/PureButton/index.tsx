@@ -1,6 +1,5 @@
 'use client'
 
-import { forwardRef } from 'react'
 import Link from 'next/link'
 import { Tooltip } from '@mantine/core'
 import type { Url } from 'next/dist/shared/lib/router/router'
@@ -13,19 +12,18 @@ export interface Props extends React.HTMLAttributes<HTMLButtonElement | HTMLAnch
   href?: Url
   onClick?: (event?: React.MouseEvent) => void
   preserveOnClick?: boolean
+  ref?: React.Ref<HTMLButtonElement | HTMLAnchorElement>
 }
 
-const PureButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, Props>(function PureButton(
-  {
-    className = '',
-    disabled = false,
-    label = '',
-    preserveOnClick = true,
-    onClick,
-    ...defaultProps
-  },
-  ref
-) {
+export default function PureButton({
+  className = '',
+  disabled = false,
+  label = '',
+  preserveOnClick = true,
+  onClick,
+  ref,
+  ...defaultProps
+}: Props) {
   function onClickHandler(event: React.MouseEvent<HTMLAnchorElement | HTMLButtonElement>) {
     if (
       preserveOnClick &&
@@ -42,23 +40,19 @@ const PureButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, Props>(func
     onClick?.(event)
   }
 
-  const getContent = () => {
-    if (defaultProps.href !== undefined) {
-      return (
-        <Link
-          href={defaultProps.href}
-          className={`${styles.pure_button} ${className}`}
-          aria-disabled={disabled}
-          tabIndex={disabled ? -1 : 1}
-          aria-label={label}
-          {...defaultProps}
-          onClick={e => onClickHandler(e)}
-          ref={ref as React.RefObject<HTMLAnchorElement>}
-        />
-      )
-    }
-
-    return (
+  const content =
+    defaultProps.href !== undefined ? (
+      <Link
+        href={defaultProps.href}
+        className={`${styles.pure_button} ${className}`}
+        aria-disabled={disabled}
+        tabIndex={disabled ? -1 : 1}
+        aria-label={label}
+        {...defaultProps}
+        onClick={e => onClickHandler(e)}
+        ref={ref as React.Ref<HTMLAnchorElement>}
+      />
+    ) : (
       <button
         className={`${styles.pure_button} ${className}`}
         aria-label={label}
@@ -66,20 +60,15 @@ const PureButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, Props>(func
         tabIndex={disabled ? -1 : 1}
         {...defaultProps}
         onClick={e => onClickHandler(e)}
-        ref={ref as React.RefObject<HTMLButtonElement>}
+        ref={ref as React.Ref<HTMLButtonElement>}
       />
     )
-  }
-
-  const content = getContent()
 
   return label ? (
     <Tooltip className={styles.pure_button__tip} zIndex={999999} offset={16} label={label}>
       {content}
     </Tooltip>
   ) : (
-    <>{content}</>
+    content
   )
-})
-
-export default PureButton
+}

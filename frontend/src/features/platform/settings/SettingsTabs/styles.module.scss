@@ -1,0 +1,38 @@
+@use '~/shared/assets/styles/mixins' as *;
+@use '~/shared/assets/styles/breakpoints' as bp;
+
+.tabs__list {
+  min-width: 200px;
+  border-right: var(--border-width-hair) solid var(--platform-color-divider);
+  padding-right: 1rem;
+}
+
+.tabs__tab {
+  color: var(--color-text-secondary);
+  border-radius: var(--platform-card-radius-sm);
+  padding: 0.65rem 0.85rem;
+
+  &[data-active] {
+    color: var(--color-text);
+    background: var(--platform-color-surface);
+  }
+}
+
+.tabs__panel {
+  padding-left: 2rem;
+}
+
+@include bp.max-width(bp.$bp-sm) {
+  .tabs__panel {
+    padding-left: 0;
+    padding-top: 1rem;
+  }
+
+  .tabs__list {
+    border-right: 0;
+    border-bottom: var(--border-width-hair) solid var(--platform-color-divider);
+    padding-right: 0;
+    padding-bottom: 1rem;
+    overflow-x: auto;
+  }
+}

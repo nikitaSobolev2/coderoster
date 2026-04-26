@@ -1,7 +1,13 @@
 import { authkitMiddleware } from '@workos-inc/authkit-nextjs'
 
-// In middleware auth mode, each page is protected by default.
-// Exceptions are configured via the `unauthenticatedPaths` option.
+/**
+ * Auth strategy:
+ *  - Public-read routes (`/`, `/courses/*`, `/u/*`) are not part of the matcher,
+ *    so the middleware never runs for them.
+ *  - Gated routes (`/settings/*`, `/learn/*`, `/account/*`) require a session.
+ *  - The home page (`/`) is matched but kept open via `unauthenticatedPaths`
+ *    so the WorkOS session is still attached for client components that need it.
+ */
 export default authkitMiddleware({
   middlewareAuth: {
     enabled: true,
@@ -9,6 +15,6 @@ export default authkitMiddleware({
   }
 })
 
-// Match against pages that require authentication
-// Leave this out if you want authentication on every page in your application
-export const config = { matcher: ['/', '/account/:page*'] }
+export const config = {
+  matcher: ['/', '/account/:page*', '/settings/:path*', '/learn/:path*']
+}

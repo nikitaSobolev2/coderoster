@@ -23,7 +23,15 @@ export const env = createEnv({
     NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
     WORKOS_API_KEY: z.string(),
     WORKOS_CLIENT_ID: z.string(),
-    WORKOS_COOKIE_PASSWORD: z.string()
+    WORKOS_COOKIE_PASSWORD: z.string(),
+    /**
+     * When `true`, server repositories return predefined fixtures instead of querying Prisma.
+     * Useful for frontend development before the backend is wired up.
+     */
+    USE_FAKE_DATA: z
+      .string()
+      .optional()
+      .transform(value => value === 'true' || value === '1')
   },
 
   /**
@@ -51,6 +59,7 @@ export const env = createEnv({
     WORKOS_API_KEY: process.env.WORKOS_API_KEY,
     WORKOS_CLIENT_ID: process.env.WORKOS_CLIENT_ID,
     WORKOS_COOKIE_PASSWORD: process.env.WORKOS_COOKIE_PASSWORD,
+    USE_FAKE_DATA: process.env.USE_FAKE_DATA,
     NEXT_PUBLIC_WORKOS_REDIRECT_URI: process.env.NEXT_PUBLIC_WORKOS_REDIRECT_URI
     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
   },

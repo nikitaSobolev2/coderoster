@@ -1,0 +1,56 @@
+@use '~/shared/assets/styles/mixins' as *;
+@use '~/shared/assets/styles/breakpoints' as bp;
+
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: var(--z-header-sticky);
+  height: var(--platform-header-height);
+  background: color-mix(in srgb, var(--color-bg) 78%, transparent);
+  backdrop-filter: var(--blur-effect-default);
+  border-bottom: var(--border-width-hair) solid var(--platform-color-divider);
+}
+
+.header__inner {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  height: 100%;
+  width: min(100%, var(--platform-shell-max-width));
+  margin: 0 auto;
+  padding: 0 var(--platform-shell-padding-inline);
+}
+
+.header__logo {
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-text);
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.header__nav {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-right: auto;
+}
+
+.header__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-left: auto;
+}
+
+@include bp.max-width(bp.$bp-nav) {
+  .header__nav {
+    display: none;
+  }
+
+  .header__inner {
+    gap: 0.75rem;
+  }
+}

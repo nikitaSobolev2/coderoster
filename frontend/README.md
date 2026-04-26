@@ -107,23 +107,24 @@ A protected back-office for platform management:
 
 ## Tech Stack
 
-| Layer           | Library / Tool                          | Role                                                                             |
-| --------------- | --------------------------------------- | -------------------------------------------------------------------------------- |
-| Framework       | **Next.js 15** + **React 19**           | App Router, RSC by default, `reactCompiler: true`                                |
-| Language        | **TypeScript** (strict)                 | `noUncheckedIndexedAccess`, Bundler module resolution                            |
-| API             | **tRPC v11** + **TanStack Query v5**    | End-to-end type-safe API, server prefetch + `HydrateClient`                      |
-| Database        | **Prisma 6** + PostgreSQL               | Schema-first ORM, `prisma migrate` workflow                                      |
-| Auth            | **WorkOS AuthKit**                      | OAuth / SSO, session management, role claims                                     |
-| UI Library      | **Mantine 8**                           | Forms, modals, notifications, spotlight search, carousel, charts, Tiptap wrapper |
-| 3D              | **Three.js 0.176** + **R3F** + **drei** | Interactive planet scene on the landing page                                     |
-| Animation       | **GSAP 3.13**                           | Scroll-triggered animations (`ScrollTrigger` plugin)                             |
-| State           | **Zustand 4**                           | Lightweight client state: cursor position, planet scale/visibility               |
-| Styling         | **Sass** (CSS modules)                  | `.module.scss` per component + global SCSS; no Tailwind                          |
-| Icons           | **Font Awesome 6**                      | SVG icon components                                                              |
-| Rich Text       | **Tiptap 2**                            | Admin lesson authoring (link extension + starter kit)                            |
-| Validation      | **Zod**                                 | Runtime schema validation for tRPC inputs and environment                        |
-| Env             | **T3 Env** (`@t3-oss/env-nextjs`)       | Type-safe environment variable access                                            |
-| Package Manager | **npm 10**                              | `package-lock.json` committed                                                    |
+| Layer           | Library / Tool                           | Role                                                                           |
+| --------------- | ---------------------------------------- | ------------------------------------------------------------------------------ |
+| Framework       | **Next.js 15** + **React 19**            | App Router, RSC by default, `reactCompiler: true`                              |
+| Language        | **TypeScript** (strict)                  | `noUncheckedIndexedAccess`, Bundler module resolution                          |
+| API             | **tRPC v11** + **TanStack Query v5**     | End-to-end type-safe API, server prefetch + `HydrateClient`                    |
+| Database        | **Prisma 6** + PostgreSQL                | Schema-first ORM, `prisma migrate` workflow                                    |
+| Auth            | **WorkOS AuthKit**                       | OAuth / SSO, session management, role claims                                   |
+| UI Library      | **Mantine 8** + `@mantine/notifications` | Forms, modals, notifications, spotlight, mega-menu hover cards, tabs, progress |
+| Code Editor     | **`@monaco-editor/react`** (lazy)        | In-browser Monaco editor for the in-course experience                          |
+| 3D              | **Three.js 0.176** + **R3F** + **drei**  | Interactive planet scene on the landing page                                   |
+| Animation       | **GSAP 3.13**                            | Scroll-triggered animations (`ScrollTrigger` plugin)                           |
+| State           | **Zustand 4**                            | Lightweight client state: cursor position, planet scale/visibility             |
+| Styling         | **Sass** (CSS modules)                   | `.module.scss` per component + global SCSS; no Tailwind                        |
+| Icons           | **Font Awesome 6**                       | SVG icon components                                                            |
+| Rich Text       | **Tiptap 2**                             | Admin lesson authoring (link extension + starter kit)                          |
+| Validation      | **Zod**                                  | Runtime schema validation for tRPC inputs and environment                      |
+| Env             | **T3 Env** (`@t3-oss/env-nextjs`)        | Type-safe environment variable access                                          |
+| Package Manager | **npm 10**                               | `package-lock.json` committed                                                  |
 
 ---
 
@@ -144,12 +145,13 @@ Browser Request
 
 ### Route groups
 
-| Group              | Status  | Description                                                    |
-| ------------------ | ------- | -------------------------------------------------------------- |
-| `(home)`           | Live    | Public marketing / landing page — no auth required             |
-| `(authentication)` | Live    | WorkOS OAuth login and callback routes                         |
-| `(app)`            | Planned | Authenticated app shell: editor, courses, profile, leaderboard |
-| `(admin)`          | Planned | Admin panel — role-gated at middleware level                   |
+| Group                   | Status  | Description                                                                      |
+| ----------------------- | ------- | -------------------------------------------------------------------------------- |
+| `(home)`                | Live    | Public marketing / landing page — no auth required                               |
+| `(authentication)`      | Live    | WorkOS OAuth login and callback routes                                           |
+| `(platform)/(standard)` | Live    | Platform shell: courses list/detail, public profile, settings, coming-soon stubs |
+| `(platform)/(focus)`    | Live    | Full-viewport in-course experience: 3-pane code editor + tasks + execution       |
+| `(admin)`               | Planned | Admin panel — role-gated at middleware level                                     |
 
 ### Data flow rules
 
@@ -157,6 +159,30 @@ Browser Request
 - Interactive client subtrees are wrapped in `HydrateClient` so they receive the pre-fetched cache without a loading state.
 - All mutations use tRPC React hooks (TanStack Query `useMutation`). Optimistic updates via `onMutate` where appropriate.
 - Auth state is read server-side via WorkOS session; the middleware file guards protected route groups.
+
+### Repository pattern (server-side)
+
+Every tRPC router delegates to an interface in `src/server/repositories/` rather than calling
+Prisma directly. Concrete implementations live next to each interface:
+
+- `<Domain>FakeRepository` — returns predefined fixtures from `fixtures.ts`.
+- `<Domain>PrismaRepository` — Prisma-backed; currently throws `NOT_IMPLEMENTED` so that the
+  fake path is the only working one until the real backend lands.
+
+`getAppRepositories()` (in `src/server/repositories/index.ts`) selects a bundle of repos based
+on the `USE_FAKE_DATA` environment variable; the bundle is injected into `ctx.repositories`
+inside `createTRPCContext`. Routers stay thin and never import Prisma directly.
+
+This keeps the platform pages buildable end-to-end before the database layer exists, and the
+swap to real backend will be a one-line change in the factory.
+
+### Auth gating
+
+WorkOS middleware (`src/middleware.ts`) only matches `/`, `/account/*`, `/settings/*`, and
+`/learn/*`. Public-read pages (`/courses`, `/u/[username]`, etc.) are not in the matcher, so
+guests browse them without a session. Mutations that need a user use the new
+`protectedProcedure` builder in `src/server/api/trpc.ts`, which throws `UNAUTHORIZED` if
+`ctx.user` is null.
 
 ---
 
@@ -179,15 +205,34 @@ coderoster/
         ├── env.js                    # T3 Env — validated environment variables
         ├── middleware.ts             # WorkOS auth middleware (route protection)
         ├── app/                      # Next.js App Router
-        │   ├── layout.tsx            # Root layout: providers, global style imports
+        │   ├── layout.tsx            # Root layout: providers, global style imports, Notifications
         │   ├── (home)/               # Landing page route group
         │   │   ├── page.tsx          # Server component — prefetches tRPC data
         │   │   └── styles.module.scss
         │   ├── (authentication)/     # WorkOS OAuth routes
         │   │   ├── login/route.ts
         │   │   └── callback/route.ts
+        │   ├── (platform)/           # Authenticated / public-read platform pages
+        │   │   ├── (standard)/       # Header + padded main + footer
+        │   │   │   ├── layout.tsx
+        │   │   │   ├── courses/      # /courses, /courses/[slug]
+        │   │   │   ├── u/[username]/ # public profile page
+        │   │   │   ├── settings/     # account settings (auth-gated)
+        │   │   │   └── coming-soon/  # placeholder for upcoming pages
+        │   │   └── (focus)/          # Full-viewport editor experience (no footer)
+        │   │       ├── layout.tsx
+        │   │       └── learn/[courseSlug]/[lessonId]/page.tsx
         │   └── api/trpc/[trpc]/      # tRPC HTTP handler
         ├── features/                 # Feature-scoped components and hooks
+        │   ├── platform/             # Authenticated platform features
+        │   │   ├── courses-list/     # CoursesList, CourseCard, CourseFilters, CoursesGrid
+        │   │   ├── course-detail/    # CourseHeader, CourseOutcomes, CourseSyllabus,
+        │   │   │                     #   CourseEnrollPanel
+        │   │   ├── in-course/        # 3-pane shell: TaskNav, TaskPane, LessonMarkdown,
+        │   │   │                     #   CodeEditor, ExecutionPanel, useDraftPersistence
+        │   │   ├── profile/          # ProfileHeader, StatCards, ActivityHeatmap,
+        │   │   │                     #   AchievementsGrid, CoursesShowcase, ProfileComments
+        │   │   └── settings/         # SettingsTabs + Profile/Account/Socials/Appearance forms
         │   └── home/
         │       ├── components/
         │       │   ├── 3d/           # Three.js / R3F scenes and models
@@ -217,21 +262,30 @@ coderoster/
         │   ├── assets/
         │   │   ├── fonts/            # YandexSans TTF font files
         │   │   └── styles/
-        │   │       ├── variables.scss   # CSS custom properties (design tokens)
+        │   │       ├── variables.scss   # CSS custom properties (design tokens, incl. platform-* vars)
         │   │       ├── mixins.scss      # Reusable SCSS mixins
-        │   │       ├── globals.scss     # Global element styles
+        │   │       ├── globals.scss     # Global element styles, [data-platform-shell] cursor reset
         │   │       ├── fonts.scss       # @font-face declarations
         │   │       └── normalize.scss   # CSS reset (normalize v8)
         │   └── components/
-        │       ├── common/           # Logo, UserProfile
-        │       ├── layouts/          # Layout primitives
-        │       └── ui/               # Shared UI: PureButton, SearchSpotlight, KeyboardBadge
+        │       ├── common/           # Logo
+        │       ├── layouts/          # PlatformShell (header, footer, body cursor reset)
+        │       └── ui/               # PureButton, SearchSpotlight, KeyboardBadge,
+        │                             #   PlatformSearchSpotlight (tRPC-backed)
         ├── server/
         │   ├── db.ts                 # Prisma client singleton
-        │   └── api/
-        │       ├── root.ts           # tRPC app router (merges all sub-routers)
-        │       ├── trpc.ts           # tRPC context, procedure builders
-        │       └── routers/          # One file per domain (post.ts, ...)
+        │   ├── api/
+        │   │   ├── root.ts           # tRPC app router (merges all sub-routers)
+        │   │   ├── trpc.ts           # tRPC context (db, headers, repositories, user) +
+        │   │   │                     #   `publicProcedure` and `protectedProcedure`
+        │   │   └── routers/          # course, lesson, enrollment, progress, execution,
+        │   │                         #   profile, settings, comment, search, post (legacy)
+        │   └── repositories/         # Domain interfaces + Fake/Prisma implementations
+        │       ├── types.ts
+        │       ├── fixtures.ts
+        │       ├── stub.ts
+        │       ├── *.repository.ts   # one file per domain
+        │       └── index.ts          # `getAppRepositories()` factory
         └── trpc/
             ├── react.tsx             # TRPCReactProvider + typed hooks
             ├── server.ts             # Server-side caller + HydrateClient
@@ -446,5 +500,53 @@ Copy `.env.example` to `.env` and fill in:
 
 - `DATABASE_URL` — PostgreSQL connection string
 - WorkOS credentials (client ID, API key, redirect URI)
+- `USE_FAKE_DATA=true` (recommended during frontend-only development) — switches every
+  server repository to its in-memory fixture implementation. See
+  [`src/server/repositories/`](src/server/repositories) and
+  [`ROUTES.md`](ROUTES.md) for the full surface.
 
 Use `start-database.sh` to spin up a local PostgreSQL instance via Docker.
+
+---
+
+## Platform pages
+
+The `(platform)` route group ships five user-facing pages, each backed by tRPC procedures
+documented in [`ROUTES.md`](ROUTES.md):
+
+| Page                             | Auth      | Notes                                                                                                      |
+| -------------------------------- | --------- | ---------------------------------------------------------------------------------------------------------- |
+| `/courses`                       | public    | Hero + filter rail (search, language, difficulty, sort) + responsive `CourseCard` grid                     |
+| `/courses/[slug]`                | public    | Article-style header, "Чему научишься", collapsible syllabus, sticky enroll panel with state machine       |
+| `/learn/[courseSlug]/[lessonId]` | protected | 3-pane focus shell: lesson nav with progress bar, markdown task pane, Monaco editor, execution panel       |
+| `/u/[username]`                  | public    | Profile header with XP/level, GitHub-style activity heatmap, achievements grid, courses showcase, comments |
+| `/settings`                      | protected | Mantine vertical tabs: Profile, Account, Socials, Appearance — all bound to `settings.update`              |
+
+### Shared platform shell
+
+[`src/shared/components/layouts/PlatformShell`](src/shared/components/layouts/PlatformShell)
+hosts the chrome shared by every platform page:
+
+- **PlatformHeader** — fixed top bar with Logo, Laravel-style mega-menu (`Learn`, `Practice`,
+  `Community`, `Docs`) using Mantine `HoverCard`, `SearchTrigger` opening
+  `PlatformSearchSpotlight`, and a `UserMenu` (Mantine `Menu` + WorkOS session).
+- **PlatformFooter** — slim variant of the home footer: link columns + newsletter form,
+  background wordmark, no contact form, no GSAP entrance.
+- **PlatformBodyAttribute** — sets `body[data-platform-shell="true"]` so `globals.scss` can
+  override the home page's `cursor: none` rules with native cursors.
+- **PlatformSearchSpotlight** — Mantine `Spotlight` bound to the tRPC `search.global` query;
+  shortcut keys `mod+K`, `mod+P`, `/`.
+
+### In-course experience
+
+[`src/features/platform/in-course`](src/features/platform/in-course) implements the
+Yandex-Praktikum-style learning loop:
+
+- `InCourseShell` orchestrates the 3-pane layout and owns execution state.
+- `TaskNav` renders the lesson list with status icons and a progress bar.
+- `TaskPane` + `LessonMarkdown` render the lesson body.
+- `CodeEditor` is a thin wrapper around `@monaco-editor/react`, dynamic-imported with
+  `ssr: false`. Languages: `python`, `php`.
+- `ExecutionPanel` shows tabbed Output / Tests / Errors using `execution.run`.
+- `useDraftPersistence` mirrors the editor draft into `localStorage` (instant restore) and
+  `progress.saveDraft` (server-side persistence) on every keystroke (debounced).

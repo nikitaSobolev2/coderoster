@@ -1,0 +1,112 @@
+@use '~/shared/assets/styles/mixins' as *;
+@use '~/shared/assets/styles/breakpoints' as bp;
+
+.heatmap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: var(--platform-card-padding);
+  border-radius: var(--platform-card-radius);
+  border: var(--border-width-hair) solid var(--platform-color-border);
+  background: var(--platform-color-surface);
+  overflow-x: auto;
+}
+
+.heatmap__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.heatmap__title {
+  margin: 0;
+  font-size: var(--font-size-h3);
+  color: var(--color-text);
+}
+
+.heatmap__total {
+  font-size: var(--font-size-h6);
+  letter-spacing: 0.06em;
+  color: var(--color-text-secondary);
+}
+
+.heatmap__grid {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.heatmap__weekdays {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  font-size: 0.65rem;
+  color: var(--color-text-secondary);
+}
+
+.heatmap__weekday {
+  height: calc(11px * 2 + 2px);
+  display: flex;
+  align-items: center;
+}
+
+.heatmap__weeks {
+  display: flex;
+  gap: 2px;
+}
+
+.week {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cell {
+  width: 11px;
+  height: 11px;
+  border-radius: 2px;
+  display: inline-block;
+  background: color-mix(in srgb, var(--color-text) 6%, transparent);
+
+  &[data-level='1'] {
+    background: color-mix(in srgb, var(--platform-color-accent) 25%, var(--platform-color-surface));
+  }
+  &[data-level='2'] {
+    background: color-mix(in srgb, var(--platform-color-accent) 45%, var(--platform-color-surface));
+  }
+  &[data-level='3'] {
+    background: color-mix(in srgb, var(--platform-color-accent) 70%, var(--color-bg));
+  }
+  &[data-level='4'] {
+    background: var(--platform-color-accent);
+  }
+}
+
+.cell_empty {
+  width: 11px;
+  height: 11px;
+  display: inline-block;
+  background: transparent;
+}
+
+.legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  align-self: flex-end;
+  font-size: var(--font-size-h6);
+  color: var(--color-text-secondary);
+}
+
+.legend__label {
+  letter-spacing: 0.04em;
+}
+
+.heatmap__months {
+  display: flex;
+  justify-content: space-between;
+  padding-left: 1.75rem;
+  font-size: var(--font-size-h6);
+  color: var(--color-text-secondary);
+  letter-spacing: 0.04em;
+}

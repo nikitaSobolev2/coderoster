@@ -1,0 +1,103 @@
+@use '~/shared/assets/styles/mixins' as *;
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: var(--platform-card-padding);
+  border-radius: var(--platform-card-radius);
+  border: var(--border-width-hair) solid var(--platform-color-border);
+  background: var(--platform-color-surface);
+}
+
+.section__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.section__title {
+  margin: 0;
+  font-size: var(--font-size-h3);
+  color: var(--color-text);
+}
+
+.section__count {
+  font-size: var(--font-size-h6);
+  letter-spacing: 0.06em;
+  color: var(--color-text-secondary);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  gap: 0.6rem;
+}
+
+.tile {
+  @include buttonReset;
+
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--platform-card-radius-sm);
+  background: var(--platform-color-accent-soft);
+  color: var(--color-text);
+  font-size: 1.4rem;
+  border: var(--border-width-hair) solid var(--platform-color-border);
+  transition:
+    border-color var(--transition-default),
+    background var(--transition-default);
+
+  &[data-rarity='legendary'] {
+    background: linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--color-positive) 35%, transparent),
+      color-mix(in srgb, var(--platform-color-accent) 60%, transparent)
+    );
+  }
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--platform-color-accent);
+  }
+}
+
+.tile_locked {
+  filter: grayscale(0.9);
+  opacity: 0.45;
+}
+
+.tile__icon {
+  display: block;
+  margin: 0 auto;
+}
+
+.tooltip {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-width: 280px;
+  background: color-mix(in srgb, var(--color-bg) 92%, transparent);
+  backdrop-filter: var(--blur-effect-default);
+  border: var(--border-width-hair) solid var(--platform-color-border);
+  padding: 0.75rem 0.85rem;
+  border-radius: var(--platform-card-radius-sm);
+}
+
+.tooltip__title {
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.tooltip__description {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-h6);
+  line-height: 1.4;
+}
+
+.tooltip__date {
+  color: var(--color-positive);
+  font-size: var(--font-size-h6);
+  letter-spacing: 0.04em;
+}

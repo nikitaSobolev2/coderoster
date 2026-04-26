@@ -1,0 +1,48 @@
+@use '~/shared/assets/styles/mixins' as *;
+@use '~/shared/assets/styles/breakpoints' as bp;
+
+.filters {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 1.25rem;
+  border-radius: var(--platform-card-radius);
+  border: var(--border-width-hair) solid var(--platform-color-border);
+  background: var(--platform-color-surface);
+}
+
+.filters__row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.filters__search {
+  flex: 1 1 320px;
+  min-width: 220px;
+}
+
+.filters__searchInput {
+  background: var(--platform-color-surface);
+  border-color: var(--platform-color-border);
+  color: var(--color-text);
+}
+
+.filters__sort {
+  width: 220px;
+}
+
+.filters__meta {
+  margin-top: 0.5rem;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-h6);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+@include bp.max-width(bp.$bp-sm) {
+  .filters__sort {
+    width: 100%;
+  }
+}

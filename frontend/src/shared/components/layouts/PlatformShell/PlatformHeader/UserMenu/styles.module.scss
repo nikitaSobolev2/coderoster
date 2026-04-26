@@ -1,0 +1,63 @@
+@use '~/shared/assets/styles/mixins' as *;
+
+.trigger {
+  @include buttonReset;
+
+  padding: 0;
+  background: transparent;
+  border-radius: 999px;
+  border: var(--border-width-hair) solid var(--platform-color-border);
+  transition: border-color var(--transition-default);
+
+  &:hover,
+  &:focus-visible {
+    border-color: color-mix(
+      in srgb,
+      var(--platform-color-accent) 60%,
+      var(--platform-color-border)
+    );
+  }
+}
+
+.signInLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  background: var(--color-cta-bg);
+  color: var(--color-cta-fg);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  transition: background var(--transition-default);
+  text-decoration: none;
+
+  &:hover,
+  &:focus-visible {
+    background: var(--color-cta-bg-hover);
+  }
+}
+
+.dropdown {
+  background: color-mix(in srgb, var(--color-bg) 92%, transparent);
+  backdrop-filter: var(--blur-effect-default);
+  border: var(--border-width-hair) solid var(--platform-color-border);
+  box-shadow: var(--platform-shadow-popover);
+  min-width: 220px;
+}
+
+.dropdown__header {
+  display: flex;
+  flex-direction: column;
+  padding: 0.75rem 1rem;
+}
+
+.dropdown__name {
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.dropdown__handle {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-h6);
+}

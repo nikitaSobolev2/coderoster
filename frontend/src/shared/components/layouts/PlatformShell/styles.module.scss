@@ -1,0 +1,30 @@
+@use '~/shared/assets/styles/mixins' as *;
+@use '~/shared/assets/styles/breakpoints' as bp;
+
+.shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100svh;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.shell__main {
+  position: relative;
+  width: 100%;
+  flex: 1 1 auto;
+  padding-top: calc(var(--platform-header-height) + 1.5rem);
+  padding-bottom: 4rem;
+}
+
+.shell__main_fluid {
+  padding-top: var(--platform-header-height);
+  padding-bottom: 0;
+}
+
+@include bp.max-width(bp.$bp-nav) {
+  .shell__main {
+    padding-top: calc(var(--platform-header-height) + 1rem);
+    padding-bottom: 3rem;
+  }
+}

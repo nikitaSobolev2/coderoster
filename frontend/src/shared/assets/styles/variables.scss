@@ -215,6 +215,26 @@
   /* Search overlay (padding uses rem from design) */
   --padding-search-overlay-top: 2rem;
   --padding-search-inner-top: 3rem;
+
+  /* -----start Platform shell----- */
+  --platform-header-height: 64px;
+  --platform-shell-max-width: 1280px;
+  --platform-shell-padding-inline: 1.5rem;
+  --platform-content-gap: 2rem;
+  --platform-card-radius: 1rem;
+  --platform-card-radius-sm: 0.625rem;
+  --platform-card-padding: 1.5rem;
+  --platform-card-padding-sm: 1rem;
+  --platform-section-gap: 3rem;
+  --platform-color-surface: color-mix(in srgb, var(--color-text) 4%, transparent);
+  --platform-color-surface-hover: color-mix(in srgb, var(--color-text) 7%, transparent);
+  --platform-color-divider: color-mix(in srgb, var(--color-text) 8%, transparent);
+  --platform-color-border: color-mix(in srgb, var(--color-text) 12%, transparent);
+  --platform-color-accent: #4d51ff;
+  --platform-color-accent-soft: color-mix(in srgb, var(--platform-color-accent) 18%, transparent);
+  --platform-shadow-card: 0 24px 60px -32px rgba(0, 0, 0, 0.65);
+  --platform-shadow-popover: 0 30px 80px -24px rgba(0, 0, 0, 0.85);
+  /* -----end Platform shell----- */
 }
 
 /* Mobile token overrides — tighter editorial scale; matches $bp-nav (768px) */

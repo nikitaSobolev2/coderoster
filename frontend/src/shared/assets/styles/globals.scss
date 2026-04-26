@@ -151,4 +151,9 @@ a {
     font-size: var(--font-size-h4);
     line-height: 1.35;
   }
+
+  main section > * {
+    width: 100%;
+    max-width: 100%;
+  }
 }

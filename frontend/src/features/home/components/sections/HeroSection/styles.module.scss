@@ -16,10 +16,6 @@
   .hero {
     padding: var(--hero-padding-top-mobile) var(--padding-main) var(--padding-section-bottom-mobile);
   }
-
-  .hero__inner {
-    width: 100%;
-  }
 }
 
 .hero__inner {
@@ -27,7 +23,10 @@
   flex-direction: column;
   align-items: center;
   gap: 2em;
-  width: var(--width-content);
+  width: 100%;
+  @include bp.min-width(bp.$bp-nav-up) {
+    width: var(--width-content);
+  }
 }
 
 .hero__title {

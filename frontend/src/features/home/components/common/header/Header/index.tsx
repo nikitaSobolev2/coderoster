@@ -16,6 +16,8 @@ import styles from './styles.module.scss'
 
 /** Matches `breakpoints` `$bp-nav` (mobile header island) */
 const MOBILE_ISLAND_MQ = '(max-width: 768px)'
+/** <470px: logo mark only; ≥470px: include wordmark (still true on 470–768 island bar) */
+const MOBILE_LOGO_ICON_ONLY_MQ = '(max-width: 469px)'
 
 export interface Props {
   className?: string
@@ -24,6 +26,7 @@ export interface Props {
 export default function Header({ className = '' }: Props) {
   const [active, setActive] = useState(false)
   const isIslandLayout = useMediaQuery(MOBILE_ISLAND_MQ)
+  const isIconOnlyLogo = useMediaQuery(MOBILE_LOGO_ICON_ONLY_MQ)
   const menuOpen = useMobileMenuStore(s => s.isOpen)
   const toggleMenu = useMobileMenuStore(s => s.toggle)
 
@@ -42,7 +45,7 @@ export default function Header({ className = '' }: Props) {
       data-home-header
     >
       <div className={styles.header__container}>
-        <HeaderLogo layout={isIslandLayout ? 'island' : 'default'} />
+        <HeaderLogo layout={isIconOnlyLogo ? 'island' : 'default'} />
 
         <div className={styles.endCluster}>
           <div className={styles.container__right}>

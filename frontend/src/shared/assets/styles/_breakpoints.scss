@@ -1,10 +1,19 @@
 $bp-sm: 600px;
 $bp-md: 900px;
 $bp-nav: 768px;
+/* Viewport strictly wider than $bp-nav (desktop for nav + section content width) */
+$bp-nav-up: 769px;
+$bp-header-logo-icon-only: 469px; /* <470px; pair with `MOBILE_LOGO_ICON_ONLY_MQ` in Header */
 $bp-search: 770px;
 
 @mixin max-width($breakpoint) {
   @media (max-width: $breakpoint) {
+    @content;
+  }
+}
+
+@mixin min-width($breakpoint) {
+  @media (min-width: $breakpoint) {
     @content;
   }
 }

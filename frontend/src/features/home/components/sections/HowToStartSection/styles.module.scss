@@ -21,11 +21,14 @@
 }
 
 .howToStart__inner {
-  width: var(--width-content);
+  width: 100%;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
   gap: var(--gap-howto-row);
   align-items: start;
+  @include bp.min-width(bp.$bp-nav-up) {
+    width: var(--width-content);
+  }
 
   @include bp.max-width(bp.$bp-md) {
     grid-template-columns: 1fr;

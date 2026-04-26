@@ -5,6 +5,7 @@
   width: 100%;
   min-height: 100svh;
   overflow-x: hidden;
+  background: linear-gradient(180deg, transparent, var(--color-footer-section-fade));
 }
 
 @include bp.max-width(bp.$bp-nav) {

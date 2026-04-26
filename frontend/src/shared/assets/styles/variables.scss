@@ -65,6 +65,32 @@
   --padding-main: 1.5rem;
 
   --header-height: 76px;
+  /* Tap target — Apple HIG 44px / Material 48dp */
+  --min-tap-target: 44px;
+  /* Header island sizing (mobile bottom + desktop top) */
+  --height-header-island: 60px;
+  --height-header-island-action: 44px;
+  --padding-header-island: 0.375rem;
+  --gap-header-island: 0.375rem;
+  --radius-header-island: var(--radius-pill);
+  --bg-header-glass: color-mix(in srgb, var(--color-bg) 60%, transparent);
+  --shadow-header-island:
+    0 12px 32px -8px color-mix(in srgb, black 55%, transparent),
+    0 1px 0 color-mix(in srgb, var(--color-text) 6%, transparent) inset;
+  --shadow-header-island-active:
+    0 0 0 1px color-mix(in srgb, var(--color-r3f-directional) 35%, transparent),
+    0 16px 36px -8px color-mix(in srgb, var(--color-r3f-directional) 25%, transparent),
+    0 1px 0 color-mix(in srgb, var(--color-text) 8%, transparent) inset;
+  /* Primary CTA palette (replaces inline #fff / #0a0a0a literals) */
+  --color-cta-bg: var(--color-text);
+  --color-cta-bg-hover: color-mix(in srgb, var(--color-text) 92%, var(--color-bg));
+  --color-cta-fg: var(--color-bg);
+  --color-cta-border: color-mix(in srgb, var(--color-bg) 14%, var(--color-text));
+  --color-cta-border-hover: color-mix(in srgb, var(--color-bg) 22%, var(--color-text));
+  /* Mobile home menu: search row + login — one size (DRY) */
+  --min-height-mobile-drawer-control: var(--min-tap-target);
+  --padding-block-mobile-drawer-control: 0.75rem;
+  --padding-inline-mobile-drawer-control: 1.25rem;
   /* Bottom island (mobile): offset from viewport bottom + safe area */
   --island-inset: max(env(safe-area-inset-bottom, 0px), 0.75rem);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -122,7 +148,7 @@
   --gap-footer-nav: 0.5em;
   --gap-footer-bottom: 0.5em;
   --size-footer-logo-social: 2.4em;
-  --offset-footer-bg-word: -2vw;
+  --offset-footer-bg-word: -1.5vw;
   --padding-footer-bottom-row: 2em;
 
   /* Cursor / interactive */
@@ -189,4 +215,23 @@
   /* Search overlay (padding uses rem from design) */
   --padding-search-overlay-top: 2rem;
   --padding-search-inner-top: 3rem;
+}
+
+/* Mobile token overrides — tighter editorial scale; matches $bp-nav (768px) */
+@media (max-width: 768px) {
+  :root {
+    --font-size-h1: 32px;
+    --font-size-h2: 24px;
+    --font-size-h3: 18px;
+    --letter-spacing-title: 2px;
+
+    --padding-section-bottom-xl: 3.5em;
+    --padding-solution-row: 1.5em 0;
+    --size-solution-index-col: 3em;
+    --gap-whatdo-inner: 2.5em;
+    --gap-section-column: 2.5em;
+    --gap-section-heading: 2em;
+    --gap-howto-row: 2.5em;
+    --padding-fear-card: 1.5em 1.25em;
+  }
 }

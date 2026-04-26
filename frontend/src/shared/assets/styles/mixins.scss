@@ -48,3 +48,23 @@
 @mixin fontYandexSans() {
   font-family: 'YandexSansText', sans-serif;
 }
+
+@mixin tapTarget() {
+  min-block-size: var(--min-tap-target);
+  min-inline-size: var(--min-tap-target);
+}
+
+@mixin focusRing() {
+  &:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 2px var(--color-bg),
+      0 0 0 4px color-mix(in srgb, var(--color-r3f-directional) 60%, transparent);
+  }
+}
+
+@mixin reducedMotion() {
+  @media (prefers-reduced-motion: reduce) {
+    @content;
+  }
+}

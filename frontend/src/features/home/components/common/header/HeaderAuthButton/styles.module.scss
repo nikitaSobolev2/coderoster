@@ -1,13 +1,32 @@
 @use '~/shared/assets/styles/mixins' as *;
 
 .headerAuthButton {
-    @include buttonReset;
-    @include bluredBg;
+  @include buttonReset;
+  @include bluredBg;
+  @include tapTarget;
+  @include focusRing;
 
-    background: transparent;
-    font-size: var(--font-size-h5);
-    gap: 1em;
-    padding: .5em 1em;
-    border-radius: var(--border-radius-button);
-    letter-spacing: var(--letter-spacing-button);
+  display: inline-flex;
+  align-items: center;
+  height: var(--height-header-island-action);
+  padding: 0 1.1em;
+  gap: 0.75em;
+  background: transparent;
+  font-size: var(--font-size-h5);
+  border-radius: var(--radius-pill);
+  letter-spacing: var(--letter-spacing-button);
+  color: var(--color-text);
+  border: var(--border-width-hair) solid var(--color-bg-el-border);
+  transition:
+    border-color var(--transition-button),
+    background-color var(--transition-button);
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--color-text-semivisible);
+  }
+
+  @include reducedMotion {
+    transition: none;
+  }
 }

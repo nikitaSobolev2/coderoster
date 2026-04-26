@@ -50,27 +50,30 @@
     }
   }
 
-  /* Mobile home drawer: match `drawerAuth` height (min-height + same vertical padding) */
+  /* Mobile home drawer: same block as `MobileHomeMenu` .drawerAuth */
   &_drawer {
     box-sizing: border-box;
     min-width: 0;
-    min-height: 2.75rem;
-    border: 1px solid var(--color-text-semivisible);
-    align-items: stretch;
+    min-height: var(--min-height-mobile-drawer-control);
+    border: var(--border-width-hair) solid var(--color-text-semivisible);
+    align-items: center;
 
     .bar__icon {
       display: flex;
       align-items: center;
-      align-self: stretch;
-      padding: 1rem 0.5rem 1rem 1.25rem;
+      align-self: center;
+      padding: var(--padding-block-mobile-drawer-control) 0.5rem
+        var(--padding-block-mobile-drawer-control) var(--padding-inline-mobile-drawer-control);
     }
 
     .bar__input {
       display: flex;
       align-items: center;
-      align-self: stretch;
+      align-self: center;
       font-size: var(--font-size-h4);
-      padding: 1rem 1.25rem 1rem 0;
+      line-height: 1.2;
+      padding: var(--padding-block-mobile-drawer-control)
+        var(--padding-inline-mobile-drawer-control) var(--padding-block-mobile-drawer-control) 0;
     }
   }
 }

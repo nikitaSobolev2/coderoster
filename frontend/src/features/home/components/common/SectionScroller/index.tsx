@@ -7,6 +7,7 @@ import { ScrollToPlugin } from 'gsap/ScrollToPlugin'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useLoadingStore } from '~/features/home/components/common/AppLoader/loading.store'
 import { registerSectionScrollToIdHandler } from '~/features/home/components/common/SectionScroller/section-scroll-api'
+import { useMatchMedia } from '~/shared/hooks/useMatchMedia'
 import { getSectionIndexFromScroll } from './getSectionIndexFromScroll'
 import { getSectionScrollObserverType } from './getSectionScrollObserverType'
 import { useSectionScrollerStore, type SectionDescriptor } from './section-scroller.store'
@@ -16,15 +17,24 @@ gsap.registerPlugin(Observer, ScrollToPlugin, ScrollTrigger)
 
 const SCROLL_DURATION_S = 1
 const OBSERVER_TOLERANCE = 12
+const MOBILE_MQ = '(max-width: 768px)'
+const REDUCED_MOTION_MQ = '(prefers-reduced-motion: reduce)'
 
 export interface Props {
   sections: readonly SectionDescriptor[]
   children: React.ReactNode
 }
 
-export default function SectionScroller({ sections, children }: Props) {
+type IndexRef = React.RefObject<number>
+type Navigator = (targetIndex: number) => void
+
+export default function SectionScroller({ sections, children }: Readonly<Props>) {
   const containerRef = useRef<HTMLDivElement>(null)
   const isReady = useLoadingStore(state => state.isReady)
+  const isMobile = useMatchMedia(MOBILE_MQ)
+  const prefersReducedMotion = useMatchMedia(REDUCED_MOTION_MQ)
+  const useSnapScroll = !isMobile && !prefersReducedMotion
+
   const sectionIndexRef = useRef(0)
 
   const setSections = useSectionScrollerStore(state => state.setSections)
@@ -46,39 +56,25 @@ export default function SectionScroller({ sections, children }: Props) {
     }
 
     syncIndexFromWindowScroll()
-    const syncFrame1 = requestAnimationFrame(() => {
+    const syncFrame = requestAnimationFrame(() => {
       syncIndexFromWindowScroll()
-      requestAnimationFrame(() => {
-        ScrollTrigger.refresh()
-      })
+      requestAnimationFrame(() => ScrollTrigger.refresh())
     })
 
-    const runScrollToIndex = (targetIndex: number) => {
-      const target = clampIndex(targetIndex, sections.length)
-      if (target === sectionIndexRef.current) return
-
-      const sectionElement = document.getElementById(sections[target]!.id)
-      if (!sectionElement) return
-
-      sectionIndexRef.current = target
-      setActiveIndex(target)
-      setAnimating(true)
-      gsap.to(window, {
-        duration: SCROLL_DURATION_S,
-        scrollTo: { y: sectionElement.offsetTop, autoKill: true },
-        ease: 'power2.inOut',
-        overwrite: 'auto',
-        onComplete: () => {
-          setAnimating(false)
-          syncIndexFromWindowScroll()
-        }
-      })
-    }
+    const navigateToIndex: Navigator = useSnapScroll
+      ? createSnapNavigator({
+          sections,
+          sectionIndexRef,
+          setActiveIndex,
+          setAnimating,
+          syncIndex: syncIndexFromWindowScroll
+        })
+      : createNativeNavigator({ sections, sectionIndexRef, setActiveIndex })
 
     const navigateToSectionId = (id: string) => {
-      const targetIndex = sections.findIndex(s => s.id === id)
-      if (targetIndex < 0) return
-      runScrollToIndex(targetIndex)
+      const target = sections.findIndex(s => s.id === id)
+      if (target < 0) return
+      navigateToIndex(target)
     }
 
     const handleHashChange = () => {
@@ -87,36 +83,43 @@ export default function SectionScroller({ sections, children }: Props) {
     }
 
     const unregisterScroll = registerSectionScrollToIdHandler(navigateToSectionId)
+    const cleanups: Array<() => void> = []
 
-    const wheelOff = prefersReducedMotion()
-    const observer = !wheelOff
-      ? Observer.create({
-          type: getSectionScrollObserverType(),
-          wheelSpeed: -1,
-          tolerance: OBSERVER_TOLERANCE,
-          preventDefault: true,
-          onUp: () => {
-            if (useSectionScrollerStore.getState().isAnimating) return
-            runScrollToIndex(sectionIndexRef.current + 1)
-          },
-          onDown: () => {
-            if (useSectionScrollerStore.getState().isAnimating) return
-            runScrollToIndex(sectionIndexRef.current - 1)
-          }
-        })
-      : null
+    if (useSnapScroll) {
+      const observer = Observer.create({
+        type: getSectionScrollObserverType(),
+        wheelSpeed: -1,
+        tolerance: OBSERVER_TOLERANCE,
+        preventDefault: true,
+        onUp: () => {
+          if (useSectionScrollerStore.getState().isAnimating) return
+          navigateToIndex(sectionIndexRef.current + 1)
+        },
+        onDown: () => {
+          if (useSectionScrollerStore.getState().isAnimating) return
+          navigateToIndex(sectionIndexRef.current - 1)
+        }
+      })
+      cleanups.push(() => observer.kill())
+      document.body.classList.add('section-scroller-active')
+      cleanups.push(() => document.body.classList.remove('section-scroller-active'))
+    } else {
+      const triggers = createActiveSectionTriggers(sections, index => {
+        sectionIndexRef.current = index
+        setActiveIndex(index)
+      })
+      cleanups.push(() => triggers.forEach(trigger => trigger.kill()))
+    }
 
     window.addEventListener('hashchange', handleHashChange)
-    document.body.classList.add('section-scroller-active')
+    cleanups.push(() => window.removeEventListener('hashchange', handleHashChange))
 
     return () => {
-      cancelAnimationFrame(syncFrame1)
+      cancelAnimationFrame(syncFrame)
       unregisterScroll()
-      observer?.kill()
-      window.removeEventListener('hashchange', handleHashChange)
-      document.body.classList.remove('section-scroller-active')
+      cleanups.forEach(fn => fn())
     }
-  }, [isReady, sections, setActiveIndex, setAnimating])
+  }, [isReady, sections, setActiveIndex, setAnimating, useSnapScroll])
 
   return (
     <div ref={containerRef} className={styles.scroller}>
@@ -131,6 +134,73 @@ function clampIndex(index: number, length: number) {
   return index
 }
 
-function prefersReducedMotion() {
-  return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+interface SnapNavigatorOptions {
+  sections: readonly SectionDescriptor[]
+  sectionIndexRef: IndexRef
+  setActiveIndex: (index: number) => void
+  setAnimating: (animating: boolean) => void
+  syncIndex: () => void
+}
+
+function createSnapNavigator(options: SnapNavigatorOptions): Navigator {
+  const { sections, sectionIndexRef, setActiveIndex, setAnimating, syncIndex } = options
+  return targetIndex => {
+    const target = clampIndex(targetIndex, sections.length)
+    if (target === sectionIndexRef.current) return
+    const sectionElement = document.getElementById(sections[target]!.id)
+    if (!sectionElement) return
+
+    sectionIndexRef.current = target
+    setActiveIndex(target)
+    setAnimating(true)
+    gsap.to(window, {
+      duration: SCROLL_DURATION_S,
+      scrollTo: { y: sectionElement.offsetTop, autoKill: true },
+      ease: 'power2.inOut',
+      overwrite: 'auto',
+      onComplete: () => {
+        setAnimating(false)
+        syncIndex()
+      }
+    })
+  }
+}
+
+interface NativeNavigatorOptions {
+  sections: readonly SectionDescriptor[]
+  sectionIndexRef: IndexRef
+  setActiveIndex: (index: number) => void
+}
+
+function createNativeNavigator(options: NativeNavigatorOptions): Navigator {
+  const { sections, sectionIndexRef, setActiveIndex } = options
+  return targetIndex => {
+    const target = clampIndex(targetIndex, sections.length)
+    const sectionElement = document.getElementById(sections[target]!.id)
+    if (!sectionElement) return
+    sectionIndexRef.current = target
+    setActiveIndex(target)
+    window.scrollTo({ top: sectionElement.offsetTop, behavior: 'smooth' })
+  }
+}
+
+function createActiveSectionTriggers(
+  sections: readonly SectionDescriptor[],
+  onActivate: (index: number) => void
+): ScrollTrigger[] {
+  const triggers: ScrollTrigger[] = []
+  sections.forEach((section, index) => {
+    const element = document.getElementById(section.id)
+    if (!element) return
+    const trigger = ScrollTrigger.create({
+      trigger: element,
+      start: 'top 65%',
+      end: 'bottom 35%',
+      onToggle: self => {
+        if (self.isActive) onActivate(index)
+      }
+    })
+    triggers.push(trigger)
+  })
+  return triggers
 }

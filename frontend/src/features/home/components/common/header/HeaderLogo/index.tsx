@@ -10,12 +10,13 @@ export type HeaderLogoLayout = 'default' | 'island'
 
 export interface Props {
   className?: string
-  /** Island bar: mark only, tighter hit area */
+  /** Island bar: tighter padding; wordmark collapses under ~400px via CSS */
   layout?: HeaderLogoLayout
 }
 
 export default function HeaderLogo({ className = '', layout = 'default' }: Props) {
   const ref = useRef<HTMLAnchorElement>(null)
+  const isIsland = layout === 'island'
 
   useCursorOutlineTarget(ref)
 
@@ -23,10 +24,10 @@ export default function HeaderLogo({ className = '', layout = 'default' }: Props
     <PureButton
       label="Главная"
       href="/"
-      className={`${styles.headerLogo} ${layout === 'island' ? styles.headerLogo_island : ''} ${className}`.trim()}
+      className={`${styles.headerLogo} ${isIsland ? styles.headerLogo_island : ''} ${className}`.trim()}
       ref={ref}
     >
-      <Logo withWordmark={layout === 'default'} />
+      <Logo withWordmark wordmarkClassName={isIsland ? styles.headerLogo__wordmark_island : ''} />
     </PureButton>
   )
 }

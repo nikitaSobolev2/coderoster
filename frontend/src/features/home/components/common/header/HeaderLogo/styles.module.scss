@@ -1,10 +1,25 @@
+@use '~/shared/assets/styles/mixins' as *;
+
 .headerLogo {
+  @include tapTarget;
+  @include focusRing;
+
+  display: inline-flex;
+  align-items: center;
   padding: 0.5em 1em;
   font-size: var(--font-size-h5);
-  border-radius: var(--border-radius-button);
+  border-radius: var(--radius-pill);
+  line-height: 1;
 }
 
 .headerLogo_island {
-  padding: 0.35em 0.5em;
-  font-size: clamp(0.8rem, 2.4vw, 0.9rem);
+  height: var(--height-header-island-action);
+  padding: 0 0.85rem;
+  font-size: clamp(0.85rem, 2.4vw, 0.95rem);
+}
+
+.headerLogo__wordmark_island {
+  @media (max-width: 400px) {
+    display: none;
+  }
 }

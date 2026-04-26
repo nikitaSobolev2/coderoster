@@ -1,12 +1,20 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
+import { useMatchMedia } from '~/shared/hooks/useMatchMedia'
 import styles from './styles.module.scss'
 import { useCursorStore, type CursorStore } from './cursor.store'
 
 const FOLLOW_LERP = 0.18
+const DESKTOP_POINTER_MQ = '(hover: hover) and (pointer: fine) and (min-width: 769px)'
 
 export default function Cursor() {
+  const isDesktopPointer = useMatchMedia(DESKTOP_POINTER_MQ)
+  if (!isDesktopPointer) return null
+  return <CursorRuntime />
+}
+
+function CursorRuntime() {
   const cursorRef = useRef<HTMLDivElement>(null)
   const localAnimatedPos = useRef({ x: 0, y: 0 })
 

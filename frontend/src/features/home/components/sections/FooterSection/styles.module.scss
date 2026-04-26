@@ -4,13 +4,13 @@
 .footer {
   position: relative;
   width: 100%;
-  min-height: 100svh;
+  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: calc(var(--header-height) + var(--spacing-footer-below-header)) var(--padding-main)
     var(--padding-footer-bottom);
-  background: linear-gradient(180deg, transparent, var(--color-footer-section-fade));
+  // background: linear-gradient(180deg, transparent, var(--color-footer-section-fade));
   overflow: hidden;
 
   @include bp.max-width(bp.$bp-nav) {

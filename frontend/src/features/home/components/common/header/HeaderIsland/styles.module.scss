@@ -1,0 +1,46 @@
+@use '~/shared/assets/styles/mixins' as *;
+
+.island {
+  @include bluredBg;
+
+  position: fixed;
+  bottom: var(--island-inset);
+  left: 50%;
+  translate: -50% 0;
+  width: min(calc(100vw - var(--padding-main)), 32rem);
+  height: var(--height-header-island);
+  padding: var(--padding-header-island);
+  border-radius: var(--radius-header-island);
+  z-index: var(--z-header-island);
+  border: var(--border-width-hair) solid var(--color-bg-el-border);
+  background: var(--bg-header-glass);
+  box-shadow: var(--shadow-header-island);
+  transition:
+    border-color var(--transition-default),
+    box-shadow var(--transition-default);
+
+  &_scrolled {
+    border-color: color-mix(in srgb, var(--color-r3f-directional) 35%, var(--color-bg-el-border));
+    box-shadow: var(--shadow-header-island-active);
+  }
+
+  @include reducedMotion {
+    transition: none;
+  }
+}
+
+.island__container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--gap-header-island);
+}
+
+.island__actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--gap-header-island);
+  margin-left: auto;
+}

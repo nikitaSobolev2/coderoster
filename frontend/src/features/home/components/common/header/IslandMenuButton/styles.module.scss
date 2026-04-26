@@ -1,0 +1,55 @@
+@use '~/shared/assets/styles/mixins' as *;
+
+.menuButton {
+  @include buttonReset;
+  @include bluredBg;
+  @include focusRing;
+
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+  width: var(--height-header-island-action);
+  height: var(--height-header-island-action);
+  min-width: var(--height-header-island-action);
+  min-height: var(--height-header-island-action);
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text);
+  background: var(--color-bg-el);
+  border: var(--border-width-hair) solid var(--color-bg-el-border);
+  border-radius: var(--radius-pill);
+  transition:
+    color var(--transition-button),
+    background-color var(--transition-button),
+    border-color var(--transition-button);
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--color-text-semivisible);
+    background: color-mix(in srgb, var(--color-text) 6%, var(--color-bg-el));
+  }
+
+  @include reducedMotion {
+    transition: none;
+  }
+}
+
+.menuButton__icon {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-default) ease;
+
+  @include reducedMotion {
+    transition: none;
+  }
+}
+
+.menuButton__icon_visible {
+  opacity: 1;
+  pointer-events: auto;
+}

@@ -2,14 +2,21 @@ import styles from './styles.module.scss'
 
 export interface Props {
   className?: string
+  wordmarkClassName?: string
   withWordmark?: boolean
 }
 
-export default function Logo({ className = '', withWordmark = true }: Props) {
+export default function Logo({
+  className = '',
+  wordmarkClassName = '',
+  withWordmark = true
+}: Props) {
   return (
     <span className={`${styles.logo} ${className}`} aria-label="CodeRoster">
       <LogoMark className={styles.logo__mark} />
-      {withWordmark && <span className={styles.logo__wordmark}>CodeRoster</span>}
+      {withWordmark && (
+        <span className={`${styles.logo__wordmark} ${wordmarkClassName}`}>CodeRoster</span>
+      )}
     </span>
   )
 }

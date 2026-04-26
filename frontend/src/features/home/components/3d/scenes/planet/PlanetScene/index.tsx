@@ -3,11 +3,14 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { gsap } from 'gsap'
+import type { Group } from 'three'
 import { usePlanetScaleStore } from '~/features/home/components/3d/scenes/planet/PlanetScene/planet-scale.store'
 import { getPlanetPresetForIndex } from '~/features/home/components/3d/scenes/planet/planetSectionPresets'
 import { usePlanetGroupRefStore } from '~/features/home/components/3d/scenes/planet/planet-group-ref.store'
 import { usePlanetStore } from '~/features/home/components/3d/models/Planet/planet.store'
 import { useSectionScrollerStore } from '~/features/home/components/common/SectionScroller/section-scroller.store'
+import { useMobilePlanetScrollTimeline } from '~/features/home/hooks/planetScroll/useMobilePlanetScrollTimeline'
+import { useMatchMedia } from '~/shared/hooks/useMatchMedia'
 import { readRootCssColorVar } from '~/shared/utils/cssCustomProperties'
 import { CameraSetup } from '../CameraSetup'
 import { ScalablePlanet } from '../ScalablePlanet'
@@ -17,6 +20,28 @@ const FALLBACK_R3F_LIGHT_WARM = '#fff1e0'
 const FALLBACK_R3F_DIRECTIONAL = '#1B1EC8'
 const SECTION_TWEEN_S = 1.15
 const FOOTER_SECTION_INDEX = 5
+const MOBILE_MQ = '(max-width: 768px)'
+const ROTATION_BURST_DURATION_S = 2
+const ROTATION_BURST_TURNS = 4
+
+interface RotationTweenOptions {
+  group: Group | null
+  indexChanged: boolean
+  delta: number
+}
+
+function tweenPlanetRotation(options: RotationTweenOptions): gsap.core.Tween | null {
+  const { group, indexChanged, delta } = options
+  if (!group || !indexChanged || delta === 0) return null
+  gsap.killTweensOf(group.rotation)
+  const sign = delta > 0 ? 1 : -1
+  return gsap.to(group.rotation, {
+    y: group.rotation.y + sign * ROTATION_BURST_TURNS * Math.PI,
+    duration: ROTATION_BURST_DURATION_S,
+    ease: 'power2.inOut',
+    overwrite: 'auto'
+  })
+}
 
 function PlanetR3FLights({
   warmBase,
@@ -60,6 +85,13 @@ export default function PlanetScene() {
   const activeIndex = useSectionScrollerStore(s => s.activeIndex)
   const prevIndexRef = useRef(activeIndex)
   const didInitRef = useRef(false)
+  const isMobile = useMatchMedia(MOBILE_MQ)
+
+  useMobilePlanetScrollTimeline({
+    enabled: isMobile && canvasSize !== null,
+    containerRef: animatedContainerRef,
+    setPlanetScale
+  })
 
   const r3fLightColors = useMemo(
     () => ({
@@ -110,12 +142,20 @@ export default function PlanetScene() {
     const t = preset.getTranslate({ innerWidth: w, innerHeight: h })
     const targetScale = preset.targetScale
 
-    const applySectionVisuals = () => {
-      const patch = preset.getPlanetSettingsPatch()
-      usePlanetStore.getState().applyPlanetSectionVisuals(patch)
-    }
+    usePlanetStore.getState().applyPlanetSectionVisuals(preset.getPlanetSettingsPatch())
 
-    applySectionVisuals()
+    const prev = prevIndexRef.current
+    const indexChanged = prev !== activeIndex
+    const delta = activeIndex - prev
+    const group = usePlanetGroupRefStore.getState().group
+
+    if (isMobile) {
+      prevIndexRef.current = activeIndex
+      const rotationTween = tweenPlanetRotation({ group, indexChanged, delta })
+      return () => {
+        rotationTween?.kill()
+      }
+    }
 
     if (!didInitRef.current) {
       didInitRef.current = true
@@ -125,12 +165,8 @@ export default function PlanetScene() {
       return
     }
 
-    const prev = prevIndexRef.current
-    const indexChanged = prev !== activeIndex
-    const delta = activeIndex - prev
     prevIndexRef.current = activeIndex
 
-    const group = usePlanetGroupRefStore.getState().group
     const enterFromTop =
       preset.enterFromTop === true &&
       activeIndex === FOOTER_SECTION_INDEX &&
@@ -142,47 +178,30 @@ export default function PlanetScene() {
     }
 
     const scaleProxy = { s: usePlanetScaleStore.getState().planetScale }
-
     const tl = gsap.timeline({ defaults: { ease: 'power2.inOut' } })
 
     if (enterFromTop) {
       gsap.set(el, { x: t.x, y: t.y - h * 0.4 })
-      tl.to(el, { x: t.x, y: t.y, duration: SECTION_TWEEN_S, overwrite: 'auto' }, 0)
-    } else {
-      tl.to(el, { x: t.x, y: t.y, duration: SECTION_TWEEN_S, overwrite: 'auto' }, 0)
     }
-
+    tl.to(el, { x: t.x, y: t.y, duration: SECTION_TWEEN_S, overwrite: 'auto' }, 0)
     tl.to(
       scaleProxy,
       {
         s: targetScale,
         duration: SECTION_TWEEN_S,
         ease: 'power2.inOut',
-        onUpdate: () => {
-          setPlanetScale(scaleProxy.s)
-        }
+        onUpdate: () => setPlanetScale(scaleProxy.s)
       },
       0
     )
 
-    if (indexChanged && group && delta !== 0) {
-      const sign = delta > 0 ? 1 : -1
-      const endY = group.rotation.y + sign * 4 * Math.PI
-      gsap.to(group.rotation, {
-        y: endY,
-        duration: 2,
-        ease: 'power2.inOut',
-        overwrite: 'auto'
-      })
-    }
+    const rotationTween = tweenPlanetRotation({ group, indexChanged, delta })
 
     return () => {
       tl.kill()
-      if (group) {
-        gsap.killTweensOf(group.rotation)
-      }
+      rotationTween?.kill()
     }
-  }, [activeIndex, canvasSize, setPlanetScale, layoutTick])
+  }, [activeIndex, canvasSize, setPlanetScale, layoutTick, isMobile])
 
   return (
     <div ref={animatedContainerRef} className={styles.container}>

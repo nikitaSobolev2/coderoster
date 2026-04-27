@@ -1,0 +1,70 @@
+@use '~/shared/assets/styles/mixins' as *;
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem clamp(1rem, 3vw, 2rem);
+  border-bottom: var(--border-width-hair) solid var(--platform-color-divider);
+  background: color-mix(in srgb, var(--color-bg) 70%, transparent);
+  backdrop-filter: var(--blur-effect-default);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-header);
+}
+
+.topbar__label {
+  font-size: var(--font-size-h6);
+  letter-spacing: var(--letter-spacing-button);
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.topbar__right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.topbar__viewAs {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  font-size: var(--font-size-h6);
+  letter-spacing: var(--letter-spacing-button);
+  text-transform: uppercase;
+  padding: 0.4rem 0.7rem;
+  border-radius: var(--platform-card-radius-sm);
+  transition:
+    background var(--transition-default),
+    color var(--transition-default);
+
+  &:hover {
+    color: var(--color-text);
+    background: var(--platform-color-surface-hover);
+  }
+}
+
+.topbar__actor {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.topbar__actor_meta {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+
+.topbar__actor_name {
+  font-size: var(--font-size-default);
+  color: var(--color-text);
+}
+
+.topbar__actor_handle {
+  font-size: var(--font-size-h6);
+  color: var(--color-text-secondary);
+}

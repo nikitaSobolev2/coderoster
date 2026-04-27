@@ -1,0 +1,57 @@
+@use '~/shared/assets/styles/mixins' as *;
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  background: var(--platform-color-surface);
+  border: var(--border-width-hair) solid var(--platform-color-border);
+  border-radius: var(--platform-card-radius);
+  box-shadow: var(--platform-shadow-card);
+  margin-bottom: 1.25rem;
+  overflow: hidden;
+}
+
+.card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.05rem 1.25rem;
+  border-bottom: var(--border-width-hair) solid var(--platform-color-divider);
+  flex-wrap: wrap;
+}
+
+.card__heading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.card__title {
+  @include fontYandexDisplay();
+  font-size: var(--font-size-h3);
+  color: var(--color-text);
+  margin: 0;
+}
+
+.card__description {
+  font-size: var(--font-size-default);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.card__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.card__body {
+  padding: 1.25rem;
+}
+
+.card__body_flush {
+  padding: 0;
+}

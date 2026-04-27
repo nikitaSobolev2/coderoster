@@ -52,7 +52,7 @@ export default function CourseFilters({ filters, onChange, total }: Readonly<Pro
   ) => {
     const next = normaliseChipValue(raw)
     const resolved = next === FILTER_ALL || next === '' ? undefined : (next as T)
-    update({ [key]: resolved } as Partial<CoursesQuery>)
+    update({ [key]: resolved })
   }
 
   return (

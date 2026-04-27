@@ -13,6 +13,8 @@ import { sandboxRouter } from '~/server/api/routers/sandbox'
 import { leaderboardRouter } from '~/server/api/routers/leaderboard'
 import { dailyRouter } from '~/server/api/routers/daily'
 import { weeklyRouter } from '~/server/api/routers/weekly'
+import { adminRouter } from '~/server/api/routers/admin'
+import { uploadRouter } from '~/server/api/routers/upload'
 import { createCallerFactory, createTRPCRouter } from '~/server/api/trpc'
 
 /**
@@ -33,7 +35,9 @@ export const appRouter = createTRPCRouter({
   sandbox: sandboxRouter,
   leaderboard: leaderboardRouter,
   daily: dailyRouter,
-  weekly: weeklyRouter
+  weekly: weeklyRouter,
+  admin: adminRouter,
+  upload: uploadRouter
 })
 
 export type AppRouter = typeof appRouter

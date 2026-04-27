@@ -3,18 +3,9 @@
 import { useMemo, useState } from 'react'
 import { Progress, SegmentedControl } from '@mantine/core'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import {
-  faBolt,
-  faCircleQuestion,
-  faFire,
-  faMedal,
-  faMoon,
-  faShoePrints,
-  faStar,
-  faTrophy
-} from '@fortawesome/free-solid-svg-icons'
-import type { IconDefinition } from '@fortawesome/fontawesome-svg-core'
+import { faCircleQuestion, faTrophy } from '@fortawesome/free-solid-svg-icons'
 import EmptyState from '~/shared/components/ui/EmptyState'
+import { resolveIcon } from '~/shared/components/ui/IconOrImageField/iconMap'
 import type { AchievementProgress } from '~/server/api/routers/achievement'
 import styles from './styles.module.scss'
 
@@ -33,16 +24,6 @@ const FILTERS: { value: FilterValue; label: string }[] = [
   { value: 'completionist', label: 'Полнота' },
   { value: 'hidden', label: 'Секреты' }
 ]
-
-const ICON_MAP: Record<string, IconDefinition> = {
-  'shoe-prints': faShoePrints,
-  fire: faFire,
-  'circle-check': faMedal,
-  bolt: faBolt,
-  moon: faMoon,
-  trophy: faTrophy,
-  star: faStar
-}
 
 export default function AchievementsPanel({ initial, isAuthenticated }: Props) {
   const [filter, setFilter] = useState<FilterValue>('all')
@@ -97,7 +78,16 @@ export default function AchievementsPanel({ initial, isAuthenticated }: Props) {
           {visible.map(item => (
             <li key={item.id} className={styles.panel__tile} data-earned={item.earned}>
               <div className={styles.panel__iconWrap} data-rarity={item.rarity}>
-                <FontAwesomeIcon icon={ICON_MAP[item.icon] ?? faTrophy} />
+                {item.imageUrl ? (
+                  <img
+                    src={item.imageUrl}
+                    alt=""
+                    aria-hidden="true"
+                    className={styles.panel__iconImage}
+                  />
+                ) : (
+                  <FontAwesomeIcon icon={resolveIcon(item.icon)} />
+                )}
               </div>
               <div className={styles.panel__body}>
                 <h3 className={styles.panel__tileTitle}>

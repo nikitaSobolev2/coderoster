@@ -263,6 +263,7 @@ export function toAchievement(achievement: PrismaAchievement): Achievement {
     name: achievement.title,
     description: achievement.description,
     icon: achievement.coverImage ?? 'trophy',
+    imageUrl: achievement.imageUrl,
     category: (achievement.category as Achievement['category']) ?? 'progression',
     rarity: (achievement.rarity as Achievement['rarity']) ?? 'common',
     hidden: achievement.hidden

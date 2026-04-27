@@ -1,0 +1,85 @@
+@use '~/shared/assets/styles/mixins' as *;
+
+.shell {
+  display: grid;
+  grid-template-columns: minmax(260px, 300px) 1fr;
+  gap: 1.25rem;
+  align-items: start;
+  min-height: 600px;
+}
+
+.shell__tree {
+  position: sticky;
+  top: calc(64px + 1.25rem);
+  align-self: flex-start;
+  max-height: calc(100vh - 8rem);
+  overflow: auto;
+}
+
+.shell__form {
+  min-width: 0;
+}
+
+.tree {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.tree__row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 0.65rem;
+  border-radius: var(--platform-card-radius-sm);
+  border: var(--border-width-hair) solid var(--platform-color-border);
+  background: var(--platform-color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: background-color 120ms ease;
+}
+
+.tree__row:hover {
+  background: var(--platform-color-surface-hover);
+}
+
+.tree__row_active {
+  border-color: var(--platform-color-accent);
+  background: var(--platform-color-accent-soft);
+}
+
+.tree__rowMain {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.tree__rowTitle {
+  font-size: 0.95rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tree__rowSub {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+}
+
+.tree__add {
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 960px) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+
+  .shell__tree {
+    position: static;
+    max-height: none;
+  }
+}

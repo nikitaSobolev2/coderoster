@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faArrowRightFromBracket,
   faGear,
+  faShieldHalved,
   faTrophy,
   faUser
 } from '@fortawesome/free-solid-svg-icons'
@@ -15,6 +16,7 @@ export interface ViewerUser {
   username: string
   displayName: string
   avatarUrl: string | null
+  isAdmin: boolean
 }
 
 export interface Props {
@@ -51,11 +53,7 @@ export default function UserMenu({ user }: Props) {
           <span className={styles.dropdown__handle}>@{user.username}</span>
         </div>
         <Menu.Divider />
-        <Menu.Item
-          leftSection={<FontAwesomeIcon icon={faUser} />}
-          component={Link}
-          href="/u/me"
-        >
+        <Menu.Item leftSection={<FontAwesomeIcon icon={faUser} />} component={Link} href="/u/me">
           Мой профиль
         </Menu.Item>
         <Menu.Item
@@ -72,6 +70,18 @@ export default function UserMenu({ user }: Props) {
         >
           Настройки
         </Menu.Item>
+        {user.isAdmin ? (
+          <>
+            <Menu.Divider />
+            <Menu.Item
+              leftSection={<FontAwesomeIcon icon={faShieldHalved} />}
+              component={Link}
+              href="/admin"
+            >
+              Админ&#8209;панель
+            </Menu.Item>
+          </>
+        ) : null}
         <Menu.Divider />
         <Menu.Item
           color="red"

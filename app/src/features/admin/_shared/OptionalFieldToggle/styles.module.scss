@@ -1,0 +1,11 @@
+@use '~/shared/assets/styles/mixins' as *;
+
+.toggle {
+  padding: 0.6rem 0.75rem;
+  border-radius: var(--platform-card-radius-sm);
+  border: 1px dashed var(--platform-color-divider);
+}
+
+.toggle__field {
+  padding-top: 0.4rem;
+}

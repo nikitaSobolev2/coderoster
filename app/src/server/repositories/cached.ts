@@ -11,6 +11,7 @@ import type {
   CoursesPage,
   CoursesQuery,
   EarnedAchievement,
+  GlobalSearchOptions,
   GlobalSearchResults,
   LessonDetail,
   ProfileCommentsPage,
@@ -38,7 +39,8 @@ const KEY = {
   achievements: (username: string) => `achievements:${username.toLowerCase()}`,
   comments: (username: string, cursor: string | null) =>
     `comments:${username.toLowerCase()}:${cursor ?? 'head'}`,
-  search: (query: string) => `search:${query.toLowerCase()}`
+  search: (query: string, options: GlobalSearchOptions) =>
+    `search:${query.toLowerCase()}|auth=${options.includeAuthRoutes ? 1 : 0}`
 }
 
 export class CachedCourseRepository implements CourseRepository {
@@ -105,8 +107,10 @@ export class CachedCommentRepository implements CommentRepository {
 export class CachedSearchRepository implements SearchRepository {
   constructor(private readonly inner: SearchRepository) {}
 
-  async global(query: string): Promise<GlobalSearchResults> {
-    return cache.wrap(KEY.search(query), TTL.search, () => this.inner.global(query))
+  async global(query: string, options: GlobalSearchOptions): Promise<GlobalSearchResults> {
+    return cache.wrap(KEY.search(query, options), TTL.search, () =>
+      this.inner.global(query, options)
+    )
   }
 }
 

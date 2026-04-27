@@ -83,8 +83,7 @@ export class LeaderboardService {
     limit: number
   ): Promise<LeaderboardEntry[]> {
     const since = startOfWindow(input.window)
-    const languageFilter =
-      input.language === 'all' ? undefined : { language: input.language as 'python' | 'php' }
+    const languageFilter = input.language === 'all' ? undefined : { language: input.language }
     const grouped = await db.execution.groupBy({
       by: ['userId'],
       where: {

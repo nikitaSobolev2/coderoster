@@ -1,0 +1,103 @@
+.editor {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.editor__label {
+  font-size: var(--font-size-default);
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.editor__hint {
+  font-size: 0.825rem;
+  color: var(--color-text-secondary);
+}
+
+.shell {
+  display: flex;
+  flex-direction: column;
+  background: var(--platform-color-surface);
+  border: var(--border-width-hair) solid var(--platform-color-border);
+  border-radius: var(--platform-card-radius-sm);
+  overflow: hidden;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  padding: 0.5rem 0.6rem;
+  border-bottom: var(--border-width-hair) solid var(--platform-color-divider);
+  background: color-mix(in srgb, var(--color-text) 2%, transparent);
+}
+
+.toolbar__group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding-right: 0.4rem;
+  border-right: var(--border-width-hair) solid var(--platform-color-divider);
+}
+
+.toolbar__group:last-of-type {
+  border-right: none;
+  padding-right: 0;
+}
+
+.tabs {
+  --tab-radius: 0;
+}
+
+.split {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+}
+
+.split_with_preview {
+  grid-template-columns: 1fr 1fr;
+}
+
+.pane {
+  padding: 0.75rem;
+  min-height: 18rem;
+}
+
+.pane_preview {
+  border-left: var(--border-width-hair) solid var(--platform-color-divider);
+  background: color-mix(in srgb, var(--color-text) 2%, transparent);
+  overflow: auto;
+}
+
+.textarea {
+  width: 100%;
+  min-height: 18rem;
+  resize: vertical;
+  background: transparent;
+  color: var(--color-text);
+  border: none;
+  outline: none;
+  font-family:
+    'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+    'Courier New', monospace;
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+.textarea:focus {
+  outline: none;
+}
+
+@media (max-width: 1024px) {
+  .split_with_preview {
+    grid-template-columns: 1fr;
+  }
+
+  .pane_preview {
+    border-left: none;
+    border-top: var(--border-width-hair) solid var(--platform-color-divider);
+  }
+}

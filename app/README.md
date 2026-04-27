@@ -94,14 +94,33 @@ A public page summarising a learner's journey:
 
 ### Admin Panel
 
-A protected back-office for platform management:
+A protected back-office for platform management. **Live** — lives under the
+`(admin)` route group, gated by [`AdminLayout`](src/app/%28admin%29/layout.tsx) at
+the page level and `adminProcedure` (in [`src/server/api/procedures.ts`](src/server/api/procedures.ts))
+at the API level. Every admin mutation is recorded in `AuditLog`.
 
-- Route group accessible only to users with the `admin` role (enforced in middleware)
-- **Course authoring:** create, edit, and delete courses, modules, lessons, and tasks; lesson body uses Tiptap rich text editor
-- **User management:** view all users, assign or revoke roles, inspect activity logs
-- **Content moderation:** review and approve community-submitted solutions or course feedback
-- **Analytics dashboard:** DAU/MAU charts, course completion rates, most popular content, top users by XP (Recharts, already installed)
-- **Announcements:** broadcast notifications to all users or a filtered segment
+- **Dashboard** — counts of users, courses, tasks, content pages, achievements, comments
+- **Users** — list with search/role/ban filters; per-user tabs (Профиль, Роль и бан, Достижения, Активность, Комментарии). Admin can change role, totalXp/streak, exclude from leaderboard, ban (temporary or permanent), grant/revoke achievements, delete activity rows or comments
+- **Каталог: курсы и категории** — list + reorder + create + status (DRAFT / PUBLISHED / HIDDEN); category tree with `parentCategoryId`
+- **Course editor** (flagship UX) — three-pane shell at `/admin/courses/[id]`: tree on the left, metadata + tab-based task editor in the centre, live markdown preview side-by-side. Optional / nullable fields (test stdin, result JSON) are gated behind `<OptionalFieldToggle>` so the surface stays uncluttered. Drag-equivalent reorder via up/down buttons works with keyboard + touch
+- **Контент-страницы** — Markdown CMS for `/p/[slug]`; published rows with `placement = FOOTER` automatically render as link columns in `PlatformFooter`. Includes side-by-side markdown preview
+- **Достижения** — caталог CRUD: title / description / category / rarity / goal / hidden / coverImage
+- **Дейлики и спидраны** — date-keyed `DailyChallenge` (3 tasks/day) and ISO-week-keyed `WeeklyChallenge` (5 tasks/week)
+- **Лидерборд** — sortable list with per-user toggle "Исключить из рейтинга" → `User.excludedFromLeaderboard`
+- **Комментарии** — global moderation table; one-click delete on any thread (profile, course, etc.)
+- **Языки** — global allowed languages stored in `AppSetting('allowed_languages')`. Used by `CourseTask.allowedLanguages` per-task overrides
+- **Аудит** — append-only `AuditLog` viewer with filters by actor / target
+
+Admin entry: header `UserMenu` shows "Админ-панель" only when `role === 'ADMIN'`.
+Banned users (any non-admin with `bannedUntil > now()`) are redirected to a
+public `/banned` page by `protectedProcedure` and the platform middleware.
+
+Schema additions for the panel live in [`prisma/schema.prisma`](prisma/schema.prisma):
+`User.bannedUntil/banReason/excludedFromLeaderboard`, `Course.order`,
+`CourseCategory.order/iconKey`, `CourseTask.allowedLanguages`, plus new
+models `ContentPage`, `AuditLog`, `AppSetting`. Bootstrap an admin via
+`ADMIN_BOOTSTRAP_EMAIL` env: the matching email gets `role = ADMIN` on first
+WorkOS sync (and on `npm run db:seed`).
 
 ---
 
@@ -150,13 +169,13 @@ Browser Request
 
 ### Route groups
 
-| Group                   | Status  | Description                                                                      |
-| ----------------------- | ------- | -------------------------------------------------------------------------------- |
-| `(home)`                | Live    | Public marketing / landing page — no auth required                               |
-| `(authentication)`      | Live    | WorkOS OAuth login and callback routes                                           |
-| `(platform)/(standard)` | Live    | Platform shell: courses list/detail, public profile, settings, coming-soon stubs |
-| `(platform)/(focus)`    | Live    | Full-viewport in-course experience: 3-pane code editor + tasks + execution       |
-| `(admin)`               | Planned | Admin panel — role-gated at middleware level                                     |
+| Group                   | Status | Description                                                                      |
+| ----------------------- | ------ | -------------------------------------------------------------------------------- |
+| `(home)`                | Live   | Public marketing / landing page — no auth required                               |
+| `(authentication)`      | Live   | WorkOS OAuth login and callback routes                                           |
+| `(platform)/(standard)` | Live   | Platform shell: courses list/detail, public profile, settings, coming-soon stubs |
+| `(platform)/(focus)`    | Live   | Full-viewport in-course experience: 3-pane code editor + tasks + execution       |
+| `(admin)`               | Live   | Admin panel — role-gated layout + `adminProcedure` + audit log                   |
 
 ### Data flow rules
 

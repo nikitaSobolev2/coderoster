@@ -1,0 +1,65 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.field__label {
+  font-size: var(--font-size-default);
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.field__hint {
+  font-size: 0.825rem;
+  color: var(--color-text-secondary);
+}
+
+.iconRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.iconPreview {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  flex-shrink: 0;
+  border-radius: var(--platform-card-radius-sm);
+  background: var(--platform-color-surface);
+  border: var(--border-width-hair) solid var(--platform-color-border);
+  font-size: 1.4rem;
+  color: var(--color-text);
+}
+
+.iconChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 999px;
+  border: var(--border-width-hair) solid var(--platform-color-border);
+  background: var(--platform-color-surface);
+  font-size: 0.825rem;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: background-color 120ms ease;
+}
+
+.iconChip:hover {
+  background: var(--platform-color-surface-hover);
+}
+
+.iconChip_active {
+  border-color: var(--platform-color-accent);
+  background: var(--platform-color-accent-soft);
+}
+
+.iconGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}

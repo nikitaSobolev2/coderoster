@@ -1,0 +1,47 @@
+@use '~/shared/assets/styles/breakpoints' as bp;
+
+/* Matches former globals: hide native cursor so `~/features/home/.../Cursor` shows on marketing home only. */
+.homeShell {
+  min-height: 100svh;
+  cursor: none;
+
+  a,
+  button,
+  input,
+  textarea,
+  select,
+  [role='button'],
+  [role='link'],
+  [role='tab'],
+  [role='menuitem'],
+  [role='option'],
+  [role='switch'],
+  [role='checkbox'],
+  [role='radio'],
+  label[for],
+  summary {
+    cursor: none;
+  }
+
+  @include bp.max-width(bp.$bp-nav) {
+    cursor: auto;
+
+    a,
+    button,
+    input,
+    textarea,
+    select,
+    [role='button'],
+    [role='link'],
+    [role='tab'],
+    [role='menuitem'],
+    [role='option'],
+    [role='switch'],
+    [role='checkbox'],
+    [role='radio'],
+    label[for],
+    summary {
+      cursor: auto;
+    }
+  }
+}

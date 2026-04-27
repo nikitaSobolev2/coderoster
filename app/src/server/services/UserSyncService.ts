@@ -1,5 +1,7 @@
 import 'server-only'
 import type { User } from '@prisma/client'
+import { Role } from '@prisma/client'
+import { env } from '~/env'
 import { db } from '~/server/db'
 import { sanitizePlainText } from '~/server/lib/sanitize'
 
@@ -39,6 +41,7 @@ export class UserSyncService {
   private async createNew(workosUser: WorkosUserSnapshot): Promise<User> {
     const username = await this.resolveUniqueUsername(workosUser.email)
     const displayName = sanitizePlainText(buildDisplayName(workosUser))
+    const role = isBootstrapAdminEmail(workosUser.email) ? Role.ADMIN : Role.LEARNER
     return db.user.create({
       data: {
         workosUserId: workosUser.id,
@@ -47,7 +50,8 @@ export class UserSyncService {
         displayName,
         firstName: workosUser.firstName,
         lastName: workosUser.lastName,
-        avatarUrl: workosUser.profilePictureUrl
+        avatarUrl: workosUser.profilePictureUrl,
+        role
       }
     })
   }
@@ -71,6 +75,12 @@ function buildDisplayName(workosUser: WorkosUserSnapshot): string {
 
 function normaliseUsername(value: string): string {
   return value.replace(/[^a-z0-9_]/gi, '_').slice(0, 32) || 'user'
+}
+
+function isBootstrapAdminEmail(email: string): boolean {
+  const target = env.ADMIN_BOOTSTRAP_EMAIL?.toLowerCase()
+  if (!target) return false
+  return email.toLowerCase() === target
 }
 
 export const userSyncService = new UserSyncService()

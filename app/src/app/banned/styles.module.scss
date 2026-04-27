@@ -1,0 +1,59 @@
+@use '~/shared/assets/styles/mixins' as *;
+
+.page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.5rem;
+  background: var(--color-bg);
+}
+
+.card {
+  max-width: 520px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 2rem;
+  border-radius: var(--platform-card-radius);
+  border: var(--border-width-hair) solid var(--platform-color-border);
+  background: var(--platform-color-surface);
+}
+
+.card__title {
+  @include fontYandexDisplay();
+  font-size: var(--font-size-h2);
+  color: var(--color-text);
+  margin: 0;
+}
+
+.card__body {
+  font-size: var(--font-size-default);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.card__hint {
+  font-size: var(--font-size-h6);
+  color: var(--color-text-semivisible);
+  margin: 0;
+}
+
+.card__action {
+  align-self: flex-start;
+  margin-top: 0.5rem;
+  padding: 0.6rem 1.1rem;
+  border-radius: var(--border-radius-button);
+  background: var(--color-cta-bg);
+  color: var(--color-cta-fg);
+  text-decoration: none;
+  font-size: var(--font-size-h6);
+  letter-spacing: var(--letter-spacing-button);
+  text-transform: uppercase;
+  transition: background var(--transition-default);
+
+  &:hover {
+    background: var(--color-cta-bg-hover);
+  }
+}

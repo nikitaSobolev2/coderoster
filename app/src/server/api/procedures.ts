@@ -1,6 +1,6 @@
 import 'server-only'
 import { protectedProcedure, publicProcedure } from './trpc'
-import { withIdempotency, withRateLimit } from './middlewares'
+import { withAuditLog, withIdempotency, withRateLimit, withRequireAdmin } from './middlewares'
 
 /**
  * Mutations that should be replayable by clients. Reads `idempotency-key`
@@ -25,3 +25,10 @@ export const publicLimitedProcedure = publicProcedure.use(withRateLimit('public'
 
 /** Public procedure tuned for search: 30 / minute / IP. */
 export const searchProcedure = publicProcedure.use(withRateLimit('search', 30, 60))
+
+/**
+ * Admin procedure: requires `role === 'ADMIN'` and writes every successful
+ * mutation to the `AuditLog`. Use for every CRUD endpoint under
+ * `app/src/server/api/routers/admin/`.
+ */
+export const adminProcedure = protectedProcedure.use(withRequireAdmin()).use(withAuditLog())

@@ -154,7 +154,10 @@ export interface Achievement {
   id: string
   name: string
   description: string
+  /** FontAwesome icon key. Used when `imageUrl` is null. */
   icon: string
+  /** Uploaded image URL; takes precedence when set. */
+  imageUrl: string | null
   category: AchievementCategory
   rarity: 'common' | 'rare' | 'epic' | 'legendary'
   hidden: boolean
@@ -196,8 +199,10 @@ export interface UserSettings {
   deletionRequestedAt: Date | null
 }
 
+export type SearchHitKind = 'course' | 'user' | 'lesson' | 'page' | 'app'
+
 export interface SearchHit {
-  kind: 'course' | 'user' | 'lesson'
+  kind: SearchHitKind
   id: string
   title: string
   subtitle: string | null
@@ -208,6 +213,18 @@ export interface GlobalSearchResults {
   courses: SearchHit[]
   users: SearchHit[]
   lessons: SearchHit[]
+  /** CMS content pages (`/p/[slug]`). */
+  pages: SearchHit[]
+  /** Static app routes (e.g. /sandbox, /achievements). */
+  appPages: SearchHit[]
+}
+
+export interface GlobalSearchOptions {
+  /**
+   * Authenticated-only routes (`/settings`, `/sandbox`, `/u/me`, etc.) only
+   * surface for signed-in users. The router derives this from `ctx.user`.
+   */
+  includeAuthRoutes: boolean
 }
 
 export interface CoursesPage {
@@ -240,6 +257,9 @@ export interface AuthenticatedUser {
   username: string
   email: string
   displayName: string
+  role: UserRole
+  bannedUntil: Date | null
+  banReason: string | null
 }
 
 export type ExecutionStatus = 'queued' | 'running' | 'success' | 'failed' | 'timeout' | 'cancelled'

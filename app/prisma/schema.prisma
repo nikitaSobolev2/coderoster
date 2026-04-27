@@ -22,25 +22,28 @@ enum Role {
 }
 
 model User {
-  id                    String    @id @default(cuid())
-  workosUserId          String    @unique
-  email                 String    @unique
-  username              String    @unique
-  displayName           String
-  firstName             String?
-  lastName              String?
-  bio                   String    @default("")
-  avatarUrl             String?
-  role                  Role      @default(LEARNER)
-  socials               Json      @default("{}")
-  appearance            Json      @default("{\"colorScheme\":\"dark\"}")
-  totalXp               Int       @default(0)
-  streakDays            Int       @default(0)
-  lastActiveDay         String?
-  deletionRequestedAt   DateTime?
-  commentsThreadId      String?   @unique
-  joinedAt              DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
+  id                      String    @id @default(cuid())
+  workosUserId            String    @unique
+  email                   String    @unique
+  username                String    @unique
+  displayName             String
+  firstName               String?
+  lastName                String?
+  bio                     String    @default("")
+  avatarUrl               String?
+  role                    Role      @default(LEARNER)
+  socials                 Json      @default("{}")
+  appearance              Json      @default("{\"colorScheme\":\"dark\"}")
+  totalXp                 Int       @default(0)
+  streakDays              Int       @default(0)
+  lastActiveDay           String?
+  deletionRequestedAt     DateTime?
+  bannedUntil             DateTime?
+  banReason               String?
+  excludedFromLeaderboard Boolean   @default(false)
+  commentsThreadId        String?   @unique
+  joinedAt                DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
 
   commentsThread     Thread?                  @relation("ProfileThread", fields: [commentsThreadId], references: [id])
   enrollments        Enrollment[]
@@ -55,6 +58,7 @@ model User {
   dailyAttempts      DailyChallengeAttempt[]
   weeklyAttempts     WeeklyChallengeAttempt[]
   snippets           SandboxSnippet[]
+  auditLogs          AuditLog[]               @relation("AuditActor")
 
   @@index([username])
   @@index([totalXp])
@@ -73,6 +77,9 @@ model CourseCategory {
   slug             String   @unique
   title            String
   summary          String   @default("")
+  iconKey          String?
+  imageUrl         String?
+  order            Int      @default(0)
   parentCategoryId String?
   authorId         String
   createdAt        DateTime @default(now())
@@ -100,6 +107,7 @@ model Course {
   coverImage    String?
   status        CourseStatus @default(DRAFT)
   tags          String[]     @default([])
+  order         Int          @default(0)
   authorId      String
   categoryId    String?
   publishedAt   DateTime?
@@ -134,23 +142,35 @@ enum TaskKind {
   QUIZ
 }
 
+/// Polymorphic task: belongs to exactly ONE owner — a course module, a daily
+/// challenge, or a weekly challenge. The invariant is enforced in repository
+/// code (Prisma can't model CHECK constraints natively).
 model CourseTask {
-  id               String   @id @default(cuid())
-  moduleId         String
-  title            String
-  summary          String   @default("")
-  description      String
-  result           Json?
-  initialData      Json     @default("{}")
-  order            Int
-  kind             TaskKind @default(TASK)
-  estimatedMinutes Int      @default(15)
+  id                String   @id @default(cuid())
+  moduleId          String?
+  dailyChallengeId  String?
+  weeklyChallengeId String?
+  title             String
+  summary           String   @default("")
+  description       String
+  result            Json?
+  initialData       Json     @default("{}")
+  order             Int
+  kind              TaskKind @default(TASK)
+  estimatedMinutes  Int      @default(15)
+  allowedLanguages  String[] @default([])
 
-  module    CourseModule         @relation(fields: [moduleId], references: [id], onDelete: Cascade)
-  attempts  CourseTaskAttempt[]
-  autotests CourseTaskAutotest[]
+  module          CourseModule?    @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  dailyChallenge  DailyChallenge?  @relation(fields: [dailyChallengeId], references: [id], onDelete: Cascade)
+  weeklyChallenge WeeklyChallenge? @relation(fields: [weeklyChallengeId], references: [id], onDelete: Cascade)
+  attempts        CourseTaskAttempt[]
+  autotests       CourseTaskAutotest[]
 
   @@unique([moduleId, order])
+  @@unique([dailyChallengeId, order])
+  @@unique([weeklyChallengeId, order])
+  @@index([dailyChallengeId])
+  @@index([weeklyChallengeId])
 }
 
 /// Per-task automated test cases. `input` is optional stdin to feed into the
@@ -252,7 +272,10 @@ model Achievement {
   title       String
   description String
   goal        Int?
+  /// FontAwesome icon key. Used when `imageUrl` is null.
   coverImage  String?
+  /// Uploaded image URL (S3). Takes precedence over `coverImage`.
+  imageUrl    String?
   awardId     String?
   category    String
   rarity      String   @default("common")
@@ -415,14 +438,14 @@ model SandboxSnippet {
   @@index([userId, updatedAt])
 }
 
-/// One row per UTC date. `taskIds` holds the 3 selected `CourseTask` ids
-/// (one beginner, one intermediate, one advanced).
+/// One row per UTC date. Owns its own ordered list of tasks via the
+/// `CourseTask.dailyChallengeId` FK — challenges are independent of courses.
 model DailyChallenge {
   id        String   @id @default(cuid())
   date      String   @unique
-  taskIds   String[] @default([])
   createdAt DateTime @default(now())
 
+  tasks    CourseTask[]
   attempts DailyChallengeAttempt[]
 }
 
@@ -444,13 +467,15 @@ model DailyChallengeAttempt {
   @@index([userId, status])
 }
 
-/// One row per ISO week (`YYYY-Www`). `taskIds` holds 5 tougher tasks.
+/// One row per ISO week (`YYYY-Www`). Owns its own ordered list of tasks via
+/// the `CourseTask.weeklyChallengeId` FK — challenges are independent of
+/// courses.
 model WeeklyChallenge {
   id        String   @id @default(cuid())
   isoWeek   String   @unique
-  taskIds   String[] @default([])
   createdAt DateTime @default(now())
 
+  tasks    CourseTask[]
   attempts WeeklyChallengeAttempt[]
 }
 
@@ -470,4 +495,55 @@ model WeeklyChallengeAttempt {
 
   @@unique([userId, isoWeek, taskIndex])
   @@index([userId, status])
+}
+
+// ---------- Admin: content pages, audit, settings ----------
+
+enum ContentPagePlacement {
+  FOOTER
+  HEADER
+  HIDDEN
+}
+
+/// CMS-style page authored by admins. `body` is markdown; `placement` drives
+/// which dynamic nav surface (footer / header) renders it.
+model ContentPage {
+  id        String               @id @default(cuid())
+  slug      String               @unique
+  title     String
+  body      String
+  excerpt   String               @default("")
+  placement ContentPagePlacement @default(FOOTER)
+  groupKey  String               @default("about")
+  order     Int                  @default(0)
+  published Boolean              @default(false)
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
+
+  @@index([placement, published, order])
+}
+
+/// Append-only log of every admin write. `actor` cleared on user delete.
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  action     String
+  targetType String
+  targetId   String
+  diff       Json     @default("{}")
+  createdAt  DateTime @default(now())
+
+  actor User? @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([targetType, targetId])
+  @@index([actorId, createdAt])
+  @@index([createdAt])
+}
+
+/// Generic key/value store for global admin-controlled toggles
+/// (e.g. `allowed_languages`, `feature flags`).
+model AppSetting {
+  key       String   @id
+  value     Json     @default("{}")
+  updatedAt DateTime @updatedAt
 }

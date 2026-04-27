@@ -190,16 +190,17 @@ async function advanceEnrollment(tx: Tx, userId: string, taskId: string): Promis
     where: { id: taskId },
     include: { module: { include: { course: true } } }
   })
-  if (!task) return false
+  if (!task?.module) return false
+  const courseId = task.module.course.id
   const enrollment = await tx.enrollment.findUnique({
-    where: { userId_courseId: { userId, courseId: task.module.course.id } }
+    where: { userId_courseId: { userId, courseId } }
   })
   if (!enrollment) return false
   const completed = enrollment.completedLessonIds.includes(taskId)
     ? enrollment.completedLessonIds
     : [...enrollment.completedLessonIds, taskId]
   const totalTasks = await tx.courseTask.count({
-    where: { module: { courseId: task.module.course.id } }
+    where: { module: { courseId } }
   })
   const percent = totalTasks === 0 ? 0 : Math.round((completed.length / totalTasks) * 100)
   const isComplete = percent >= 100 && enrollment.status !== 'FINISHED'
@@ -209,7 +210,7 @@ async function advanceEnrollment(tx: Tx, userId: string, taskId: string): Promis
       completedLessonIds: completed,
       progressPercent: percent,
       status: percent >= 100 ? 'FINISHED' : enrollment.status,
-      finishedAt: percent >= 100 ? enrollment.finishedAt ?? new Date() : enrollment.finishedAt
+      finishedAt: percent >= 100 ? (enrollment.finishedAt ?? new Date()) : enrollment.finishedAt
     }
   })
   return isComplete

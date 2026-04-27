@@ -1,0 +1,122 @@
+@use '~/shared/assets/styles/mixins' as *;
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  width: 260px;
+  flex-shrink: 0;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  padding: 1.25rem 1rem;
+  background: color-mix(in srgb, var(--color-bg) 82%, transparent);
+  backdrop-filter: var(--blur-effect-default);
+  border-right: var(--border-width-hair) solid var(--platform-color-divider);
+}
+
+.sidebar__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.25rem 0.5rem 1.1rem;
+  border-bottom: var(--border-width-hair) solid var(--platform-color-divider);
+  margin-bottom: 1rem;
+}
+
+.sidebar__logo {
+  color: var(--color-text);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+
+.sidebar__brand_label {
+  font-size: var(--font-size-h6);
+  letter-spacing: var(--letter-spacing-button);
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.sidebar__nav {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.sidebar__group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.sidebar__group_label {
+  font-size: var(--font-size-h6);
+  letter-spacing: var(--letter-spacing-button);
+  text-transform: uppercase;
+  color: var(--color-text-semivisible);
+  padding: 0 0.6rem;
+}
+
+.sidebar__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.sidebar__link {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: var(--platform-card-radius-sm);
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  transition:
+    background var(--transition-default),
+    color var(--transition-default);
+
+  &:hover {
+    background: var(--platform-color-surface-hover);
+    color: var(--color-text);
+  }
+}
+
+.sidebar__link_active {
+  background: var(--platform-color-surface);
+  color: var(--color-text);
+  box-shadow: inset 0 0 0 1px var(--platform-color-border);
+}
+
+.sidebar__icon {
+  width: 1rem;
+  font-size: 0.95rem;
+  color: inherit;
+}
+
+.sidebar__footer {
+  margin-top: 1rem;
+  padding-top: 0.9rem;
+  border-top: var(--border-width-hair) solid var(--platform-color-divider);
+}
+
+.sidebar__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  font-size: var(--font-size-h6);
+  letter-spacing: var(--letter-spacing-button);
+  text-transform: uppercase;
+  transition: color var(--transition-default);
+
+  &:hover {
+    color: var(--color-text);
+  }
+}

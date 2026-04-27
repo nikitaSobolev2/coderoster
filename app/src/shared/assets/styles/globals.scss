@@ -18,62 +18,6 @@ body {
   overflow-x: hidden;
   height: auto;
   font-size: var(--font-size-default);
-  cursor: none;
-}
-
-@include bp.max-width(bp.$bp-nav) {
-  body {
-    cursor: auto;
-  }
-}
-
-a,
-button,
-input,
-textarea,
-select,
-[role='button'],
-[role='link'],
-[role='tab'],
-[role='menuitem'],
-[role='option'],
-[role='switch'],
-[role='checkbox'],
-[role='radio'],
-label[for],
-summary {
-  cursor: none;
-}
-
-@include bp.max-width(bp.$bp-nav) {
-  a,
-  button,
-  input,
-  textarea,
-  select,
-  [role='button'],
-  [role='link'],
-  [role='tab'],
-  [role='menuitem'],
-  [role='option'],
-  [role='switch'],
-  [role='checkbox'],
-  [role='radio'],
-  label[for],
-  summary {
-    cursor: auto;
-  }
-
-  // display: grid;
-  // grid-template-columns:
-  //   [full-width-start] minmax(var(--padding-main), 1fr)
-  //   [content-start] var(--width-content)
-  //   [content-end] minmax(var(--padding-main), 1fr)
-  //   [full-width-end];
-
-  // & > * {
-  //   grid-column: content;
-  // }
 }
 
 main {

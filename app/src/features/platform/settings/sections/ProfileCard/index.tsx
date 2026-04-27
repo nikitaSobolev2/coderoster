@@ -1,10 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import Image from 'next/image'
 import { Button, Textarea, TextInput } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { api } from '~/trpc/react'
+import ImageUploadField from '~/shared/components/ui/ImageUploadField'
 import type { UserSettings } from '~/server/repositories/types'
 import styles from './styles.module.scss'
 
@@ -51,9 +51,6 @@ export default function ProfileCard({ initial }: Props) {
       next.username = 'Только латиница, цифры, подчёркивание (2–40)'
     }
     if (state.bio.length > 400) next.bio = 'Максимум 400 символов'
-    if (state.avatarUrl && !/^https?:\/\//.test(state.avatarUrl)) {
-      next.avatarUrl = 'Должна быть ссылка с http(s)'
-    }
     setErrors(next)
     return Object.keys(next).length === 0
   }
@@ -71,29 +68,15 @@ export default function ProfileCard({ initial }: Props) {
 
   return (
     <form className={styles.form} onSubmit={onSubmit} noValidate>
-      <div className={styles.form__avatar}>
-        <div
-          className={styles.form__avatarPreview}
-          aria-hidden={state.avatarUrl ? undefined : 'true'}
-        >
-          {state.avatarUrl ? (
-            <Image
-              src={state.avatarUrl}
-              alt={state.displayName}
-              width={96}
-              height={96}
-              className={styles.form__avatarImage}
-              unoptimized
-            />
-          ) : (
-            <span className={styles.form__avatarPlaceholder}>{initials(state.displayName)}</span>
-          )}
-        </div>
-        <div className={styles.form__avatarMeta}>
-          <h3>Аватар</h3>
-          <p>Покажет тебя в комментариях, лидерборде и профиле.</p>
-        </div>
-      </div>
+      <ImageUploadField
+        label="Аватар"
+        value={state.avatarUrl || null}
+        onChange={value => patch('avatarUrl', value ?? '')}
+        kind="AVATAR"
+        variant="avatar"
+        hint="Покажет тебя в комментариях, лидерборде и профиле. До 4 МБ."
+        error={errors.avatarUrl}
+      />
 
       <TextInput
         label="Имя"
@@ -124,13 +107,6 @@ export default function ProfileCard({ initial }: Props) {
         maxLength={400}
         description={`${state.bio.length} / 400`}
       />
-      <TextInput
-        label="Ссылка на аватар"
-        value={state.avatarUrl}
-        onChange={event => patch('avatarUrl', event.currentTarget.value)}
-        error={errors.avatarUrl}
-        placeholder="https://…"
-      />
 
       <div className={styles.form__actions}>
         <Button type="submit" loading={update.isPending} disabled={!isDirty}>
@@ -159,12 +135,4 @@ function computeDirty(state: FormState, initial: UserSettings): boolean {
     state.bio !== initialState.bio ||
     state.avatarUrl !== initialState.avatarUrl
   )
-}
-
-function initials(displayName: string): string {
-  return displayName
-    .split(' ')
-    .map(word => word[0]?.toUpperCase() ?? '')
-    .slice(0, 2)
-    .join('')
 }

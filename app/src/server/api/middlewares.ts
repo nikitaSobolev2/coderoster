@@ -99,6 +99,83 @@ export function withIdempotency() {
   })
 }
 
+/**
+ * Gate procedure to admin role only. Re-checks DB on every call so a freshly
+ * revoked admin loses access immediately (no stale ctx).
+ */
+export function withRequireAdmin() {
+  return trpcMiddleware(async ({ ctx, next }) => {
+    if (!ctx.user) {
+      throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Sign in required.' })
+    }
+    const fresh = await db.user.findUnique({
+      where: { id: ctx.user.id },
+      select: { role: true, bannedUntil: true }
+    })
+    if (fresh?.role !== 'ADMIN') {
+      throw new TRPCError({ code: 'FORBIDDEN', message: 'Admin access required.' })
+    }
+    return next()
+  })
+}
+
+/**
+ * Append-only admin audit. Fires on every successful admin mutation; failures
+ * are intentionally not logged here — Sentry / logs cover those.
+ */
+export function withAuditLog() {
+  return trpcMiddleware(async opts => {
+    const { ctx, next, path, type, getRawInput } = opts
+    const result = await next()
+    if (!result.ok) return result
+    if (type !== 'mutation') return result
+    if (!ctx.user) return result
+    let rawInput: unknown = null
+    try {
+      rawInput = await getRawInput()
+    } catch {
+      rawInput = null
+    }
+    const target = extractTarget(rawInput)
+    db.auditLog
+      .create({
+        data: {
+          actorId: ctx.user.id,
+          action: path,
+          targetType: target.type,
+          targetId: target.id,
+          diff: safeJson(rawInput)
+        }
+      })
+      .catch((error: unknown) => console.error('[audit] failed to write', { path, error }))
+    return result
+  })
+}
+
+function extractTarget(rawInput: unknown): { type: string; id: string } {
+  if (!rawInput || typeof rawInput !== 'object') return { type: '-', id: '-' }
+  const input = rawInput as Record<string, unknown>
+  const id = pickFirstString(input, ['id', 'userId', 'courseId', 'taskId', 'pageId', 'slug'])
+  return { type: '-', id: id ?? '-' }
+}
+
+function pickFirstString(input: Record<string, unknown>, keys: string[]): string | null {
+  for (const key of keys) {
+    const value = input[key]
+    if (typeof value === 'string' && value.length > 0) return value
+  }
+  return null
+}
+
+function safeJson(value: unknown): Prisma.InputJsonValue {
+  if (value === null || value === undefined) return Prisma.JsonNull as never
+  try {
+    return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue
+  } catch {
+    return Prisma.JsonNull as never
+  }
+}
+
 function identityOf(ctx: TRPCContext): string {
   if (ctx.user) return `user:${ctx.user.id}`
   const xff = ctx.headers.get('x-forwarded-for') ?? ctx.headers.get('x-real-ip') ?? 'unknown'

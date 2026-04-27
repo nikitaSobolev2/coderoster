@@ -54,7 +54,10 @@ async function resolveCurrentUser(): Promise<AuthenticatedUser | null> {
         id: session.user.id,
         username: session.user.email.split('@')[0] ?? session.user.id,
         email: session.user.email,
-        displayName: fallbackName ?? session.user.email
+        displayName: fallbackName ?? session.user.email,
+        role: 'learner',
+        bannedUntil: null,
+        banReason: null
       }
     }
 
@@ -75,7 +78,10 @@ async function resolveCurrentUser(): Promise<AuthenticatedUser | null> {
       id: local.id,
       username: local.username,
       email: local.email,
-      displayName: local.displayName
+      displayName: local.displayName,
+      role: local.role.toLowerCase() as AuthenticatedUser['role'],
+      bannedUntil: local.bannedUntil,
+      banReason: local.banReason
     }
   } catch (error) {
     console.error('[trpc] resolveCurrentUser failed', error)
@@ -115,8 +121,19 @@ const requireAuthMiddleware = t.middleware(({ ctx, next }) => {
   if (!ctx.user) {
     throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Sign in required.' })
   }
+  if (isCurrentlyBanned(ctx.user.bannedUntil) && ctx.user.role !== 'admin') {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: ctx.user.banReason ?? 'Аккаунт заблокирован.'
+    })
+  }
   return next({ ctx: { ...ctx, user: ctx.user } })
 })
+
+function isCurrentlyBanned(bannedUntil: Date | null | undefined): boolean {
+  if (!bannedUntil) return false
+  return bannedUntil.getTime() > Date.now()
+}
 
 /** Public procedure — `ctx.user` may be null. */
 export const publicProcedure = t.procedure.use(timingMiddleware)

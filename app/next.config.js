@@ -4,6 +4,19 @@
  */
 import './src/env.js'
 
+/**
+ * Browser-facing origin of the object storage bucket. Falls back to the dev
+ * MinIO host so a fresh `docker compose up` boots without extra config.
+ */
+const UPLOAD_ORIGIN = (() => {
+  const raw = process.env.S3_PUBLIC_URL ?? 'http://localhost:9000'
+  try {
+    return new URL(raw).origin
+  } catch {
+    return 'http://localhost:9000'
+  }
+})()
+
 const SECURITY_HEADERS = [
   {
     key: 'Strict-Transport-Security',
@@ -22,10 +35,10 @@ const SECURITY_HEADERS = [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.workos.com",
       "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: blob: https:",
+      `img-src 'self' data: blob: https: ${UPLOAD_ORIGIN}`,
       "font-src 'self' data: blob:",
       "worker-src 'self' blob:",
-      "connect-src 'self' blob: data: https://*.workos.com",
+      `connect-src 'self' blob: data: https://*.workos.com ${UPLOAD_ORIGIN}`,
       "frame-ancestors 'self'",
       "base-uri 'self'",
       "form-action 'self' https://*.workos.com"

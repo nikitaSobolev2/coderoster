@@ -1,24 +1,7 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import {
-  faShoePrints,
-  faFire,
-  faCircleCheck,
-  faBolt,
-  faMoon,
-  faTrophy
-} from '@fortawesome/free-solid-svg-icons'
-import type { IconDefinition } from '@fortawesome/fontawesome-svg-core'
+import { resolveIcon } from '~/shared/components/ui/IconOrImageField/iconMap'
 import type { EarnedAchievement } from '~/server/repositories/types'
 import styles from './styles.module.scss'
-
-const ICON_BY_NAME: Record<string, IconDefinition> = {
-  'shoe-prints': faShoePrints,
-  fire: faFire,
-  'circle-check': faCircleCheck,
-  bolt: faBolt,
-  moon: faMoon,
-  trophy: faTrophy
-}
 
 export interface Props {
   achievements: EarnedAchievement[]
@@ -46,10 +29,19 @@ export default function AchievementsGrid({ achievements }: Props) {
                   : `${achievement.name}: ${achievement.description}`
               }
             >
-              <FontAwesomeIcon
-                icon={ICON_BY_NAME[achievement.icon] ?? faTrophy}
-                className={styles.tile__icon}
-              />
+              {achievement.imageUrl ? (
+                <img
+                  src={achievement.imageUrl}
+                  alt=""
+                  aria-hidden="true"
+                  className={styles.tile__image}
+                />
+              ) : (
+                <FontAwesomeIcon
+                  icon={resolveIcon(achievement.icon)}
+                  className={styles.tile__icon}
+                />
+              )}
             </button>
           </li>
         ))}

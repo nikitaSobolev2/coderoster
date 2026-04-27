@@ -72,6 +72,14 @@
     border: 1px solid var(--platform-color-border);
     color: var(--color-text);
     flex-shrink: 0;
+    overflow: hidden;
+  }
+
+  &__iconImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
 
     &[data-rarity='rare'] {
       color: #5eb1ff;

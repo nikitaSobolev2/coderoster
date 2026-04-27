@@ -1,7 +1,7 @@
 import PlatformHeader from './PlatformHeader'
 import PlatformFooter from './PlatformFooter'
 import PlatformBodyAttribute from './PlatformBodyAttribute'
-import PlatformSearchSpotlight from '~/shared/components/ui/search/PlatformSearchSpotlight'
+import SearchSpotlight from '~/shared/components/ui/search/SearchSpotlight'
 import styles from './styles.module.scss'
 
 export interface Props {
@@ -21,7 +21,7 @@ export default function PlatformShell({ children, hideFooter = false, fluid = fa
   return (
     <div className={styles.shell}>
       <PlatformBodyAttribute />
-      <PlatformSearchSpotlight />
+      <SearchSpotlight />
       <PlatformHeader />
       <main className={`${styles.shell__main} ${fluid ? styles.shell__main_fluid : ''}`}>
         {children}

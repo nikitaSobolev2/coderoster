@@ -1,4 +1,4 @@
-import { PrismaClient, Role, CourseStatus, TaskKind } from '@prisma/client'
+import { PrismaClient, Role, CourseStatus, TaskKind, ContentPagePlacement } from '@prisma/client'
 
 /**
  * Seeds the database with a small set of fixtures matching the Fake repository
@@ -17,6 +17,9 @@ async function main() {
   await seedPython(author.id)
   await seedPhp(phpAuthor.id)
   await seedAlgo(algoAuthor.id)
+  await seedContentPages()
+  await seedAppSettings()
+  await promoteBootstrapAdmin()
 
   console.log('[seed] done')
 }
@@ -472,14 +475,14 @@ async function seedModule(
   lessons: SeedLesson[],
   language: 'python' | 'php' = 'python'
 ) {
-  const module = await prisma.courseModule.upsert({
+  const courseModule = await prisma.courseModule.upsert({
     where: { courseId_order: { courseId, order } },
     update: { title, description },
     create: { courseId, title, description, order }
   })
   for (const [index, lesson] of lessons.entries()) {
     const task = await prisma.courseTask.upsert({
-      where: { moduleId_order: { moduleId: module.id, order: index + 1 } },
+      where: { moduleId_order: { moduleId: courseModule.id, order: index + 1 } },
       update: {
         title: lesson.title,
         description: lesson.body,
@@ -491,7 +494,7 @@ async function seedModule(
         }
       },
       create: {
-        moduleId: module.id,
+        moduleId: courseModule.id,
         title: lesson.title,
         description: lesson.body,
         order: index + 1,
@@ -507,6 +510,93 @@ async function seedModule(
     })
     await syncAutotests(task.id, lesson.tests ?? [])
   }
+}
+
+async function seedContentPages() {
+  const pages: {
+    slug: string
+    title: string
+    excerpt: string
+    body: string
+    groupKey: string
+    order: number
+  }[] = [
+    {
+      slug: 'o-proekte',
+      title: 'О проекте',
+      excerpt: 'Зачем мы делаем CodeRoster и для кого.',
+      groupKey: 'about',
+      order: 1,
+      body:
+        '## О проекте\n\nCodeRoster — открытая платформа практической подготовки разработчиков. ' +
+        'Мы делаем инструмент, в котором учат не лекциями, а боевыми задачами с реальной проверкой кода.'
+    },
+    {
+      slug: 'career',
+      title: 'Карьера',
+      excerpt: 'Как мы помогаем дойти от первой задачи до офера.',
+      groupKey: 'about',
+      order: 2,
+      body:
+        '## Карьера\n\nКурсы, дейлики и спидраны выстроены так, чтобы за несколько месяцев ' +
+        'дойти от первой строчки кода до уверенного интервью. Подробнее в разделе курсов.'
+    },
+    {
+      slug: 'contacts',
+      title: 'Контакты',
+      excerpt: 'Связаться с командой.',
+      groupKey: 'support',
+      order: 1,
+      body:
+        '## Контакты\n\nПо любым вопросам пишите на support@coderoster.dev. ' +
+        'Telegram-канал и зеркала — в подвале сайта.'
+    }
+  ]
+  for (const page of pages) {
+    await prisma.contentPage.upsert({
+      where: { slug: page.slug },
+      update: {
+        title: page.title,
+        excerpt: page.excerpt,
+        body: page.body,
+        groupKey: page.groupKey,
+        order: page.order,
+        published: true,
+        placement: ContentPagePlacement.FOOTER
+      },
+      create: {
+        slug: page.slug,
+        title: page.title,
+        excerpt: page.excerpt,
+        body: page.body,
+        groupKey: page.groupKey,
+        order: page.order,
+        published: true,
+        placement: ContentPagePlacement.FOOTER
+      }
+    })
+  }
+}
+
+async function seedAppSettings() {
+  await prisma.appSetting.upsert({
+    where: { key: 'allowed_languages' },
+    update: { value: ['python', 'php'] },
+    create: { key: 'allowed_languages', value: ['python', 'php'] }
+  })
+}
+
+async function promoteBootstrapAdmin() {
+  const email = process.env.ADMIN_BOOTSTRAP_EMAIL
+  if (!email) return
+  const existing = await prisma.user.findUnique({ where: { email } })
+  if (!existing) {
+    console.log(`[seed] ADMIN_BOOTSTRAP_EMAIL ${email} not registered yet — sync on first login.`)
+    return
+  }
+  if (existing.role === Role.ADMIN) return
+  await prisma.user.update({ where: { id: existing.id }, data: { role: Role.ADMIN } })
+  console.log(`[seed] promoted ${email} to ADMIN`)
 }
 
 async function syncAutotests(courseTaskId: string, tests: SeedTest[]) {

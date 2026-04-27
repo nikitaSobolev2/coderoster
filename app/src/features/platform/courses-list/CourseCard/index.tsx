@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faClock, faStar, faUsers } from '@fortawesome/free-solid-svg-icons'
 import { Badge } from '@mantine/core'
+import CoursePreview from '~/shared/components/ui/CoursePreview'
 import type { CourseSummary } from '~/server/repositories/types'
 import styles from './styles.module.scss'
 
@@ -23,6 +24,13 @@ export interface Props {
 export default function CourseCard({ course }: Props) {
   return (
     <Link href={`/courses/${course.slug}`} className={styles.card}>
+      <CoursePreview
+        slug={course.slug}
+        title={course.title}
+        coverImage={course.thumbnail}
+        size="card"
+        decorative
+      />
       <header className={styles.card__head}>
         <div className={styles.card__badges}>
           <Badge variant="light" color="indigo" radius="sm">

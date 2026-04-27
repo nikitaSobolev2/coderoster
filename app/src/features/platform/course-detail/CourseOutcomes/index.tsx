@@ -14,17 +14,19 @@ export default function CourseOutcomes({ longDescription, outcomes }: Props) {
         <h2 className={styles.outcomes__title}>О курсе</h2>
         <p className={styles.outcomes__copy}>{longDescription}</p>
       </div>
-      <div className={styles.outcomes__learn}>
-        <h2 className={styles.outcomes__title}>Чему научишься</h2>
-        <ul className={styles.outcomes__list}>
-          {outcomes.map(outcome => (
-            <li key={outcome} className={styles.outcomes__item}>
-              <FontAwesomeIcon icon={faCircleCheck} className={styles.outcomes__icon} />
-              <span>{outcome}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
+      {outcomes.length > 0 && (
+        <div className={styles.outcomes__learn}>
+          <h2 className={styles.outcomes__title}>Чему научишься</h2>
+          <ul className={styles.outcomes__list}>
+            {outcomes.map(outcome => (
+              <li key={outcome} className={styles.outcomes__item}>
+                <FontAwesomeIcon icon={faCircleCheck} className={styles.outcomes__icon} />
+                <span>{outcome}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </section>
   )
 }

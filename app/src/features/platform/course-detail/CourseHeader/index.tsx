@@ -1,6 +1,7 @@
 import { Avatar, Badge } from '@mantine/core'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faClock, faGraduationCap, faStar, faUsers } from '@fortawesome/free-solid-svg-icons'
+import CoursePreview from '~/shared/components/ui/CoursePreview'
 import type { CourseDetail } from '~/server/repositories/types'
 import styles from './styles.module.scss'
 
@@ -22,6 +23,13 @@ export interface Props {
 export default function CourseHeader({ course }: Props) {
   return (
     <header className={styles.header}>
+      <CoursePreview
+        slug={course.slug}
+        title={course.title}
+        coverImage={course.thumbnail}
+        size="hero"
+        decorative
+      />
       <div className={styles.header__topline}>
         <Badge variant="light" color="indigo" radius="sm">
           {LANGUAGE_LABELS[course.language]}

@@ -1,0 +1,118 @@
+@import '~/shared/assets/styles/mixins.scss';
+
+.markdown {
+  color: var(--color-text);
+  font-size: var(--font-size-default);
+  line-height: 1.65;
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @include fontYandexDisplay();
+    color: var(--color-text);
+    margin: 1.4em 0 0.6em;
+  }
+
+  h1 {
+    font-size: var(--font-size-h2);
+  }
+  h2 {
+    font-size: var(--font-size-h3);
+  }
+  h3 {
+    font-size: var(--font-size-h4);
+  }
+  h4,
+  h5,
+  h6 {
+    font-size: var(--font-size-h5);
+  }
+
+  p {
+    margin: 0.6em 0;
+    color: var(--color-text-secondary);
+  }
+
+  a {
+    color: var(--color-text);
+    text-decoration: underline;
+    text-decoration-color: var(--color-bg-el-border);
+    transition: text-decoration-color var(--transition-default);
+
+    &:hover {
+      text-decoration-color: var(--color-text);
+    }
+  }
+
+  ul,
+  ol {
+    margin: 0.6em 0 0.6em 1.2em;
+    padding: 0;
+    color: var(--color-text-secondary);
+  }
+
+  li {
+    margin: 0.2em 0;
+  }
+
+  blockquote {
+    border-left: 2px solid var(--color-bg-el-border);
+    padding: 0.4em 0 0.4em 0.8em;
+    margin: 0.8em 0;
+    color: var(--color-text-secondary);
+  }
+
+  code {
+    @include fontYandexSans();
+    background: var(--color-bg-el);
+    padding: 0.05em 0.35em;
+    border-radius: 0.25em;
+    font-size: 0.92em;
+  }
+
+  pre {
+    background: var(--color-bg-el);
+    border: 1px solid var(--color-bg-el-border);
+    padding: 0.9em 1em;
+    border-radius: var(--border-radius-input-rounded);
+    overflow-x: auto;
+
+    code {
+      background: transparent;
+      padding: 0;
+    }
+  }
+
+  table {
+    border-collapse: collapse;
+    margin: 0.8em 0;
+    width: 100%;
+    font-size: 0.95em;
+  }
+
+  th,
+  td {
+    border: 1px solid var(--color-bg-el-border);
+    padding: 0.45em 0.7em;
+    text-align: left;
+  }
+
+  th {
+    background: var(--color-bg-el);
+  }
+
+  hr {
+    border: none;
+    border-top: 1px solid var(--color-bg-el-border);
+    margin: 1.4em 0;
+  }
+}
+
+.markdown_unstyled {
+  > * {
+    margin: 0;
+  }
+}

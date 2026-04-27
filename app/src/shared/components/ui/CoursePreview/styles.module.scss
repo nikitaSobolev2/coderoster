@@ -1,0 +1,66 @@
+@use '~/shared/assets/styles/mixins' as *;
+
+.preview {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--platform-card-radius);
+  overflow: hidden;
+  background: var(--platform-color-surface);
+  border: var(--border-width-hair) solid var(--platform-color-border);
+}
+
+.preview_card {
+  border-radius: var(--platform-card-radius-sm);
+}
+
+.preview_hero {
+  aspect-ratio: 21 / 9;
+}
+
+.preview__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background-image: var(--course-preview-gradient);
+}
+
+.placeholder::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(
+    180deg,
+    transparent 0%,
+    color-mix(in srgb, var(--color-bg) 30%, transparent) 100%
+  );
+}
+
+.placeholder__title {
+  @include fontYandexDisplay();
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  text-align: center;
+  font-size: clamp(1.25rem, 2.4vw, 2rem);
+  line-height: 1.15;
+  color: var(--color-bg);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-shadow: 0 1px 24px color-mix(in srgb, #000 35%, transparent);
+}
+
+.placeholder__title_hero {
+  font-size: clamp(2rem, 4.2vw, 3.25rem);
+}

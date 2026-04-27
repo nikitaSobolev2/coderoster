@@ -2,37 +2,35 @@ import 'server-only'
 import type { CourseTask, WeeklyChallenge } from '@prisma/client'
 import { db } from '~/server/db'
 
-const TASK_COUNT = 5
-
 /**
- * Weekly challenge lifecycle. Pool of 5 tougher tasks per ISO week, rolling
- * over Monday 00:00 UTC. Mirrors `DailyChallengeService` shape so the UI can
- * keep a single mental model.
+ * Weekly challenge lifecycle. Mirrors `DailyChallengeService` shape so the
+ * UI keeps a single mental model. Tasks live on the challenge via
+ * `CourseTask.weeklyChallengeId` — admins author them in the weekly editor.
  */
 export class WeeklyChallengeService {
   async getOrCreateCurrent(now: Date = new Date()): Promise<WeeklyChallenge> {
     const isoWeek = computeIsoWeek(now)
     const existing = await db.weeklyChallenge.findUnique({ where: { isoWeek } })
     if (existing) return existing
-    const taskIds = await this.pickTaskIds()
-    return db.weeklyChallenge.create({ data: { isoWeek, taskIds } })
+    return db.weeklyChallenge.create({ data: { isoWeek } })
   }
 
   async listTasksFor(challenge: WeeklyChallenge): Promise<CourseTask[]> {
-    if (challenge.taskIds.length === 0) return []
-    const tasks = await db.courseTask.findMany({ where: { id: { in: challenge.taskIds } } })
-    const byId = new Map(tasks.map(task => [task.id, task]))
-    return challenge.taskIds
-      .map(id => byId.get(id) ?? null)
-      .filter((task): task is CourseTask => task !== null)
+    return db.courseTask.findMany({
+      where: { weeklyChallengeId: challenge.id },
+      orderBy: { order: 'asc' }
+    })
   }
 
   async findTaskAtIndex(isoWeek: string, taskIndex: number): Promise<CourseTask | null> {
     const challenge = await db.weeklyChallenge.findUnique({ where: { isoWeek } })
     if (!challenge) return null
-    const taskId = challenge.taskIds[taskIndex]
-    if (!taskId) return null
-    return db.courseTask.findUnique({ where: { id: taskId } })
+    return db.courseTask.findFirst({
+      where: { weeklyChallengeId: challenge.id },
+      orderBy: { order: 'asc' },
+      skip: taskIndex,
+      take: 1
+    })
   }
 
   async recordExecutionStart(input: {
@@ -80,28 +78,15 @@ export class WeeklyChallengeService {
   }
 
   async hasFullClear(userId: string, isoWeek: string): Promise<boolean> {
-    const challenge = await db.weeklyChallenge.findUnique({ where: { isoWeek } })
-    if (!challenge) return false
+    const challenge = await db.weeklyChallenge.findUnique({
+      where: { isoWeek },
+      include: { _count: { select: { tasks: true } } }
+    })
+    if (!challenge || challenge._count.tasks === 0) return false
     const cleared = await db.weeklyChallengeAttempt.count({
       where: { userId, isoWeek, status: 'SUCCESS' }
     })
-    return cleared >= challenge.taskIds.length
-  }
-
-  private async pickTaskIds(): Promise<string[]> {
-    const candidates = await db.courseTask.findMany({
-      where: {
-        kind: 'TASK',
-        module: {
-          course: { difficulty: { in: ['intermediate', 'advanced'] }, status: 'PUBLISHED' }
-        }
-      },
-      select: { id: true },
-      take: 50
-    })
-    if (candidates.length === 0) return []
-    const shuffled = [...candidates].sort(() => Math.random() - 0.5)
-    return shuffled.slice(0, TASK_COUNT).map(row => row.id)
+    return cleared >= challenge._count.tasks
   }
 }
 

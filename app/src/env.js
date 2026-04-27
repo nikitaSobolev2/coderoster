@@ -45,7 +45,30 @@ export const env = createEnv({
     EXECUTION_PIDS_LIMIT: z.coerce.number().int().positive().default(64),
     WORKER_PYTHON_IMAGE: z.string().default('python:3.12-slim'),
     WORKER_PHP_IMAGE: z.string().default('php:8.3-cli-alpine'),
-    ACTIVITY_SNAPSHOT_CRON: z.string().default('30 0 * * *')
+    ACTIVITY_SNAPSHOT_CRON: z.string().default('30 0 * * *'),
+    /**
+     * Email of the user that gets `role = ADMIN` granted automatically on first
+     * WorkOS sync (and on `npm run db:seed`). Optional; safe to leave unset
+     * after the bootstrap admin has been promoted.
+     */
+    ADMIN_BOOTSTRAP_EMAIL: z.string().email().optional(),
+    /**
+     * Object storage (MinIO in dev, S3 / R2 / Spaces in prod).
+     * `S3_ENDPOINT` is the internal endpoint the server uses to sign PUT URLs;
+     * `S3_PUBLIC_URL` is the host-visible base that browsers will hit. Keep them
+     * separate so dev (`http://minio:9000` vs `http://localhost:9000/<bucket>`)
+     * works inside docker-compose without rewriting URLs.
+     */
+    S3_ENDPOINT: z.string().url(),
+    S3_PUBLIC_URL: z.string().url(),
+    S3_REGION: z.string().default('us-east-1'),
+    S3_BUCKET: z.string().default('coderoster-uploads'),
+    S3_ACCESS_KEY: z.string(),
+    S3_SECRET_KEY: z.string(),
+    S3_FORCE_PATH_STYLE: z
+      .string()
+      .optional()
+      .transform(value => value !== 'false')
   },
 
   /**
@@ -92,6 +115,14 @@ export const env = createEnv({
     WORKER_PYTHON_IMAGE: process.env.WORKER_PYTHON_IMAGE,
     WORKER_PHP_IMAGE: process.env.WORKER_PHP_IMAGE,
     ACTIVITY_SNAPSHOT_CRON: process.env.ACTIVITY_SNAPSHOT_CRON,
+    ADMIN_BOOTSTRAP_EMAIL: process.env.ADMIN_BOOTSTRAP_EMAIL,
+    S3_ENDPOINT: process.env.S3_ENDPOINT,
+    S3_PUBLIC_URL: process.env.S3_PUBLIC_URL,
+    S3_REGION: process.env.S3_REGION,
+    S3_BUCKET: process.env.S3_BUCKET,
+    S3_ACCESS_KEY: process.env.S3_ACCESS_KEY,
+    S3_SECRET_KEY: process.env.S3_SECRET_KEY,
+    S3_FORCE_PATH_STYLE: process.env.S3_FORCE_PATH_STYLE,
     NEXT_PUBLIC_WORKOS_REDIRECT_URI: process.env.NEXT_PUBLIC_WORKOS_REDIRECT_URI,
     NEXT_PUBLIC_USE_FAKE_DATA: process.env.NEXT_PUBLIC_USE_FAKE_DATA
   },

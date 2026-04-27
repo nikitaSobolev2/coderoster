@@ -1,0 +1,28 @@
+@use '~/shared/assets/styles/mixins' as *;
+
+.table {
+  width: 100%;
+  font-size: var(--font-size-default);
+}
+
+.user {
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+}
+
+.user__name {
+  color: var(--color-text);
+  text-decoration: none;
+  font-weight: 500;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.placeholder {
+  padding: 1rem 1.25rem;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-default);
+}

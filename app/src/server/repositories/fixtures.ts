@@ -376,6 +376,7 @@ const ACHIEVEMENT_LIST: Achievement[] = [
     name: 'Первые шаги',
     description: 'Заверши первый урок',
     icon: 'shoe-prints',
+    imageUrl: null,
     category: 'progression',
     rarity: 'common',
     hidden: false
@@ -385,6 +386,7 @@ const ACHIEVEMENT_LIST: Achievement[] = [
     name: 'В огне',
     description: 'Серия 7 дней подряд',
     icon: 'fire',
+    imageUrl: null,
     category: 'streak',
     rarity: 'rare',
     hidden: false
@@ -394,6 +396,7 @@ const ACHIEVEMENT_LIST: Achievement[] = [
     name: 'Чистый зачёт',
     description: 'Заверши все задания одного курса',
     icon: 'circle-check',
+    imageUrl: null,
     category: 'completionist',
     rarity: 'epic',
     hidden: false
@@ -403,6 +406,7 @@ const ACHIEVEMENT_LIST: Achievement[] = [
     name: 'Скорострел',
     description: 'Сдай задание быстрее лимита',
     icon: 'bolt',
+    imageUrl: null,
     category: 'speed',
     rarity: 'rare',
     hidden: false
@@ -412,6 +416,7 @@ const ACHIEVEMENT_LIST: Achievement[] = [
     name: '???',
     description: 'Скрытое условие',
     icon: 'moon',
+    imageUrl: null,
     category: 'hidden',
     rarity: 'legendary',
     hidden: true

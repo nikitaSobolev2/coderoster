@@ -1,0 +1,69 @@
+@use '~/shared/assets/styles/mixins' as *;
+
+.spotlight__overlay {
+  background: color-mix(in srgb, var(--color-bg) 70%, transparent);
+  backdrop-filter: var(--blur-effect-default);
+}
+
+.spotlight__inner {
+  padding-top: var(--padding-search-overlay-top);
+}
+
+.spotlight__content {
+  background: color-mix(in srgb, var(--color-bg) 90%, transparent);
+  border: var(--border-width-hair) solid var(--platform-color-border);
+  border-radius: var(--platform-card-radius);
+  box-shadow: var(--platform-shadow-popover);
+  overflow: hidden;
+}
+
+.spotlight__input {
+  background: transparent;
+  font-size: var(--font-size-h4);
+  color: var(--color-text);
+}
+
+.spotlight__list {
+  padding: 0.25rem;
+}
+
+.spotlight__empty {
+  padding: 1.5rem;
+  color: var(--color-text-secondary);
+  text-align: center;
+  font-size: var(--font-size-default);
+}
+
+.hit__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  background: var(--platform-color-accent-soft);
+  color: var(--color-text);
+  margin-right: 0.6rem;
+  flex-shrink: 0;
+}
+
+.hit__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  text-align: left;
+  min-width: 0;
+}
+
+.hit__title {
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.hit__subtitle {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-h6);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

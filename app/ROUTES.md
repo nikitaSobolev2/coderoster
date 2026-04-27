@@ -162,6 +162,33 @@ the UI.
 
 `SearchHit` shape: `{ kind: 'course' \| 'user' \| 'lesson', id, title, subtitle, href }`.
 
+### Admin (`admin.*`)
+
+Every procedure under `admin.*` is gated by `adminProcedure` (=
+`protectedProcedure` + `withRequireAdmin()` + `withAuditLog()`). Non-admin callers
+get `FORBIDDEN`; mutations write to `AuditLog` on success. Sub-namespaces map 1:1
+to admin pages under [`src/app/(admin)`](src/app/%28admin%29).
+
+| Namespace                  | Key procedures                                                                                                                                              |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `admin.users`              | `list`, `get`, `update`, `ban`, `unban`, `grantAchievement`, `revokeAchievement`, `listAchievementStatus`, `listActivity`, `deleteActivity`, `listComments` |
+| `admin.catalog.categories` | `list`, `create`, `update`, `delete`, `reorder`                                                                                                             |
+| `admin.catalog.courses`    | `list`, `create`, `delete`, `setStatus`, `reorder`                                                                                                          |
+| `admin.courseEditor`       | `get`, `updateCourse`, `module.{create,update,delete,reorder}`, `task.{create,update,delete,reorder}`, `autotest.{create,update,delete,reorder}`            |
+| `admin.contentPages`       | `list`, `get`, `create`, `update`, `delete`, `setPublished`, `reorder`                                                                                      |
+| `admin.achievements`       | `list`, `get`, `create`, `update`, `delete`                                                                                                                 |
+| `admin.challenges.daily`   | `list`, `upsert`, `delete`                                                                                                                                  |
+| `admin.challenges.weekly`  | `list`, `upsert`, `delete`                                                                                                                                  |
+| `admin.leaderboard`        | `list`, `setExclusion`                                                                                                                                      |
+| `admin.comments`           | `list`, `delete`                                                                                                                                            |
+| `admin.languages`          | `list`, `update`                                                                                                                                            |
+| `admin.audit`              | `list`                                                                                                                                                      |
+
+Admin entry point lives under route group `(admin)` and is reachable at
+`/admin`. `PlatformHeader.UserMenu` renders the "Админ-панель" link only when
+`role === 'ADMIN'`. Banned users hit a `/banned` page; both are wired through
+`src/middleware.ts`.
+
 ## Broker contracts
 
 Every code execution flows through RabbitMQ on the topic exchange

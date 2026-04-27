@@ -18,6 +18,8 @@ export default authkitMiddleware({
       '/leaderboard',
       '/achievements',
       '/coming-soon',
+      '/p/:slug*',
+      '/banned',
       '/api/:path*',
       '/login',
       '/callback',

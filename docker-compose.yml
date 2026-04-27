@@ -33,6 +33,13 @@ x-app-env:
   EXECUTION_PIDS_LIMIT: ${EXECUTION_PIDS_LIMIT:-64}
   WORKER_PYTHON_IMAGE: ${WORKER_PYTHON_IMAGE:-python:3.12-slim}
   WORKER_PHP_IMAGE: ${WORKER_PHP_IMAGE:-php:8.3-cli-alpine}
+  S3_ENDPOINT: ${S3_ENDPOINT:-http://minio:9000}
+  S3_PUBLIC_URL: ${S3_PUBLIC_URL:-http://localhost:9000/coderoster-uploads}
+  S3_REGION: ${S3_REGION:-us-east-1}
+  S3_BUCKET: ${S3_BUCKET:-coderoster-uploads}
+  S3_ACCESS_KEY: ${S3_ACCESS_KEY:-minioadmin}
+  S3_SECRET_KEY: ${S3_SECRET_KEY:-minioadmin}
+  S3_FORCE_PATH_STYLE: ${S3_FORCE_PATH_STYLE:-true}
 
 services:
   db:
@@ -69,6 +76,25 @@ services:
       retries: 10
     networks: [ coderoster ]
 
+  minio:
+    image: minio/minio:latest
+    restart: unless-stopped
+    command: [ "server", "/data", "--console-address", ":9001" ]
+    environment:
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY:-minioadmin}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [ coderoster ]
+
   rabbitmq:
     image: rabbitmq:3-management-alpine
     restart: unless-stopped
@@ -98,6 +124,7 @@ services:
       db: { condition: service_healthy }
       redis: { condition: service_healthy }
       rabbitmq: { condition: service_healthy }
+      minio: { condition: service_healthy }
     networks: [ coderoster ]
 
   outbox:
@@ -203,6 +230,7 @@ volumes:
   db_data:
   redis_data:
   rabbit_data:
+  minio_data:
 
 networks:
   coderoster:

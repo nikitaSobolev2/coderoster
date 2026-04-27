@@ -1,7 +1,7 @@
 'use client'
 
 import { QueryClientProvider, type QueryClient } from '@tanstack/react-query'
-import { httpBatchStreamLink, loggerLink } from '@trpc/client'
+import { httpBatchStreamLink, loggerLink, TRPCClientError } from '@trpc/client'
 import { createTRPCReact } from '@trpc/react-query'
 import { type inferRouterInputs, type inferRouterOutputs } from '@trpc/server'
 import { useState } from 'react'
@@ -45,9 +45,12 @@ export function TRPCReactProvider(props: { children: React.ReactNode }) {
     api.createClient({
       links: [
         loggerLink({
-          enabled: op =>
-            process.env.NODE_ENV === 'development' ||
-            (op.direction === 'down' && op.result instanceof Error)
+          enabled: op => {
+            if (op.direction === 'down' && op.result instanceof Error) {
+              return !isAbortedRequest(op.result)
+            }
+            return process.env.NODE_ENV === 'development'
+          }
         }),
         httpBatchStreamLink({
           transformer: SuperJSON,
@@ -78,4 +81,20 @@ function getBaseUrl() {
   if (typeof window !== 'undefined') return window.location.origin
   if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`
   return `http://localhost:${process.env.PORT ?? 3000}`
+}
+
+/**
+ * Aborted requests (component unmount, route change, polling stopped after
+ * terminal status) bubble up through `httpBatchStreamLink` as errors. They
+ * are not real failures — silencing them keeps the dev console signal high.
+ */
+function isAbortedRequest(error: Error): boolean {
+  if (error.name === 'AbortError') return true
+  const cause = (error as { cause?: unknown }).cause
+  if (cause instanceof Error && cause.name === 'AbortError') return true
+  if (error instanceof TRPCClientError) {
+    const code = error.data?.code
+    return code === 'CLIENT_CLOSED_REQUEST'
+  }
+  return false
 }

@@ -81,7 +81,7 @@ export class PrismaProgressRepository implements ProgressRepository {
         where: { id: taskId },
         include: { module: { include: { course: true } } }
       })
-      if (task) {
+      if (task?.module) {
         await this.upsertEnrollmentProgress(tx, userId, task.module.course.id, taskId)
       }
       return { completed: attempt.status === 'SUCCESS' }

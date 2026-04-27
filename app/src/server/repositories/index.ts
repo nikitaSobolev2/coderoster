@@ -57,6 +57,28 @@ import {
   PrismaAccountRepository,
   type AccountRepository
 } from './account.repository'
+import { AdminUsersRepository } from './admin/users.repository'
+import { AdminCatalogRepository } from './admin/catalog.repository'
+import { AdminCourseEditorRepository } from './admin/courseEditor.repository'
+import { AdminContentPagesRepository } from './admin/contentPages.repository'
+import { AdminAchievementsRepository } from './admin/achievements.repository'
+import { AdminChallengesRepository } from './admin/challenges.repository'
+import { AdminCommentsRepository, AdminLeaderboardRepository } from './admin/moderation.repository'
+import { AdminLanguagesRepository } from './admin/settings.repository'
+import { AdminAuditRepository } from './admin/audit.repository'
+
+export interface AdminRepositories {
+  users: AdminUsersRepository
+  catalog: AdminCatalogRepository
+  courseEditor: AdminCourseEditorRepository
+  contentPages: AdminContentPagesRepository
+  achievements: AdminAchievementsRepository
+  challenges: AdminChallengesRepository
+  leaderboard: AdminLeaderboardRepository
+  comments: AdminCommentsRepository
+  languages: AdminLanguagesRepository
+  audit: AdminAuditRepository
+}
 
 export interface AppRepositories {
   course: CourseRepository
@@ -69,6 +91,20 @@ export interface AppRepositories {
   comment: CommentRepository
   search: SearchRepository
   account: AccountRepository
+  admin: AdminRepositories
+}
+
+const adminRepositories: AdminRepositories = {
+  users: new AdminUsersRepository(),
+  catalog: new AdminCatalogRepository(),
+  courseEditor: new AdminCourseEditorRepository(),
+  contentPages: new AdminContentPagesRepository(),
+  achievements: new AdminAchievementsRepository(),
+  challenges: new AdminChallengesRepository(),
+  leaderboard: new AdminLeaderboardRepository(),
+  comments: new AdminCommentsRepository(),
+  languages: new AdminLanguagesRepository(),
+  audit: new AdminAuditRepository()
 }
 
 const fakeRepositories: AppRepositories = {
@@ -81,7 +117,8 @@ const fakeRepositories: AppRepositories = {
   settings: new FakeSettingsRepository(),
   comment: new FakeCommentRepository(),
   search: new FakeSearchRepository(),
-  account: new FakeAccountRepository()
+  account: new FakeAccountRepository(),
+  admin: adminRepositories
 }
 
 const prismaRepositories: AppRepositories = {
@@ -94,7 +131,8 @@ const prismaRepositories: AppRepositories = {
   settings: new PrismaSettingsRepository(),
   comment: new CachedCommentRepository(new PrismaCommentRepository()),
   search: new CachedSearchRepository(new PrismaSearchRepository()),
-  account: new PrismaAccountRepository()
+  account: new PrismaAccountRepository(),
+  admin: adminRepositories
 }
 
 /**

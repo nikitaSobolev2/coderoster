@@ -29,7 +29,11 @@ export default tseslint.config(
       '@typescript-eslint/no-misused-promises': [
         'error',
         { checksVoidReturn: { attributes: false } }
-      ]
+      ],
+      // React 19 stricter rules — keep as warnings while the team migrates
+      // existing components incrementally.
+      'react-hooks/set-state-in-effect': 'warn',
+      'react-hooks/purity': 'warn'
     }
   },
   {

@@ -55,7 +55,8 @@ async function resolveViewer(): Promise<ViewerUser | null> {
       return {
         username,
         displayName,
-        avatarUrl: session.user.profilePictureUrl ?? null
+        avatarUrl: session.user.profilePictureUrl ?? null,
+        isAdmin: false
       }
     }
 
@@ -75,7 +76,8 @@ async function resolveViewer(): Promise<ViewerUser | null> {
     return {
       username: local.username,
       displayName: local.displayName,
-      avatarUrl: local.avatarUrl
+      avatarUrl: local.avatarUrl,
+      isAdmin: local.role === 'ADMIN'
     }
   } catch (error) {
     console.error('[header] resolveViewer failed', error)

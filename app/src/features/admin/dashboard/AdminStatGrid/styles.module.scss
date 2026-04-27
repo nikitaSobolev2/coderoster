@@ -1,0 +1,40 @@
+@use '~/shared/assets/styles/mixins' as *;
+
+.grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 1.1rem 1.2rem;
+  background: var(--platform-color-surface);
+  border: var(--border-width-hair) solid var(--platform-color-border);
+  border-radius: var(--platform-card-radius);
+  box-shadow: var(--platform-shadow-card);
+}
+
+.card__label {
+  font-size: var(--font-size-h6);
+  letter-spacing: var(--letter-spacing-button);
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.card__value {
+  @include fontYandexDisplay();
+  font-size: var(--font-size-h2);
+  color: var(--color-text);
+  line-height: 1;
+}
+
+.card__hint {
+  font-size: var(--font-size-default);
+  color: var(--color-text-secondary);
+}

@@ -1,10 +1,12 @@
 'use client'
 
-import { Chip, Select, TextInput } from '@mantine/core'
+import { ActionIcon, Chip, Select, Text, TextInput } from '@mantine/core'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons'
+import { faMagnifyingGlass, faXmark } from '@fortawesome/free-solid-svg-icons'
 import type { CoursesQuery, Difficulty, Language } from '~/server/repositories/types'
 import styles from './styles.module.scss'
+
+const FILTER_ALL = 'all' as const
 
 const LANGUAGES: { value: Language; label: string }[] = [
   { value: 'python', label: 'Python' },
@@ -29,18 +31,48 @@ export interface Props {
   total: number
 }
 
-export default function CourseFilters({ filters, onChange, total }: Props) {
+function normaliseChipValue(raw: string | string[] | null | undefined): string {
+  if (typeof raw === 'string') return raw
+  if (Array.isArray(raw)) return raw[0] ?? ''
+  return ''
+}
+
+export default function CourseFilters({ filters, onChange, total }: Readonly<Props>) {
   function update(patch: Partial<CoursesQuery>) {
     onChange({ ...filters, ...patch })
+  }
+
+  const queryValue = filters.q ?? ''
+  const languageValue = filters.language ?? FILTER_ALL
+  const difficultyValue = filters.difficulty ?? FILTER_ALL
+
+  const onChipChange = <T extends string>(
+    raw: string | string[] | null,
+    key: keyof CoursesQuery
+  ) => {
+    const next = normaliseChipValue(raw)
+    const resolved = next === FILTER_ALL || next === '' ? undefined : (next as T)
+    update({ [key]: resolved } as Partial<CoursesQuery>)
   }
 
   return (
     <div className={styles.filters}>
       <div className={styles.filters__row}>
         <TextInput
-          value={filters.q ?? ''}
+          value={queryValue}
           onChange={event => update({ q: event.currentTarget.value })}
           leftSection={<FontAwesomeIcon icon={faMagnifyingGlass} />}
+          rightSection={
+            queryValue ? (
+              <ActionIcon
+                variant="subtle"
+                aria-label="Очистить поиск"
+                onClick={() => update({ q: undefined })}
+              >
+                <FontAwesomeIcon icon={faXmark} />
+              </ActionIcon>
+            ) : null
+          }
           placeholder="Поиск по названию или тегам"
           classNames={{ input: styles.filters__searchInput }}
           className={styles.filters__search}
@@ -55,14 +87,15 @@ export default function CourseFilters({ filters, onChange, total }: Props) {
       </div>
 
       <div className={styles.filters__row}>
+        <Text size="sm" c="dimmed" className={styles.filters__chipLabel}>
+          Язык
+        </Text>
         <Chip.Group
           multiple={false}
-          value={filters.language ?? null}
-          onChange={value => update({ language: (value as Language | null) ?? undefined })}
+          value={languageValue}
+          onChange={value => onChipChange<Language>(value, 'language')}
         >
-          <Chip value="" disabled>
-            Язык
-          </Chip>
+          <Chip value={FILTER_ALL}>Все</Chip>
           {LANGUAGES.map(option => (
             <Chip key={option.value} value={option.value}>
               {option.label}
@@ -72,14 +105,15 @@ export default function CourseFilters({ filters, onChange, total }: Props) {
       </div>
 
       <div className={styles.filters__row}>
+        <Text size="sm" c="dimmed" className={styles.filters__chipLabel}>
+          Уровень
+        </Text>
         <Chip.Group
           multiple={false}
-          value={filters.difficulty ?? null}
-          onChange={value => update({ difficulty: (value as Difficulty | null) ?? undefined })}
+          value={difficultyValue}
+          onChange={value => onChipChange<Difficulty>(value, 'difficulty')}
         >
-          <Chip value="" disabled>
-            Уровень
-          </Chip>
+          <Chip value={FILTER_ALL}>Все</Chip>
           {DIFFICULTIES.map(option => (
             <Chip key={option.value} value={option.value}>
               {option.label}

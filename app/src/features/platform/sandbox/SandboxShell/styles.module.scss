@@ -1,0 +1,39 @@
+@import '~/shared/assets/styles/mixins.scss';
+
+.shell {
+  display: grid;
+  grid-template-rows: auto minmax(420px, 60vh) auto;
+  gap: 1rem;
+
+  &__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border-radius: var(--platform-card-radius);
+    border: 1px solid var(--platform-color-border);
+    background: var(--platform-color-surface);
+    backdrop-filter: var(--blur-effect-default);
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  &__actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  &__editor {
+    border-radius: var(--platform-card-radius);
+    overflow: hidden;
+    border: 1px solid var(--platform-color-border);
+    background: var(--platform-color-surface);
+  }
+
+  &__output {
+    border-radius: var(--platform-card-radius);
+    border: 1px solid var(--platform-color-border);
+    background: var(--platform-color-surface);
+    overflow: hidden;
+  }
+}

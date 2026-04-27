@@ -5,9 +5,9 @@ RUN npm install --legacy-peer-deps --ignore-scripts
 RUN cp node_modules/server-only/empty.js node_modules/server-only/index.js
 
 FROM deps AS dev
-ENV NODE_ENV=development NEXT_TELEMETRY_DISABLED=1 SKIP_ENV_VALIDATION=1
+ENV NODE_ENV=development NEXT_TELEMETRY_DISABLED=1
 COPY app ./
-RUN npx prisma generate
+RUN SKIP_ENV_VALIDATION=1 npx prisma generate
 COPY infra/docker/app-entrypoint.sh /usr/local/bin/app-entrypoint.sh
 RUN chmod +x /usr/local/bin/app-entrypoint.sh
 EXPOSE 3000

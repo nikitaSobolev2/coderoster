@@ -54,8 +54,15 @@ export const env = createEnv({
    * `NEXT_PUBLIC_`.
    */
   client: {
-    // NEXT_PUBLIC_CLIENTVAR: z.string(),
-    NEXT_PUBLIC_WORKOS_REDIRECT_URI: z.string()
+    NEXT_PUBLIC_WORKOS_REDIRECT_URI: z.string(),
+    /**
+     * Mirror of `USE_FAKE_DATA` exposed to client components so faker-only UI
+     * elements (demo links, fixture-driven banners) can hide themselves.
+     */
+    NEXT_PUBLIC_USE_FAKE_DATA: z
+      .string()
+      .optional()
+      .transform(value => value === 'true' || value === '1')
   },
 
   /**
@@ -85,7 +92,8 @@ export const env = createEnv({
     WORKER_PYTHON_IMAGE: process.env.WORKER_PYTHON_IMAGE,
     WORKER_PHP_IMAGE: process.env.WORKER_PHP_IMAGE,
     ACTIVITY_SNAPSHOT_CRON: process.env.ACTIVITY_SNAPSHOT_CRON,
-    NEXT_PUBLIC_WORKOS_REDIRECT_URI: process.env.NEXT_PUBLIC_WORKOS_REDIRECT_URI
+    NEXT_PUBLIC_WORKOS_REDIRECT_URI: process.env.NEXT_PUBLIC_WORKOS_REDIRECT_URI,
+    NEXT_PUBLIC_USE_FAKE_DATA: process.env.NEXT_PUBLIC_USE_FAKE_DATA
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

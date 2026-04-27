@@ -22,34 +22,42 @@ enum Role {
 }
 
 model User {
-  id               String   @id @default(cuid())
-  workosUserId     String   @unique
-  email            String   @unique
-  username         String   @unique
-  displayName      String
-  firstName        String?
-  lastName         String?
-  bio              String   @default("")
-  avatarUrl        String?
-  role             Role     @default(LEARNER)
-  socials          Json     @default("{}")
-  appearance       Json     @default("{\"colorScheme\":\"dark\"}")
-  commentsThreadId String?  @unique
-  joinedAt         DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  id                    String    @id @default(cuid())
+  workosUserId          String    @unique
+  email                 String    @unique
+  username              String    @unique
+  displayName           String
+  firstName             String?
+  lastName              String?
+  bio                   String    @default("")
+  avatarUrl             String?
+  role                  Role      @default(LEARNER)
+  socials               Json      @default("{}")
+  appearance            Json      @default("{\"colorScheme\":\"dark\"}")
+  totalXp               Int       @default(0)
+  streakDays            Int       @default(0)
+  lastActiveDay         String?
+  deletionRequestedAt   DateTime?
+  commentsThreadId      String?   @unique
+  joinedAt              DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
-  commentsThread     Thread?                @relation("ProfileThread", fields: [commentsThreadId], references: [id])
+  commentsThread     Thread?                  @relation("ProfileThread", fields: [commentsThreadId], references: [id])
   enrollments        Enrollment[]
   taskAttempts       CourseTaskAttempt[]
-  authoredCourses    Course[]               @relation("CourseAuthor")
-  authoredCategories CourseCategory[]       @relation("CategoryAuthor")
+  authoredCourses    Course[]                 @relation("CourseAuthor")
+  authoredCategories CourseCategory[]         @relation("CategoryAuthor")
   comments           Comment[]
   activities         UserActivity[]
   activitySnapshots  UserActivitySnapshot[]
   achievementTracks  UserAchievementTrack[]
   executions         Execution[]
+  dailyAttempts      DailyChallengeAttempt[]
+  weeklyAttempts     WeeklyChallengeAttempt[]
+  snippets           SandboxSnippet[]
 
   @@index([username])
+  @@index([totalXp])
 }
 
 // ---------- Catalog ----------
@@ -138,10 +146,28 @@ model CourseTask {
   kind             TaskKind @default(TASK)
   estimatedMinutes Int      @default(15)
 
-  module   CourseModule        @relation(fields: [moduleId], references: [id], onDelete: Cascade)
-  attempts CourseTaskAttempt[]
+  module    CourseModule         @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  attempts  CourseTaskAttempt[]
+  autotests CourseTaskAutotest[]
 
   @@unique([moduleId, order])
+}
+
+/// Per-task automated test cases. `input` is optional stdin to feed into the
+/// solution; `expected` is the trimmed stdout the solution must produce.
+model CourseTaskAutotest {
+  id           String  @id @default(cuid())
+  courseTaskId String
+  order        Int     @default(0)
+  name         String  @default("Тест")
+  input        String?
+  expected     String
+  hidden       Boolean @default(false)
+
+  task CourseTask @relation(fields: [courseTaskId], references: [id], onDelete: Cascade)
+
+  @@unique([courseTaskId, order])
+  @@index([courseTaskId])
 }
 
 enum AttemptStatus {
@@ -334,20 +360,35 @@ enum ExecutionStatus {
   CANCELLED
 }
 
+enum ExecutionMode {
+  RUN
+  SUBMIT
+}
+
+enum ExecutionContext {
+  COURSE
+  SANDBOX
+  DAILY
+  WEEKLY
+}
+
 model Execution {
-  id           String          @id @default(cuid())
+  id           String           @id @default(cuid())
   userId       String
-  taskId       String
+  taskId       String?
   language     String
   code         String
-  status       ExecutionStatus @default(QUEUED)
+  mode         ExecutionMode    @default(RUN)
+  contextKind  ExecutionContext @default(COURSE)
+  contextRef   String?
+  status       ExecutionStatus  @default(QUEUED)
   stdout       String?
   stderr       String?
   runtimeMs    Int?
   testResults  Json?
   passed       Boolean?
   errorMessage String?
-  enqueuedAt   DateTime        @default(now())
+  enqueuedAt   DateTime         @default(now())
   startedAt    DateTime?
   finishedAt   DateTime?
 
@@ -356,4 +397,77 @@ model Execution {
   @@index([userId, enqueuedAt])
   @@index([status])
   @@index([taskId])
+}
+
+// ---------- Sandbox / Daily / Weekly ----------
+
+model SandboxSnippet {
+  id        String   @id @default(cuid())
+  userId    String
+  language  String
+  code      String
+  title     String   @default("Без названия")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, updatedAt])
+}
+
+/// One row per UTC date. `taskIds` holds the 3 selected `CourseTask` ids
+/// (one beginner, one intermediate, one advanced).
+model DailyChallenge {
+  id        String   @id @default(cuid())
+  date      String   @unique
+  taskIds   String[] @default([])
+  createdAt DateTime @default(now())
+
+  attempts DailyChallengeAttempt[]
+}
+
+model DailyChallengeAttempt {
+  id          String        @id @default(cuid())
+  userId      String
+  date        String
+  taskIndex   Int
+  status      AttemptStatus @default(ACTIVE)
+  executionId String?
+  solvedAt    DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  challenge DailyChallenge @relation(fields: [date], references: [date], onDelete: Cascade)
+
+  @@unique([userId, date, taskIndex])
+  @@index([userId, status])
+}
+
+/// One row per ISO week (`YYYY-Www`). `taskIds` holds 5 tougher tasks.
+model WeeklyChallenge {
+  id        String   @id @default(cuid())
+  isoWeek   String   @unique
+  taskIds   String[] @default([])
+  createdAt DateTime @default(now())
+
+  attempts WeeklyChallengeAttempt[]
+}
+
+model WeeklyChallengeAttempt {
+  id          String        @id @default(cuid())
+  userId      String
+  isoWeek     String
+  taskIndex   Int
+  status      AttemptStatus @default(ACTIVE)
+  executionId String?
+  solvedAt    DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  challenge WeeklyChallenge @relation(fields: [isoWeek], references: [isoWeek], onDelete: Cascade)
+
+  @@unique([userId, isoWeek, taskIndex])
+  @@index([userId, status])
 }

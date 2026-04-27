@@ -1,4 +1,5 @@
 import { env } from '~/env'
+import { isTruthyFlag } from '~/server/lib/featureFlags'
 import {
   FakeCourseRepository,
   PrismaCourseRepository,
@@ -51,6 +52,11 @@ import {
   CachedProfileRepository,
   CachedSearchRepository
 } from './cached'
+import {
+  FakeAccountRepository,
+  PrismaAccountRepository,
+  type AccountRepository
+} from './account.repository'
 
 export interface AppRepositories {
   course: CourseRepository
@@ -62,6 +68,7 @@ export interface AppRepositories {
   settings: SettingsRepository
   comment: CommentRepository
   search: SearchRepository
+  account: AccountRepository
 }
 
 const fakeRepositories: AppRepositories = {
@@ -73,7 +80,8 @@ const fakeRepositories: AppRepositories = {
   profile: new FakeProfileRepository(),
   settings: new FakeSettingsRepository(),
   comment: new FakeCommentRepository(),
-  search: new FakeSearchRepository()
+  search: new FakeSearchRepository(),
+  account: new FakeAccountRepository()
 }
 
 const prismaRepositories: AppRepositories = {
@@ -85,7 +93,8 @@ const prismaRepositories: AppRepositories = {
   profile: new CachedProfileRepository(new PrismaProfileRepository()),
   settings: new PrismaSettingsRepository(),
   comment: new CachedCommentRepository(new PrismaCommentRepository()),
-  search: new CachedSearchRepository(new PrismaSearchRepository())
+  search: new CachedSearchRepository(new PrismaSearchRepository()),
+  account: new PrismaAccountRepository()
 }
 
 /**
@@ -94,7 +103,7 @@ const prismaRepositories: AppRepositories = {
  * cache-decorated Prisma instances reuse the same Redis client.
  */
 export function getAppRepositories(): AppRepositories {
-  return env.USE_FAKE_DATA ? fakeRepositories : prismaRepositories
+  return isTruthyFlag(env.USE_FAKE_DATA) ? fakeRepositories : prismaRepositories
 }
 
 export type { AppRepositories as Repositories }

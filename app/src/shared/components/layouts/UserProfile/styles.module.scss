@@ -6,37 +6,83 @@
   gap: 0.5rem;
 }
 
+.userProfile_inline {
+  flex-direction: row;
+}
+
+.userProfile_drawer {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 0.5rem;
+}
+
+/* Platform — primary fill button (cursor-fill target). Mirrors `IslandCta` style so cursor fills crisp pill */
 .userProfile__platform {
   @include buttonReset;
-  @include bluredBg;
   @include tapTarget;
   @include focusRing;
 
+  position: relative;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  gap: 0.5em;
   height: var(--height-header-island-action);
   padding: 0 1.1em;
-  gap: 0.75em;
-  background: transparent;
-  font-size: var(--font-size-h5);
+  text-decoration: none;
+  color: var(--color-cta-fg);
+  background: var(--color-cta-bg);
+  border: var(--border-width-hair) solid var(--color-cta-border);
   border-radius: var(--radius-pill);
+  font-size: var(--font-size-h5);
+  font-weight: 500;
   letter-spacing: var(--letter-spacing-button);
-  color: var(--color-text);
-  border: var(--border-width-hair) solid var(--color-bg-el-border);
+  white-space: nowrap;
+  line-height: 1;
+  box-shadow:
+    0 0 14px color-mix(in srgb, var(--color-r3f-directional) 30%, transparent),
+    0 0 32px color-mix(in srgb, var(--color-r3f-directional) 12%, transparent);
   transition:
+    background-color var(--transition-button),
     border-color var(--transition-button),
-    background-color var(--transition-button);
+    box-shadow var(--transition-button),
+    transform var(--transition-button);
 
   &:hover,
   &:focus-visible {
-    border-color: var(--color-text-semivisible);
+    color: var(--color-cta-fg);
+    background: var(--color-cta-bg-hover);
+    border-color: var(--color-cta-border-hover);
+    box-shadow:
+      0 0 22px color-mix(in srgb, var(--color-r3f-directional) 50%, transparent),
+      0 0 44px color-mix(in srgb, var(--color-r3f-directional) 22%, transparent);
+  }
+
+  &:active {
+    transform: translateY(1px);
   }
 
   @include reducedMotion {
     transition: none;
+    &:active {
+      transform: none;
+    }
   }
 }
 
+.userProfile__platformIcon {
+  width: 0.85em;
+  height: 0.85em;
+}
+
+.userProfile__platformLabel {
+  display: inline;
+}
+
+/* Sign out — outline pill. Visual hover/focus is handled exclusively by the
+   custom magnetic cursor (`useCursorFillTarget`); no border / color / bg
+   tweaks on hover so the cursor fill stays clean and unbroken. */
 .userProfile__signOut {
   @include buttonReset;
   @include tapTarget;
@@ -45,26 +91,52 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: var(--height-header-island-action);
+  gap: 0.5em;
   height: var(--height-header-island-action);
-  border-radius: 50%;
+  padding: 0 1em;
   color: var(--color-text);
+  background: transparent;
   border: var(--border-width-hair) solid var(--color-bg-el-border);
-  transition:
-    border-color var(--transition-button),
-    color var(--transition-button);
-
-  &:hover:not(:disabled),
-  &:focus-visible:not(:disabled) {
-    border-color: var(--color-text-semivisible);
-  }
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-h5);
+  letter-spacing: var(--letter-spacing-button);
+  line-height: 1;
+  white-space: nowrap;
 
   &:disabled {
     opacity: 0.5;
     cursor: default;
   }
+}
 
-  @include reducedMotion {
-    transition: none;
-  }
+.userProfile__signOutLabel {
+  display: none;
+}
+
+/* Inline desktop variant: keep sign-out as compact icon-only round pill */
+.userProfile_inline .userProfile__signOut {
+  width: var(--height-header-island-action);
+  padding: 0;
+  border-radius: 50%;
+}
+
+/* Drawer (mobile burger) variant: full-width stacked, both buttons get label + icon */
+.userProfile_drawer .userProfile__platform,
+.userProfile_drawer .userProfile__signOut {
+  width: 100%;
+  height: auto;
+  min-height: var(--min-height-mobile-drawer-control);
+  padding: var(--padding-block-mobile-drawer-control) var(--padding-inline-mobile-drawer-control);
+  font-size: var(--font-size-h4);
+  text-transform: uppercase;
+  border-radius: var(--border-radius-button);
+}
+
+.userProfile_drawer .userProfile__signOut {
+  border-color: var(--color-text-semivisible);
+  background: var(--color-bg-el);
+}
+
+.userProfile_drawer .userProfile__signOutLabel {
+  display: inline;
 }

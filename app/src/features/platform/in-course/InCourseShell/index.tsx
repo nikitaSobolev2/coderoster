@@ -8,6 +8,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faArrowRight,
   faCircleCheck,
+  faFlagCheckered,
   faPlay,
   faRotateLeft
 } from '@fortawesome/free-solid-svg-icons'
@@ -38,10 +39,19 @@ const LANGUAGE_OPTIONS: { value: Language; label: string }[] = [
   { value: 'php', label: 'PHP' }
 ]
 
+type Mode = 'run' | 'submit'
+
 /**
  * Top-level orchestrator for the in-course experience. Owns the editor draft,
  * execution state, and progress mutations; each pane is a presentational
  * component fed by props.
+ *
+ * Two distinct actions:
+ *  - `Запустить` (mode=run) — runs the code without grading; stdout / stderr
+ *    update in the panel but no progress is recorded.
+ *  - `Проверить` (mode=submit) — sends the code with the lesson's autotests;
+ *    the consumer increments `tryN`, marks the attempt SUCCESS on full pass,
+ *    and advances enrollment + achievements.
  */
 export default function InCourseShell({
   course,
@@ -55,13 +65,10 @@ export default function InCourseShell({
   const [executionResult, setExecutionResult] = useState<RunResult | null>(null)
   const [executionError, setExecutionError] = useState<string | null>(null)
   const [executionId, setExecutionId] = useState<string | null>(null)
+  const [executionMode, setExecutionMode] = useState<Mode>('run')
   const [completedLessonIds, setCompletedLessonIds] = useState<string[]>(initialCompletedLessonIds)
 
-  const { code, setCode, reset } = useDraftPersistence(
-    lesson.id,
-    lesson.starterCode,
-    isAuthenticated
-  )
+  const { code, setCode, reset } = useDraftPersistence(lesson.id, lesson.starterCode)
 
   const isTerminal = (status: ExecutionRecord['status']): boolean =>
     status !== 'queued' && status !== 'running'
@@ -77,10 +84,15 @@ export default function InCourseShell({
       }
       setExecutionResult(result)
       setExecutionState('done')
-      if (result.passed) {
+      if (record.mode === 'submit' && result.passed) {
         notifications.show({
           color: 'green',
-          message: 'Тесты пройдены. Можно отметить готово.'
+          message: 'Все тесты пройдены — задача зачтена.'
+        })
+      } else if (record.mode === 'submit' && !result.passed) {
+        notifications.show({
+          color: 'orange',
+          message: 'Часть тестов провалена. Попробуй ещё раз.'
         })
       }
     } else {
@@ -96,9 +108,7 @@ export default function InCourseShell({
       setExecutionResult(null)
       setExecutionId(null)
     },
-    onSuccess: data => {
-      setExecutionId(data.executionId)
-    },
+    onSuccess: data => setExecutionId(data.executionId),
     onError: error => {
       setExecutionError(error.message)
       setExecutionState('done')
@@ -132,14 +142,21 @@ export default function InCourseShell({
   })
 
   const isCompleted = completedLessonIds.includes(lesson.id)
-  const canMarkComplete = isAuthenticated && executionResult?.passed && !isCompleted
+  const submitPassed = executionMode === 'submit' && executionResult?.passed === true
 
-  function handleRun() {
+  function dispatchExecution(mode: Mode) {
     if (!isAuthenticated) {
       router.push('/login')
       return
     }
-    runMutation.mutate({ taskId: lesson.id, language, code })
+    setExecutionMode(mode)
+    runMutation.mutate({
+      taskId: lesson.id,
+      language,
+      code,
+      mode,
+      context: { kind: 'course', ref: course.slug }
+    })
   }
 
   function handleNextLesson() {
@@ -173,11 +190,19 @@ export default function InCourseShell({
               </Button>
             </Tooltip>
             <Button
+              variant="default"
               leftSection={<FontAwesomeIcon icon={faPlay} />}
-              loading={runMutation.isPending}
-              onClick={handleRun}
+              loading={runMutation.isPending && executionMode === 'run'}
+              onClick={() => dispatchExecution('run')}
             >
               Запустить
+            </Button>
+            <Button
+              leftSection={<FontAwesomeIcon icon={faFlagCheckered} />}
+              loading={runMutation.isPending && executionMode === 'submit'}
+              onClick={() => dispatchExecution('submit')}
+            >
+              Проверить
             </Button>
           </div>
         </header>
@@ -191,6 +216,7 @@ export default function InCourseShell({
             state={executionState}
             result={executionResult}
             errorMessage={executionError}
+            mode={executionMode}
           />
         </div>
 
@@ -198,12 +224,14 @@ export default function InCourseShell({
           <span className={styles.workspace__hint}>
             {isCompleted
               ? 'Урок уже отмечен пройденным.'
-              : 'Запусти код и пройди тесты, чтобы отметить готово.'}
+              : submitPassed
+                ? 'Тесты пройдены — отметь готово или иди дальше.'
+                : 'Запусти, чтобы посмотреть вывод. Проверь — чтобы прогнать тесты.'}
           </span>
           <div className={styles.workspace__footActions}>
             <Button
               variant="default"
-              disabled={!canMarkComplete}
+              disabled={!submitPassed || isCompleted}
               loading={completeMutation.isPending}
               leftSection={<FontAwesomeIcon icon={faCircleCheck} />}
               onClick={() => completeMutation.mutate({ lessonId: lesson.id })}

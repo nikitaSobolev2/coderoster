@@ -1,0 +1,31 @@
+import { redirect } from 'next/navigation'
+import { withAuth } from '@workos-inc/authkit-nextjs'
+import { env } from '~/env'
+import { isTruthyFlag } from '~/server/lib/featureFlags'
+import { userSyncService } from '~/server/services/UserSyncService'
+
+export const dynamic = 'force-dynamic'
+
+/**
+ * Resolves the canonical username for the current session and forwards to
+ * `/u/<username>`. Centralising this avoids dead links after rename and
+ * eliminates the previous 404 that came from stale email-prefix derivation.
+ */
+export default async function MyProfileRedirect() {
+  const session = await withAuth()
+  if (!session.user) redirect('/login')
+
+  if (isTruthyFlag(env.USE_FAKE_DATA)) {
+    const username = session.user.email.split('@')[0] ?? 'me'
+    redirect(`/u/${username}`)
+  }
+
+  const user = await userSyncService.syncFromSession({
+    id: session.user.id,
+    email: session.user.email,
+    firstName: session.user.firstName ?? null,
+    lastName: session.user.lastName ?? null,
+    profilePictureUrl: session.user.profilePictureUrl ?? null
+  })
+  redirect(`/u/${user.username}`)
+}

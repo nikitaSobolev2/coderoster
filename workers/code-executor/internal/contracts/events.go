@@ -4,20 +4,35 @@
 package contracts
 
 const (
-	ExchangeName              = "coderoster.events"
-	ExecutionRequestedTopic   = "execution.requested"
-	ExecutionCompletedTopic   = "execution.completed"
-	ExecutionRequestedQueue   = "execution.requested"
-	ExecutionCompletedQueue   = "execution.completed"
+	ExchangeName            = "coderoster.events"
+	ExecutionRequestedTopic = "execution.requested"
+	ExecutionCompletedTopic = "execution.completed"
+	ExecutionRequestedQueue = "execution.requested"
+	ExecutionCompletedQueue = "execution.completed"
+
+	ModeRun    = "run"
+	ModeSubmit = "submit"
 )
+
+// TestSpec describes one autotest carried with a submission.
+// `Input` is optional stdin to pipe to the user program; `Expected` is the
+// trimmed stdout it must produce.
+type TestSpec struct {
+	Name     string  `json:"name"`
+	Input    *string `json:"input"`
+	Expected string  `json:"expected"`
+	Hidden   bool    `json:"hidden"`
+}
 
 // ExecutionRequested matches the Zod schema in the TS app.
 type ExecutionRequested struct {
-	ExecutionID string `json:"executionId"`
-	UserID      string `json:"userId"`
-	TaskID      string `json:"taskId"`
-	Language    string `json:"language"`
-	Code        string `json:"code"`
+	ExecutionID string     `json:"executionId"`
+	UserID      string     `json:"userId"`
+	TaskID      *string    `json:"taskId"`
+	Language    string     `json:"language"`
+	Code        string     `json:"code"`
+	Mode        string     `json:"mode"`
+	Tests       []TestSpec `json:"tests"`
 }
 
 // TestResult is one entry in the execution result payload.
@@ -33,6 +48,7 @@ type TestResult struct {
 type ExecutionCompleted struct {
 	ExecutionID  string       `json:"executionId"`
 	Status       string       `json:"status"`
+	Mode         string       `json:"mode"`
 	Stdout       string       `json:"stdout"`
 	Stderr       string       `json:"stderr"`
 	RuntimeMs    int          `json:"runtimeMs"`

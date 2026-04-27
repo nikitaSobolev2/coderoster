@@ -46,6 +46,11 @@
     backdrop-filter: var(--blur-effect-default);
     box-shadow: var(--shadow-form-input-focus);
   }
+
+  &:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--color-text) 55%, transparent);
+    outline-offset: 2px;
+  }
 }
 
 .contactForm__textarea {

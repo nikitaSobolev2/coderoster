@@ -1,4 +1,6 @@
 import 'server-only'
+
+import { findUserByUsernameLoose } from '~/server/lib/userLookup'
 import { db } from '~/server/db'
 import { sanitizePlainText } from '~/server/lib/sanitize'
 import { toProfileComment } from './mappers'
@@ -54,13 +56,10 @@ export class FakeCommentRepository implements CommentRepository {
 
 export class PrismaCommentRepository implements CommentRepository {
   async listOnProfile(username: string, cursor: string | null): Promise<ProfileCommentsPage> {
-    const owner = await db.user.findUnique({
-      where: { username },
-      select: { commentsThreadId: true }
-    })
-    if (!owner?.commentsThreadId) return { items: [], nextCursor: null }
+    const resolved = await findUserByUsernameLoose(username)
+    if (!resolved?.commentsThreadId) return { items: [], nextCursor: null }
     const comments = await db.comment.findMany({
-      where: { threadId: owner.commentsThreadId },
+      where: { threadId: resolved.commentsThreadId },
       include: { author: true },
       orderBy: { createdAt: 'desc' },
       take: PAGE_SIZE + 1,
@@ -80,8 +79,12 @@ export class PrismaCommentRepository implements CommentRepository {
   ): Promise<ProfileCommentEntry> {
     const sanitized = sanitizePlainText(body)
     return db.$transaction(async tx => {
+      const resolved = await findUserByUsernameLoose(profileUsername)
+      if (!resolved) {
+        throw new Error(`Profile not found: ${profileUsername}`)
+      }
       const owner = await tx.user.findUniqueOrThrow({
-        where: { username: profileUsername },
+        where: { id: resolved.id },
         select: { id: true, commentsThreadId: true }
       })
       let threadId = owner.commentsThreadId

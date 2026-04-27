@@ -1,0 +1,25 @@
+@import '~/shared/assets/styles/mixins.scss';
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+
+  &__label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: var(--font-size-default);
+    color: var(--color-text-secondary);
+  }
+
+  &__hint {
+    margin: 0.75rem 0 0;
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-h6);
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+  }
+}

@@ -3,27 +3,36 @@ import { TRPCError } from '@trpc/server'
 import { createTRPCRouter, protectedProcedure } from '~/server/api/trpc'
 import { heavyProcedure } from '~/server/api/procedures'
 
+const runInputSchema = z.object({
+  taskId: z.string().min(1).nullable().optional(),
+  language: z.enum(['python', 'php']),
+  code: z.string().max(50_000),
+  mode: z.enum(['run', 'submit']).default('run'),
+  context: z
+    .object({
+      kind: z.enum(['course', 'sandbox', 'daily', 'weekly']).default('course'),
+      ref: z.string().nullable().optional()
+    })
+    .default({ kind: 'course', ref: null })
+})
+
 export const executionRouter = createTRPCRouter({
   /**
-   * Enqueues a code execution. Writes the `Execution` row + the matching
-   * `OutboxEvent` in a single transaction; the worker runs the actual code
-   * asynchronously. Clients poll `execution.get` until the status is terminal.
+   * Enqueues a code execution. Mode-aware:
+   * - `run` is a non-graded preview (no tryN bump, no progress).
+   * - `submit` ships the task autotests to the worker; the result consumer
+   *   advances the attempt and progress only when all tests pass.
    */
-  run: heavyProcedure
-    .input(
-      z.object({
-        taskId: z.string().min(1),
-        language: z.enum(['python', 'php']),
-        code: z.string().max(50_000)
-      })
-    )
-    .mutation(({ ctx, input }) =>
-      ctx.repositories.execution.enqueue(ctx.user.id, {
-        taskId: input.taskId,
-        language: input.language,
-        code: input.code
-      })
-    ),
+  run: heavyProcedure.input(runInputSchema).mutation(({ ctx, input }) =>
+    ctx.repositories.execution.enqueue(ctx.user.id, {
+      taskId: input.taskId ?? null,
+      language: input.language,
+      code: input.code,
+      mode: input.mode,
+      contextKind: input.context.kind,
+      contextRef: input.context.ref ?? null
+    })
+  ),
 
   get: protectedProcedure
     .input(z.object({ executionId: z.string().min(1) }))

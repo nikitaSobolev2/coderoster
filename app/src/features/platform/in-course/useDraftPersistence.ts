@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import debounce from 'lodash.debounce'
+import { useAuth } from '@workos-inc/authkit-nextjs/components'
 import { api } from '~/trpc/react'
 
 const LOCAL_PREFIX = 'coderoster.draft.'
@@ -10,23 +11,25 @@ const LOCAL_PREFIX = 'coderoster.draft.'
  * Bridges the editor with both `localStorage` (instant restore) and the
  * `progress.saveDraft` mutation (server-side persistence), so a learner can
  * close the tab and pick up exactly where they left off.
+ *
+ * Remote saves use `useAuth().user` (not SSR `isAuthenticated`) so debounced
+ * writes never fire before AuthKit client state matches cookies / tRPC context.
  */
-export function useDraftPersistence(
-  lessonId: string,
-  starterCode: string,
-  isAuthenticated: boolean
-) {
+export function useDraftPersistence(lessonId: string, starterCode: string) {
+  const { user, loading: authLoading } = useAuth()
   const [code, setCode] = useState(() => loadLocalDraft(lessonId) ?? starterCode)
   const saveDraftMutation = api.progress.saveDraft.useMutation()
   const initialised = useRef(false)
 
+  const canPersistRemote = Boolean(!authLoading && user)
+
   const remoteSave = useMemo(
     () =>
       debounce((value: string) => {
-        if (!isAuthenticated) return
+        if (!canPersistRemote) return
         saveDraftMutation.mutate({ lessonId, code: value })
       }, 700),
-    [lessonId, isAuthenticated, saveDraftMutation]
+    [lessonId, canPersistRemote, saveDraftMutation]
   )
 
   useEffect(() => {

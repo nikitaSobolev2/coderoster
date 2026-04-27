@@ -44,3 +44,8 @@
   gap: var(--gap-header-island);
   margin-left: auto;
 }
+
+.island__authPlaceholder {
+  height: var(--height-header-island-action);
+  min-width: 9rem;
+}

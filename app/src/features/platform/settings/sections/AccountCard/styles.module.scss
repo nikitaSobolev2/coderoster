@@ -1,0 +1,48 @@
+@import '~/shared/assets/styles/mixins.scss';
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+
+  &__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+
+    li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.875rem 1rem;
+      background: var(--platform-color-surface-hover);
+      border: 1px solid var(--platform-color-border);
+      border-radius: var(--platform-card-radius-sm);
+    }
+  }
+
+  &__listLabel {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-default);
+  }
+
+  &__listValue {
+    color: var(--color-text);
+    font-size: var(--font-size-default);
+  }
+
+  &__pending {
+    padding: 0.875rem 1rem;
+    border-radius: var(--platform-card-radius-sm);
+    background: color-mix(in srgb, var(--color-negative) 15%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-negative) 35%, transparent);
+    color: var(--color-text);
+    font-size: var(--font-size-default);
+  }
+}

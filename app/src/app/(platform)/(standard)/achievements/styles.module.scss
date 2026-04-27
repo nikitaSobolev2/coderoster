@@ -1,0 +1,43 @@
+@import '~/shared/assets/styles/mixins.scss';
+
+.page {
+  width: min(100%, var(--platform-shell-max-width));
+  margin: 0 auto;
+  padding: 2rem var(--platform-shell-padding-inline) 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.page__hero {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.page__eyebrow {
+  font-size: var(--font-size-h6);
+  letter-spacing: var(--letter-spacing-button);
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.page__title {
+  margin: 0;
+  font-size: var(--font-size-h1);
+  @include fontYandexDisplay();
+  color: var(--color-text);
+}
+
+.page__copy {
+  color: var(--color-text-secondary);
+  line-height: 1.55;
+  font-size: var(--font-size-h5);
+  max-width: 60ch;
+}
+
+@media (max-width: 768px) {
+  .page {
+    padding: 1.25rem 1rem 3rem;
+  }
+}

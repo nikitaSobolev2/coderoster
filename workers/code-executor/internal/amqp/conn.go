@@ -42,6 +42,29 @@ func Connect(url string) (*Client, error) {
 		conn.Close()
 		return nil, fmt.Errorf("declare exchange: %w", err)
 	}
+	if _, err := channel.QueueDeclare(
+		contracts.ExecutionRequestedQueue,
+		true,
+		false,
+		false,
+		false,
+		nil,
+	); err != nil {
+		channel.Close()
+		conn.Close()
+		return nil, fmt.Errorf("declare queue: %w", err)
+	}
+	if err := channel.QueueBind(
+		contracts.ExecutionRequestedQueue,
+		contracts.ExecutionRequestedTopic,
+		contracts.ExchangeName,
+		false,
+		nil,
+	); err != nil {
+		channel.Close()
+		conn.Close()
+		return nil, fmt.Errorf("bind queue: %w", err)
+	}
 	if err := channel.Qos(4, 0, false); err != nil {
 		log.Printf("amqp: qos setup failed: %v", err)
 	}

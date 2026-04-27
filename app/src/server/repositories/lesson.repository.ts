@@ -1,8 +1,21 @@
 import 'server-only'
+import type { CourseTask } from '@prisma/client'
 import { db } from '~/server/db'
 import { toLessonDetail } from './mappers'
 import type { LessonDetail } from './types'
 import { getFakeLessonDetail } from './fixtures'
+
+/**
+ * URL routes were authored against the fake-fixture slug (`l-py-1-1`) before
+ * Prisma seeding assigned cuid primary keys. Until the platform migrates fully
+ * to cuid links, this helper resolves either form so legacy bookmarks keep
+ * working.
+ */
+function taskMatchesIdentifier(task: CourseTask, identifier: string): boolean {
+  if (task.id === identifier) return true
+  const initial = task.initialData as { slug?: string } | null
+  return initial?.slug === identifier
+}
 
 export interface LessonRepository {
   getOne(courseSlug: string, lessonId: string): Promise<LessonDetail | null>
@@ -27,11 +40,25 @@ export class PrismaLessonRepository implements LessonRepository {
     })
     if (!course) return null
     const flat = course.modules.flatMap(module => module.tasks.map(task => ({ module, task })))
-    const index = flat.findIndex(item => item.task.id === lessonId)
+    const index = flat.findIndex(item => taskMatchesIdentifier(item.task, lessonId))
     if (index < 0) return null
     const current = flat[index]!
     const previous = index > 0 ? flat[index - 1]!.task.id : null
     const next = index < flat.length - 1 ? flat[index + 1]!.task.id : null
-    return toLessonDetail(current.task, current.module, course, index + 1, previous, next)
+    const autotests = await db.courseTaskAutotest.findMany({
+      where: { courseTaskId: current.task.id },
+      orderBy: { order: 'asc' },
+      select: { name: true, hidden: true }
+    })
+    const testNames = autotests.length > 0 ? autotests : [{ name: 'Базовый прогон', hidden: false }]
+    return toLessonDetail({
+      task: current.task,
+      module: current.module,
+      course,
+      order: index + 1,
+      previousLessonId: previous,
+      nextLessonId: next,
+      testNames
+    })
   }
 }

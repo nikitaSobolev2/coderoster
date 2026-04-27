@@ -4,6 +4,7 @@ import { useRef, useState, type FormEvent } from 'react'
 import { faPaperPlane } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { useCursorFillTarget } from '~/features/home/hooks/useCursorFillTarget'
+import { useCursorOutlineTarget } from '~/features/home/hooks/useCursorOutlineTarget'
 import styles from './styles.module.scss'
 
 const CONTACT_API_PATH = '/api/v1/contact'
@@ -20,7 +21,13 @@ const EMPTY_PAYLOAD: ContactFormPayload = { name: '', email: '', message: '' }
 
 export default function ContactForm() {
   const submitRef = useRef<HTMLButtonElement>(null)
+  const nameInputRef = useRef<HTMLInputElement>(null)
+  const emailInputRef = useRef<HTMLInputElement>(null)
+  const messageInputRef = useRef<HTMLTextAreaElement>(null)
   useCursorFillTarget(submitRef)
+  useCursorOutlineTarget(nameInputRef)
+  useCursorOutlineTarget(emailInputRef)
+  useCursorOutlineTarget(messageInputRef)
 
   const [payload, setPayload] = useState<ContactFormPayload>(EMPTY_PAYLOAD)
   const [status, setStatus] = useState<SubmitStatus>('idle')
@@ -58,6 +65,7 @@ export default function ContactForm() {
       <label className={styles.contactForm__field}>
         <span className={styles.contactForm__label}>Имя</span>
         <input
+          ref={nameInputRef}
           className={styles.contactForm__input}
           type="text"
           required
@@ -70,6 +78,7 @@ export default function ContactForm() {
       <label className={styles.contactForm__field}>
         <span className={styles.contactForm__label}>Email</span>
         <input
+          ref={emailInputRef}
           className={styles.contactForm__input}
           type="email"
           required
@@ -82,6 +91,7 @@ export default function ContactForm() {
       <label className={styles.contactForm__field}>
         <span className={styles.contactForm__label}>Сообщение</span>
         <textarea
+          ref={messageInputRef}
           className={styles.contactForm__textarea}
           required
           rows={4}

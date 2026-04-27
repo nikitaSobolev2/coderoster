@@ -15,10 +15,13 @@ export default authkitMiddleware({
       '/courses',
       '/courses/:slug*',
       '/u/:username*',
+      '/leaderboard',
+      '/achievements',
       '/coming-soon',
       '/api/:path*',
       '/login',
-      '/callback'
+      '/callback',
+      '/account/logout'
     ]
   }
 })

@@ -21,6 +21,8 @@ import type {
   Difficulty,
   EarnedAchievement,
   EnrollmentState,
+  ExecutionContextKind,
+  ExecutionMode,
   ExecutionRecord,
   Language,
   LessonDetail,
@@ -31,6 +33,7 @@ import type {
   PublicProfile,
   SocialLinks,
   TestResult,
+  UserRole,
   UserSettings
 } from './types'
 
@@ -121,33 +124,34 @@ function kindToLessonKind(kind: PrismaCourseTask['kind']): LessonSummary['kind']
   }
 }
 
-export function toLessonDetail(
-  task: PrismaCourseTask,
-  module: PrismaCourseModule,
-  course: PrismaCourse,
-  order: number,
-  previousLessonId: string | null,
+export interface LessonDetailInput {
+  task: PrismaCourseTask
+  module: PrismaCourseModule
+  course: PrismaCourse
+  order: number
+  previousLessonId: string | null
   nextLessonId: string | null
-): LessonDetail {
-  const initial = task.initialData as Record<string, unknown> | null
-  const language = (initial?.language as Language | undefined) ?? (course.language as Language)
+  testNames: { name: string; hidden: boolean }[]
+}
+
+export function toLessonDetail(input: LessonDetailInput): LessonDetail {
+  const initial = input.task.initialData as Record<string, unknown> | null
+  const language =
+    (initial?.language as Language | undefined) ?? (input.course.language as Language)
   const starterCode = (initial?.predefinedCode as string | undefined) ?? ''
   return {
-    ...toLessonSummary(task),
-    courseSlug: course.slug,
-    courseTitle: course.title,
-    moduleId: module.id,
-    moduleTitle: module.title,
-    order,
-    body: task.description,
+    ...toLessonSummary(input.task),
+    courseSlug: input.course.slug,
+    courseTitle: input.course.title,
+    moduleId: input.module.id,
+    moduleTitle: input.module.title,
+    order: input.order,
+    body: input.task.description,
     starterCode,
     language,
-    tests: [
-      { name: 'Базовый прогон', hidden: false },
-      { name: 'Скрытый кейс', hidden: true }
-    ],
-    previousLessonId,
-    nextLessonId
+    tests: input.testNames,
+    previousLessonId: input.previousLessonId,
+    nextLessonId: input.nextLessonId
   }
 }
 
@@ -204,7 +208,23 @@ export function toUserSettings(user: PrismaUser): UserSettings {
     bio: user.bio,
     avatarUrl: user.avatarUrl,
     socials: jsonToSocials(user.socials),
-    appearance
+    appearance,
+    joinedAt: user.joinedAt,
+    role: roleToDomain(user.role),
+    deletionRequestedAt: user.deletionRequestedAt
+  }
+}
+
+function roleToDomain(role: PrismaUser['role']): UserRole {
+  switch (role) {
+    case 'AUTHOR':
+      return 'author'
+    case 'MODERATOR':
+      return 'moderator'
+    case 'ADMIN':
+      return 'admin'
+    default:
+      return 'learner'
   }
 }
 
@@ -279,6 +299,9 @@ export function toExecutionRecord(execution: PrismaExecution): ExecutionRecord {
     status: executionStatusToDomain(execution.status),
     language: execution.language as Language,
     taskId: execution.taskId,
+    mode: executionModeToDomain(execution.mode),
+    contextKind: executionContextToDomain(execution.contextKind),
+    contextRef: execution.contextRef,
     stdout: execution.stdout,
     stderr: execution.stderr,
     runtimeMs: execution.runtimeMs,
@@ -288,6 +311,23 @@ export function toExecutionRecord(execution: PrismaExecution): ExecutionRecord {
     enqueuedAt: execution.enqueuedAt,
     startedAt: execution.startedAt,
     finishedAt: execution.finishedAt
+  }
+}
+
+function executionModeToDomain(mode: PrismaExecution['mode']): ExecutionMode {
+  return mode === 'SUBMIT' ? 'submit' : 'run'
+}
+
+function executionContextToDomain(context: PrismaExecution['contextKind']): ExecutionContextKind {
+  switch (context) {
+    case 'SANDBOX':
+      return 'sandbox'
+    case 'DAILY':
+      return 'daily'
+    case 'WEEKLY':
+      return 'weekly'
+    default:
+      return 'course'
   }
 }
 

@@ -103,7 +103,7 @@ export default function MobileHomeMenu({ sections }: Props) {
                 />
               </div>
               <div className={styles.auth}>
-                <HeaderAuth authButtonClassName={styles.drawerAuth} />
+                <HeaderAuth authButtonClassName={styles.drawerAuth} profileLayout="drawer" />
               </div>
             </div>
           </div>

@@ -1,0 +1,119 @@
+@import '~/shared/assets/styles/mixins.scss';
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+
+  &__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  &__title {
+    margin: 0 0 0.25rem;
+    font-size: var(--font-size-h2);
+    @include fontYandexDisplay();
+    color: var(--color-text);
+  }
+
+  &__copy {
+    margin: 0;
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-h5);
+    max-width: 56ch;
+  }
+
+  &__grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1rem;
+  }
+
+  &__tile {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: var(--platform-card-radius-sm);
+    border: 1px solid var(--platform-color-border);
+    background: var(--platform-color-surface);
+    transition:
+      transform var(--transition-default),
+      border-color var(--transition-default),
+      box-shadow var(--transition-default);
+
+    &[data-earned='true'] {
+      border-color: color-mix(in srgb, var(--color-positive) 50%, transparent);
+      box-shadow: 0 18px 40px -32px color-mix(in srgb, var(--color-positive) 60%, transparent);
+    }
+
+    &[data-earned='false'] {
+      opacity: 0.78;
+    }
+
+    &:hover {
+      transform: translateY(-2px);
+    }
+  }
+
+  &__iconWrap {
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    background: var(--platform-color-surface-hover);
+    border: 1px solid var(--platform-color-border);
+    color: var(--color-text);
+    flex-shrink: 0;
+
+    &[data-rarity='rare'] {
+      color: #5eb1ff;
+    }
+    &[data-rarity='epic'] {
+      color: #c89cff;
+    }
+    &[data-rarity='legendary'] {
+      color: #ffce6b;
+    }
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-width: 0;
+    width: 100%;
+  }
+
+  &__tileTitle {
+    margin: 0;
+    font-size: var(--font-size-h4);
+    @include fontYandexDisplay();
+    color: var(--color-text);
+  }
+
+  &__tileCopy {
+    margin: 0;
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-default);
+    line-height: 1.4;
+  }
+
+  &__progressLabel {
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-h6);
+  }
+}
+
+@media (max-width: 600px) {
+  .panel__grid {
+    grid-template-columns: 1fr;
+  }
+}

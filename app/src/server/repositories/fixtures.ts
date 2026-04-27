@@ -353,7 +353,7 @@ const FAKE_PROFILE: PublicProfile = {
 }
 
 export function getFakeProfile(username: string): PublicProfile | null {
-  if (username === FAKE_PROFILE.username) return FAKE_PROFILE
+  if (username.toLowerCase() === FAKE_PROFILE.username.toLowerCase()) return FAKE_PROFILE
   return null
 }
 
@@ -364,7 +364,10 @@ export const FAKE_USER_SETTINGS: UserSettings = {
   bio: FAKE_PROFILE.bio,
   avatarUrl: FAKE_PROFILE.avatarUrl,
   socials: FAKE_PROFILE.socials,
-  appearance: { colorScheme: 'dark' }
+  appearance: { colorScheme: 'dark' },
+  joinedAt: FAKE_PROFILE.joinedAt,
+  role: 'learner',
+  deletionRequestedAt: null
 }
 
 const ACHIEVEMENT_LIST: Achievement[] = [

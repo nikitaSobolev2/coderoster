@@ -10,7 +10,12 @@ x-app-volumes: &app_volumes
   - /app/node_modules
   - /app/.next
 
-x-app-env: &app_env
+x-app-env:
+  # Override Dockerfile ENV so T3 Env runs validation + transforms at runtime.
+  # Without this, USE_FAKE_DATA="false" would stay a string and JS truthiness
+  # would silently flip the app into fixture mode.
+  &app_env
+  SKIP_ENV_VALIDATION: ""
   DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-coderoster}
   REDIS_URL: redis://redis:6379
   RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER:-guest}:${RABBITMQ_DEFAULT_PASS:-guest}@rabbitmq:5672
@@ -19,6 +24,7 @@ x-app-env: &app_env
   WORKOS_COOKIE_PASSWORD: ${WORKOS_COOKIE_PASSWORD}
   NEXT_PUBLIC_WORKOS_REDIRECT_URI: ${NEXT_PUBLIC_WORKOS_REDIRECT_URI:-http://localhost:3000/callback}
   USE_FAKE_DATA: ${USE_FAKE_DATA:-false}
+  NEXT_PUBLIC_USE_FAKE_DATA: ${NEXT_PUBLIC_USE_FAKE_DATA:-${USE_FAKE_DATA:-false}}
   SANITIZE_MARKDOWN: ${SANITIZE_MARKDOWN:-true}
   ACTIVITY_SNAPSHOT_CRON: ${ACTIVITY_SNAPSHOT_CRON:-30 0 * * *}
   EXECUTION_TIMEOUT_MS: ${EXECUTION_TIMEOUT_MS:-5000}
@@ -122,6 +128,26 @@ services:
         "--conditions=react-server",
         "node_modules/tsx/dist/cli.mjs",
         "src/server/consumers/executionResult.ts",
+      ]
+    environment:
+      <<: *app_env
+      SKIP_MIGRATIONS: "true"
+    volumes: *app_volumes
+    depends_on:
+      db: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    networks: [ coderoster ]
+
+  account-deletion-consumer:
+    build: *app_build
+    restart: unless-stopped
+    command:
+      [
+        "node",
+        "--conditions=react-server",
+        "node_modules/tsx/dist/cli.mjs",
+        "src/server/consumers/accountDeletion.ts",
       ]
     environment:
       <<: *app_env

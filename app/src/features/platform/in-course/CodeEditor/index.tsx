@@ -1,7 +1,9 @@
 'use client'
 
+import { useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import type { Language } from '~/server/repositories/types'
+import { ensureMonacoLoaderConfigured } from './monaco-bootstrap'
 import styles from './styles.module.scss'
 
 const MonacoEditor = dynamic(() => import('@monaco-editor/react'), {
@@ -26,6 +28,10 @@ const MONACO_LANGUAGE_BY_APP_LANGUAGE: Record<Language, string> = {
  * Loaded lazily on the client because the Monaco bundle is heavy.
  */
 export default function CodeEditor({ value, onChange, language, readOnly = false }: Props) {
+  useEffect(() => {
+    ensureMonacoLoaderConfigured()
+  }, [])
+
   return (
     <div className={styles.editor}>
       <MonacoEditor

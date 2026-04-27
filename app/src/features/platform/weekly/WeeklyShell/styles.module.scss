@@ -1,0 +1,113 @@
+@import '~/shared/assets/styles/mixins.scss';
+
+.shell {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+
+  &__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  &__title {
+    margin: 0 0 0.25rem;
+    font-size: var(--font-size-h2);
+    @include fontYandexDisplay();
+    color: var(--color-text);
+  }
+
+  &__copy {
+    margin: 0;
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-h5);
+    max-width: 56ch;
+  }
+}
+
+.tabs {
+  &__list {
+    border-bottom: 1px solid var(--platform-color-border);
+    gap: 0.25rem;
+    flex-wrap: wrap;
+  }
+
+  &__tab {
+    padding: 0.625rem 0.875rem;
+    color: var(--color-text-secondary);
+
+    &[data-active='true'] {
+      color: var(--color-text);
+    }
+  }
+
+  &__tabLabel {
+    display: inline-flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  &__panel {
+    padding-top: 1rem;
+  }
+}
+
+.panel {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) 2fr;
+  gap: 1rem;
+
+  &__brief {
+    padding: 1rem;
+    border-radius: var(--platform-card-radius-sm);
+    border: 1px solid var(--platform-color-border);
+    background: var(--platform-color-surface);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: var(--font-size-h3);
+    @include fontYandexDisplay();
+    color: var(--color-text);
+  }
+
+  &__copy {
+    margin: 0;
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-default);
+    line-height: 1.5;
+    white-space: pre-wrap;
+  }
+
+  &__editorWrap {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  &__editorHead {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  &__editor {
+    border-radius: var(--platform-card-radius-sm);
+    overflow: hidden;
+    border: 1px solid var(--platform-color-border);
+    min-height: 360px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .panel {
+    grid-template-columns: 1fr;
+  }
+}

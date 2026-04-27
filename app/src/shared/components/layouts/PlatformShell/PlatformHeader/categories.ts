@@ -49,7 +49,7 @@ export const NAV_CATEGORIES: NavCategoryConfig[] = [
         id: 'achievements',
         title: 'Достижения',
         description: 'Раскрывай ачивки и собирай редкости',
-        href: '/coming-soon',
+        href: '/achievements',
         icon: faTrophy
       }
     ]
@@ -62,21 +62,21 @@ export const NAV_CATEGORIES: NavCategoryConfig[] = [
         id: 'editor',
         title: 'Песочница',
         description: 'Запусти Python или PHP в браузере',
-        href: '/coming-soon',
+        href: '/sandbox',
         icon: faCode
       },
       {
         id: 'daily',
         title: 'Дейлики',
         description: 'Короткое задание дня за бонусный XP',
-        href: '/coming-soon',
+        href: '/daily',
         icon: faCalendarCheck
       },
       {
-        id: 'speed',
+        id: 'weekly',
         title: 'Спидраны',
         description: 'Гонки против таймера и лимита решений',
-        href: '/coming-soon',
+        href: '/weekly',
         icon: faBolt
       }
     ]
@@ -89,14 +89,14 @@ export const NAV_CATEGORIES: NavCategoryConfig[] = [
         id: 'leaderboard',
         title: 'Лидерборд',
         description: 'Топ по XP и решённым задачам',
-        href: '/coming-soon',
+        href: '/leaderboard',
         icon: faRankingStar
       },
       {
         id: 'profiles',
         title: 'Профили',
-        description: 'Зайди к другому учащемуся в гости',
-        href: '/u/codenikita',
+        description: 'Зайди в свой профиль',
+        href: '/u/me',
         icon: faUser
       },
       {

@@ -23,8 +23,9 @@ const SECURITY_HEADERS = [
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.workos.com",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https:",
-      "font-src 'self' data:",
-      "connect-src 'self' https://*.workos.com",
+      "font-src 'self' data: blob:",
+      "worker-src 'self' blob:",
+      "connect-src 'self' blob: data: https://*.workos.com",
       "frame-ancestors 'self'",
       "base-uri 'self'",
       "form-action 'self' https://*.workos.com"

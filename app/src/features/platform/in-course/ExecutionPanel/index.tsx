@@ -7,14 +7,85 @@ import type { RunResult } from '~/server/repositories/types'
 import styles from './styles.module.scss'
 
 export type ExecutionState = 'idle' | 'running' | 'done'
+export type ExecutionPanelMode = 'run' | 'submit'
 
 export interface Props {
   state: ExecutionState
   result: RunResult | null
   errorMessage: string | null
+  /**
+   * `run`    — playground / preview view: single Output tab, no verdict, no
+   *            tests panel. Stderr is folded into the output.
+   * `submit` — graded view: Output / Tests / Errors tabs + pass/fail verdict.
+   */
+  mode?: ExecutionPanelMode
 }
 
-export default function ExecutionPanel({ state, result, errorMessage }: Props) {
+export default function ExecutionPanel({ state, result, errorMessage, mode = 'submit' }: Props) {
+  if (mode === 'run') {
+    return <RunOnlyPanel state={state} result={result} errorMessage={errorMessage} />
+  }
+  return <SubmitPanel state={state} result={result} errorMessage={errorMessage} />
+}
+
+function RunOnlyPanel({
+  state,
+  result,
+  errorMessage
+}: {
+  state: ExecutionState
+  result: RunResult | null
+  errorMessage: string | null
+}) {
+  return (
+    <section className={styles.panel}>
+      <header className={styles.panel__head}>
+        <h3 className={styles.panel__title}>Результат</h3>
+        {state === 'running' ? (
+          <span className={styles.verdict}>
+            <FontAwesomeIcon icon={faSpinner} spin /> запуск
+          </span>
+        ) : null}
+      </header>
+      <div className={styles.tabs__panel}>
+        {state === 'running' ? (
+          <Loading />
+        ) : errorMessage ? (
+          <pre className={styles.errors}>{errorMessage}</pre>
+        ) : result ? (
+          <RunOutput result={result} />
+        ) : (
+          <Empty hint="Запусти код, чтобы увидеть вывод." />
+        )}
+      </div>
+    </section>
+  )
+}
+
+function RunOutput({ result }: { result: RunResult }) {
+  const stdout = result.stdout?.trim() ?? ''
+  const stderr = result.stderr?.trim() ?? ''
+  if (!stdout && !stderr) {
+    return <Empty hint="Программа отработала без вывода." />
+  }
+  return (
+    <>
+      {stdout ? <pre className={styles.output}>{stdout}</pre> : null}
+      {stderr ? <pre className={styles.errors}>{stderr}</pre> : null}
+      <span className={styles.output__time}>{result.runtimeMs} мс</span>
+    </>
+  )
+}
+
+function SubmitPanel({
+  state,
+  result,
+  errorMessage
+}: {
+  state: ExecutionState
+  result: RunResult | null
+  errorMessage: string | null
+}) {
   return (
     <section className={styles.panel}>
       <header className={styles.panel__head}>

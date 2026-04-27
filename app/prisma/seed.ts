@@ -11,6 +11,7 @@ async function main() {
   const author = await upsertAuthor()
   const phpAuthor = await upsertSecondaryAuthor()
   const algoAuthor = await upsertAlgoAuthor()
+  await upsertDemoLearnerNikareich()
 
   await seedAchievements()
   await seedPython(author.id)
@@ -20,62 +21,115 @@ async function main() {
   console.log('[seed] done')
 }
 
-async function upsertAuthor() {
+/**
+ * Seed users use a non-routable `seed.local` domain and `seed-<username>`
+ * WorkOS ids. Real WorkOS sign-ins (own emails on real domains) never collide,
+ * so `UserSyncService` always creates a fresh row for the actual user.
+ */
+const SEED_DOMAIN = 'seed.local'
+const seedEmail = (username: string) => `${username}@${SEED_DOMAIN}`
+
+interface SeedUser {
+  workosUserId: string
+  username: string
+  displayName: string
+  bio?: string
+  role?: Role
+  socials?: Record<string, string>
+}
+
+/**
+ * Seeds an idempotent demo user keyed by `workosUserId`. We deliberately key
+ * the upsert on `workosUserId` (never `username`) so that real WorkOS-backed
+ * users with the same nickname are never overwritten by a re-run of the seed.
+ * Real-user usernames coming from `UserSyncService` get a numeric suffix when
+ * they collide with these reserved demo names.
+ */
+async function upsertSeedUser(input: SeedUser) {
+  const data = {
+    email: seedEmail(input.username),
+    displayName: input.displayName,
+    bio: input.bio ?? '',
+    role: input.role ?? Role.LEARNER,
+    socials: input.socials ?? {}
+  }
+
+  const owner = await prisma.user.findUnique({ where: { username: input.username } })
+  if (owner && owner.workosUserId !== input.workosUserId) {
+    console.warn(
+      `[seed] username "${input.username}" already owned by ${owner.workosUserId} — leaving real user untouched.`
+    )
+    return owner
+  }
+
   return prisma.user.upsert({
-    where: { username: 'codenikita' },
-    update: {},
-    create: {
-      workosUserId: 'seed-codenikita',
-      email: 'nikita@coderoster.dev',
-      username: 'codenikita',
-      displayName: 'Никита Соболев',
-      bio: 'Учусь, ломаю, повторяю. Backend по любви, фронтенд по необходимости.',
-      role: Role.AUTHOR,
-      socials: {
-        github: 'https://github.com/nikitaSobolev2',
-        website: 'https://t.me/sobolevNikitaWD'
-      }
+    where: { workosUserId: input.workosUserId },
+    update: data,
+    create: { workosUserId: input.workosUserId, username: input.username, ...data }
+  })
+}
+
+async function upsertAuthor() {
+  return upsertSeedUser({
+    workosUserId: 'seed-codenikita',
+    username: 'codenikita',
+    displayName: 'Никита Соболев',
+    bio: 'Учусь, ломаю, повторяю. Backend по любви, фронтенд по необходимости.',
+    role: Role.AUTHOR,
+    socials: {
+      github: 'https://github.com/nikitaSobolev2',
+      website: 'https://t.me/sobolevNikitaWD'
     }
   })
 }
 
 async function upsertSecondaryAuthor() {
-  return prisma.user.upsert({
-    where: { username: 'php_pro' },
-    update: {},
-    create: {
-      workosUserId: 'seed-php_pro',
-      email: 'maria@coderoster.dev',
-      username: 'php_pro',
-      displayName: 'Мария Лазарева',
-      role: Role.AUTHOR
-    }
+  return upsertSeedUser({
+    workosUserId: 'seed-php_pro',
+    username: 'php_pro',
+    displayName: 'Мария Лазарева',
+    role: Role.AUTHOR
   })
 }
 
 async function upsertAlgoAuthor() {
-  return prisma.user.upsert({
-    where: { username: 'algo_dasha' },
-    update: {},
-    create: {
-      workosUserId: 'seed-algo_dasha',
-      email: 'dasha@coderoster.dev',
-      username: 'algo_dasha',
-      displayName: 'Даша Кравцова',
-      role: Role.AUTHOR
-    }
+  return upsertSeedUser({
+    workosUserId: 'seed-algo_dasha',
+    username: 'algo_dasha',
+    displayName: 'Даша Кравцова',
+    role: Role.AUTHOR
+  })
+}
+
+/** Demo learner so `/u/nikareich` resolves on fresh DB. */
+async function upsertDemoLearnerNikareich() {
+  return upsertSeedUser({
+    workosUserId: 'seed-nikareich',
+    username: 'nikareich',
+    displayName: 'Ника Райх',
+    role: Role.LEARNER
   })
 }
 
 async function seedAchievements() {
-  const items = [
+  const items: {
+    slug: string
+    title: string
+    description: string
+    category: string
+    rarity: string
+    coverImage: string
+    hidden?: boolean
+    goal?: number
+  }[] = [
     {
       slug: 'first-steps',
       title: 'Первые шаги',
       description: 'Заверши первый урок',
       category: 'progression',
       rarity: 'common',
-      coverImage: 'shoe-prints'
+      coverImage: 'shoe-prints',
+      goal: 1
     },
     {
       slug: 'on-fire',
@@ -83,7 +137,8 @@ async function seedAchievements() {
       description: 'Серия 7 дней подряд',
       category: 'streak',
       rarity: 'rare',
-      coverImage: 'fire'
+      coverImage: 'fire',
+      goal: 7
     },
     {
       slug: 'all-clear',
@@ -91,7 +146,8 @@ async function seedAchievements() {
       description: 'Заверши все задания одного курса',
       category: 'completionist',
       rarity: 'epic',
-      coverImage: 'circle-check'
+      coverImage: 'circle-check',
+      goal: 1
     },
     {
       slug: 'speed-coder',
@@ -99,7 +155,8 @@ async function seedAchievements() {
       description: 'Сдай задание быстрее лимита',
       category: 'speed',
       rarity: 'rare',
-      coverImage: 'bolt'
+      coverImage: 'bolt',
+      goal: 1
     },
     {
       slug: 'night-owl',
@@ -108,14 +165,78 @@ async function seedAchievements() {
       category: 'hidden',
       rarity: 'legendary',
       coverImage: 'moon',
-      hidden: true
+      hidden: true,
+      goal: 1
+    },
+    {
+      slug: 'polyglot',
+      title: 'Полиглот',
+      description: 'Сдай задачи на двух языках',
+      category: 'progression',
+      rarity: 'rare',
+      coverImage: 'star',
+      goal: 2
+    },
+    {
+      slug: 'marathon',
+      title: 'Марафонец',
+      description: '10 уроков за один день',
+      category: 'progression',
+      rarity: 'epic',
+      coverImage: 'bolt',
+      goal: 10
+    },
+    {
+      slug: 'daily-grinder',
+      title: 'Дейли-граниль',
+      description: '7 дейликов очищены',
+      category: 'streak',
+      rarity: 'rare',
+      coverImage: 'fire',
+      goal: 7
+    },
+    {
+      slug: 'weekly-champion',
+      title: 'Чемпион недели',
+      description: 'Сдан недельный спидран',
+      category: 'completionist',
+      rarity: 'epic',
+      coverImage: 'trophy',
+      goal: 1
+    },
+    {
+      slug: 'comeback',
+      title: 'Возвращение',
+      description: 'Вернулся после недели тишины',
+      category: 'hidden',
+      rarity: 'legendary',
+      coverImage: 'moon',
+      hidden: true,
+      goal: 1
     }
   ]
   for (const item of items) {
     await prisma.achievement.upsert({
       where: { slug: item.slug },
-      update: {},
-      create: item
+      update: {
+        title: item.title,
+        description: item.description,
+        category: item.category,
+        rarity: item.rarity,
+        coverImage: item.coverImage,
+        hidden: item.hidden ?? false,
+        goal: item.goal ?? null
+      },
+      create: {
+        slug: item.slug,
+        title: item.title,
+        description: item.description,
+        category: item.category,
+        rarity: item.rarity,
+        coverImage: item.coverImage,
+        hidden: item.hidden ?? false,
+        goal: item.goal ?? null
+      }
     })
   }
 }
@@ -146,20 +267,23 @@ async function seedPython(authorId: string) {
       slug: 'l-py-1-1',
       title: 'Hello, World',
       starter: '# Выведи строку Hello, World на экран\n',
-      body: '## Привет, мир\n\nКлассика: первая программа выводит строку `Hello, World` в консоль.'
+      body: '## Привет, мир\n\nКлассика: первая программа выводит строку `Hello, World` в консоль.',
+      tests: [{ name: 'Точный вывод', expected: 'Hello, World' }]
     },
     {
       slug: 'l-py-1-2',
       title: 'Переменные',
       starter:
         '# Создай переменную name со значением "CodeRoster" и выведи её через print\nname = ""\n',
-      body: '## Переменные\n\nПрисвой переменной `name` строку `"CodeRoster"` и выведи её.'
+      body: '## Переменные\n\nПрисвой переменной `name` строку `"CodeRoster"` и выведи её.',
+      tests: [{ name: 'CodeRoster', expected: 'CodeRoster' }]
     },
     {
       slug: 'l-py-1-3',
       title: 'Числа и строки',
       starter: '# Сложи числа a и b и выведи результат\na = 2\nb = 3\n',
-      body: '## Числа и строки\n\nСложи `a` и `b`, выведи число.'
+      body: '## Числа и строки\n\nСложи `a` и `b`, выведи число.',
+      tests: [{ name: '2 + 3', expected: '5' }]
     }
   ])
   await seedModule(
@@ -173,19 +297,22 @@ async function seedPython(authorId: string) {
         slug: 'l-py-2-1',
         title: 'Условные выражения',
         starter: '# Выведи "even" если n чётное, иначе "odd"\nn = 7\n',
-        body: '## Условные выражения\n\nИспользуй `if`/`else`.'
+        body: '## Условные выражения\n\nИспользуй `if`/`else`.',
+        tests: [{ name: 'odd для 7', expected: 'odd' }]
       },
       {
         slug: 'l-py-2-2',
         title: 'Цикл while',
         starter: '# Выведи числа от 1 до 5 через while\n',
-        body: '## Цикл while\n\nИтерируй пока условие истинно.'
+        body: '## Цикл while\n\nИтерируй пока условие истинно.',
+        tests: [{ name: '1..5', expected: '1\n2\n3\n4\n5' }]
       },
       {
         slug: 'l-py-2-3',
         title: 'Цикл for',
         starter: '# Сумма от 1 до n включительно через for\nn = 5\n',
-        body: '## Цикл for\n\nИспользуй `range`.'
+        body: '## Цикл for\n\nИспользуй `range`.',
+        tests: [{ name: 'sum 1..5', expected: '15' }]
       }
     ]
   )
@@ -316,13 +443,28 @@ async function seedAlgo(authorId: string) {
   )
 }
 
+interface SeedTest {
+  name: string
+  input?: string | null
+  expected: string
+  hidden?: boolean
+}
+
+interface SeedLesson {
+  slug: string
+  title: string
+  starter: string
+  body: string
+  tests?: SeedTest[]
+}
+
 async function seedModule(
   courseId: string,
-  externalId: string,
+  _externalId: string,
   title: string,
   description: string,
   order: number,
-  lessons: { slug: string; title: string; starter: string; body: string }[],
+  lessons: SeedLesson[],
   language: 'python' | 'php' = 'python'
 ) {
   const module = await prisma.courseModule.upsert({
@@ -331,7 +473,7 @@ async function seedModule(
     create: { courseId, title, description, order }
   })
   for (const [index, lesson] of lessons.entries()) {
-    await prisma.courseTask.upsert({
+    const task = await prisma.courseTask.upsert({
       where: { moduleId_order: { moduleId: module.id, order: index + 1 } },
       update: {
         title: lesson.title,
@@ -358,7 +500,23 @@ async function seedModule(
         }
       }
     })
+    await syncAutotests(task.id, lesson.tests ?? [])
   }
+}
+
+async function syncAutotests(courseTaskId: string, tests: SeedTest[]) {
+  await prisma.courseTaskAutotest.deleteMany({ where: { courseTaskId } })
+  if (tests.length === 0) return
+  await prisma.courseTaskAutotest.createMany({
+    data: tests.map((test, index) => ({
+      courseTaskId,
+      order: index,
+      name: test.name,
+      input: test.input ?? null,
+      expected: test.expected,
+      hidden: test.hidden ?? false
+    }))
+  })
 }
 
 main()

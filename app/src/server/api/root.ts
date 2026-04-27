@@ -7,6 +7,12 @@ import { profileRouter } from '~/server/api/routers/profile'
 import { settingsRouter } from '~/server/api/routers/settings'
 import { commentRouter } from '~/server/api/routers/comment'
 import { searchRouter } from '~/server/api/routers/search'
+import { accountRouter } from '~/server/api/routers/account'
+import { achievementRouter } from '~/server/api/routers/achievement'
+import { sandboxRouter } from '~/server/api/routers/sandbox'
+import { leaderboardRouter } from '~/server/api/routers/leaderboard'
+import { dailyRouter } from '~/server/api/routers/daily'
+import { weeklyRouter } from '~/server/api/routers/weekly'
 import { createCallerFactory, createTRPCRouter } from '~/server/api/trpc'
 
 /**
@@ -21,7 +27,13 @@ export const appRouter = createTRPCRouter({
   profile: profileRouter,
   settings: settingsRouter,
   comment: commentRouter,
-  search: searchRouter
+  search: searchRouter,
+  account: accountRouter,
+  achievement: achievementRouter,
+  sandbox: sandboxRouter,
+  leaderboard: leaderboardRouter,
+  daily: dailyRouter,
+  weekly: weeklyRouter
 })
 
 export type AppRouter = typeof appRouter

@@ -54,14 +54,14 @@ export default function UserMenu({ user }: Props) {
         <Menu.Item
           leftSection={<FontAwesomeIcon icon={faUser} />}
           component={Link}
-          href={`/u/${user.username}`}
+          href="/u/me"
         >
           Мой профиль
         </Menu.Item>
         <Menu.Item
           leftSection={<FontAwesomeIcon icon={faTrophy} />}
           component={Link}
-          href="/coming-soon"
+          href="/achievements"
         >
           Достижения
         </Menu.Item>

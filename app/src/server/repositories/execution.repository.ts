@@ -2,12 +2,28 @@ import 'server-only'
 import type { Prisma } from '@prisma/client'
 import { db } from '~/server/db'
 import { toExecutionRecord } from './mappers'
-import type { ExecutionRecord, Language, RunResult } from './types'
+import type {
+  ExecutionContextKind,
+  ExecutionMode,
+  ExecutionRecord,
+  Language,
+  RunResult
+} from './types'
 
 export interface ExecutionEnqueueInput {
-  taskId: string
+  taskId: string | null
   language: Language
   code: string
+  mode: ExecutionMode
+  contextKind?: ExecutionContextKind
+  contextRef?: string | null
+}
+
+export interface AutotestPayload {
+  name: string
+  input: string | null
+  expected: string
+  hidden: boolean
 }
 
 export interface ExecutionRepository {
@@ -20,32 +36,45 @@ export interface ExecutionRepository {
 
 const TOPIC = 'execution.requested'
 
+const CONTEXT_TO_PRISMA: Record<ExecutionContextKind, 'COURSE' | 'SANDBOX' | 'DAILY' | 'WEEKLY'> = {
+  course: 'COURSE',
+  sandbox: 'SANDBOX',
+  daily: 'DAILY',
+  weekly: 'WEEKLY'
+}
+
 export class FakeExecutionRepository implements ExecutionRepository {
   private readonly executions = new Map<string, ExecutionRecord>()
 
   async enqueue(userId: string, input: ExecutionEnqueueInput): Promise<{ executionId: string }> {
     const id = `exec_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
     const stdout = simulateStdout(input.language, input.code)
-    const passed = stdout.length > 0 && !stdout.toLowerCase().includes('todo')
+    const isSubmit = input.mode === 'submit'
+    const passed = isSubmit && stdout.length > 0 && !stdout.toLowerCase().includes('todo')
     const now = new Date()
     this.executions.set(id, {
       id,
       status: 'success',
       language: input.language,
       taskId: input.taskId,
+      mode: input.mode,
+      contextKind: input.contextKind ?? 'course',
+      contextRef: input.contextRef ?? null,
       stdout,
       stderr: '',
       runtimeMs: Math.floor(80 + Math.random() * 220),
-      passed,
-      testResults: [
-        {
-          name: 'Базовый прогон',
-          passed,
-          expected: 'непустой вывод',
-          actual: stdout || '<пусто>',
-          message: passed ? null : 'Программа не вывела ожидаемый результат'
-        }
-      ],
+      passed: isSubmit ? passed : null,
+      testResults: isSubmit
+        ? [
+            {
+              name: 'Базовый прогон',
+              passed,
+              expected: 'непустой вывод',
+              actual: stdout || '<пусто>',
+              message: passed ? null : 'Программа не вывела ожидаемый результат'
+            }
+          ]
+        : [],
       errorMessage: null,
       enqueuedAt: now,
       startedAt: now,
@@ -72,13 +101,18 @@ export class FakeExecutionRepository implements ExecutionRepository {
 
 export class PrismaExecutionRepository implements ExecutionRepository {
   async enqueue(userId: string, input: ExecutionEnqueueInput): Promise<{ executionId: string }> {
+    const resolvedTaskId = await this.resolveTaskId(input.taskId)
+    const tests = await this.collectAutotests({ ...input, taskId: resolvedTaskId })
     const execution = await db.$transaction(async tx => {
       const created = await tx.execution.create({
         data: {
           userId,
-          taskId: input.taskId,
+          taskId: resolvedTaskId,
           language: input.language,
           code: input.code,
+          mode: input.mode === 'submit' ? 'SUBMIT' : 'RUN',
+          contextKind: CONTEXT_TO_PRISMA[input.contextKind ?? 'course'],
+          contextRef: input.contextRef ?? null,
           status: 'QUEUED'
         }
       })
@@ -88,10 +122,12 @@ export class PrismaExecutionRepository implements ExecutionRepository {
           payload: {
             executionId: created.id,
             userId,
-            taskId: input.taskId,
+            taskId: resolvedTaskId,
             language: input.language,
-            code: input.code
-          } satisfies Prisma.InputJsonValue
+            code: input.code,
+            mode: input.mode,
+            tests
+          } as unknown as Prisma.InputJsonValue
         }
       })
       return created
@@ -136,6 +172,40 @@ export class PrismaExecutionRepository implements ExecutionRepository {
         errorMessage
       }
     })
+  }
+
+  private async collectAutotests(input: ExecutionEnqueueInput): Promise<AutotestPayload[]> {
+    if (input.mode !== 'submit' || !input.taskId) return []
+    const rows = await db.courseTaskAutotest.findMany({
+      where: { courseTaskId: input.taskId },
+      orderBy: { order: 'asc' }
+    })
+    return rows.map(row => ({
+      name: row.name,
+      input: row.input ?? null,
+      expected: row.expected,
+      hidden: row.hidden
+    }))
+  }
+
+  /**
+   * Maps a lesson identifier (cuid or legacy fixture slug stored under
+   * `initialData.slug`) to the canonical Prisma id. Returns `null` when no
+   * task matches so the execution row is created without a FK reference
+   * (sandbox-style ad-hoc runs).
+   */
+  private async resolveTaskId(identifier: string | null | undefined): Promise<string | null> {
+    if (!identifier) return null
+    const direct = await db.courseTask.findUnique({
+      where: { id: identifier },
+      select: { id: true }
+    })
+    if (direct) return direct.id
+    const bySlug = await db.courseTask.findFirst({
+      where: { initialData: { path: ['slug'], equals: identifier } },
+      select: { id: true }
+    })
+    return bySlug?.id ?? null
   }
 }
 

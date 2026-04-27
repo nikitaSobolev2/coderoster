@@ -40,3 +40,22 @@ export async function closeAmqp(): Promise<void> {
   globalThis.__amqpChannel = undefined
   globalThis.__amqpConnection = undefined
 }
+
+const declared = new Set<string>()
+
+/**
+ * Asserts a durable queue and binds it to the platform exchange under the
+ * given topic. Idempotent: each (queue, topic) pair runs once per process.
+ * Required because queues are not pre-declared in the broker config.
+ */
+export async function ensureQueueBound(queue: string, topic: string): Promise<void> {
+  const key = `${queue}::${topic}`
+  if (declared.has(key)) return
+  const channel = await getAmqpChannel()
+  await channel.assertQueue(queue, {
+    durable: true,
+    arguments: { 'x-dead-letter-exchange': DLX }
+  })
+  await channel.bindQueue(queue, EXCHANGE, topic)
+  declared.add(key)
+}

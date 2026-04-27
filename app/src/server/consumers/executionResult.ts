@@ -1,8 +1,14 @@
 import 'server-only'
+import type { Prisma } from '@prisma/client'
 import { db } from '~/server/db'
 import { startConsumer } from '~/server/amqp/consumer'
 import { cache } from '~/server/cache'
 import { cacheKeys } from '~/server/repositories/cached'
+import { achievementService } from '~/server/services/AchievementService'
+import { streakService } from '~/server/services/StreakService'
+import { xpService, type XpSource } from '~/server/services/XpService'
+import { dailyChallengeService } from '~/server/services/DailyChallengeService'
+import { weeklyChallengeService } from '~/server/services/WeeklyChallengeService'
 import {
   EXECUTION_COMPLETED_TOPIC,
   executionCompletedSchema,
@@ -11,10 +17,17 @@ import {
 
 const QUEUE = 'execution.completed'
 
+type Tx = Prisma.TransactionClient
+
 /**
- * Consumes terminal execution events emitted by the Go worker. Persists the
- * result, advances `CourseTaskAttempt`, recomputes enrollment progress, logs
- * an activity row, and invalidates the relevant cache entries.
+ * Consumes terminal execution events emitted by the Go worker. The flow
+ * branches on `mode`:
+ *
+ * - `run`  — persist the execution row and stop. No graded side effects, no
+ *            tryN bump, no achievement triggers. Pure preview.
+ * - `submit` — persist + bump tryN. On `passed`: mark attempt SUCCESS,
+ *            advance enrollment, record activity, award XP, tick streak,
+ *            evaluate achievements, advance daily/weekly challenges.
  */
 async function handleEvent(payload: unknown): Promise<void> {
   const event = executionCompletedSchema.parse(payload)
@@ -23,6 +36,8 @@ async function handleEvent(payload: unknown): Promise<void> {
     console.warn('[consumer] unknown execution', event.executionId)
     return
   }
+
+  const isSubmit = event.mode === 'submit'
 
   await db.$transaction(async tx => {
     await tx.execution.update({
@@ -33,64 +48,153 @@ async function handleEvent(payload: unknown): Promise<void> {
         stdout: event.stdout,
         stderr: event.stderr,
         runtimeMs: event.runtimeMs,
-        passed: event.passed,
+        passed: isSubmit ? event.passed : null,
         testResults: event.testResults,
         errorMessage: event.errorMessage
       }
     })
 
-    if (!event.passed) return
-
-    const attempt = await tx.courseTaskAttempt.upsert({
-      where: {
-        courseTaskId_userId: { courseTaskId: execution.taskId, userId: execution.userId }
-      },
-      update: {
-        status: 'SUCCESS',
-        tryN: { increment: 1 },
-        currentData: { code: execution.code }
-      },
-      create: {
-        courseTaskId: execution.taskId,
-        userId: execution.userId,
-        status: 'SUCCESS',
-        tryN: 1,
-        currentData: { code: execution.code }
-      }
-    })
-
-    await tx.userActivity.create({
-      data: {
-        userId: execution.userId,
-        type: 'lesson.passed',
-        payload: {
-          taskId: execution.taskId,
-          executionId: execution.id,
-          attemptId: attempt.id
-        }
-      }
-    })
-
-    await advanceEnrollment(tx, execution.userId, execution.taskId)
+    if (!isSubmit) return
+    if (!execution.taskId) {
+      await handleChallengeOnly({ tx, execution, event })
+      return
+    }
+    await handleSubmitForTask({ tx, execution, event })
   })
 
   await invalidateCaches(execution.userId)
 }
 
-async function advanceEnrollment(
-  tx: Parameters<Parameters<typeof db.$transaction>[0]>[0],
+interface SubmitContext {
+  tx: Tx
+  execution: NonNullable<Awaited<ReturnType<typeof db.execution.findUnique>>>
+  event: ExecutionCompleted
+}
+
+async function handleSubmitForTask(ctx: SubmitContext): Promise<void> {
+  const { tx, execution, event } = ctx
+  if (!execution.taskId) return
+
+  const attempt = await tx.courseTaskAttempt.upsert({
+    where: {
+      courseTaskId_userId: { courseTaskId: execution.taskId, userId: execution.userId }
+    },
+    update: {
+      status: event.passed ? 'SUCCESS' : 'ACTIVE',
+      tryN: { increment: 1 },
+      currentData: { code: execution.code }
+    },
+    create: {
+      courseTaskId: execution.taskId,
+      userId: execution.userId,
+      status: event.passed ? 'SUCCESS' : 'ACTIVE',
+      tryN: 1,
+      currentData: { code: execution.code }
+    }
+  })
+
+  if (!event.passed) return
+
+  await tx.userActivity.create({
+    data: {
+      userId: execution.userId,
+      type: 'lesson.passed',
+      payload: {
+        taskId: execution.taskId,
+        executionId: execution.id,
+        attemptId: attempt.id
+      }
+    }
+  })
+
+  await xpService.award(execution.userId, 'lesson.passed', tx)
+  const finishedCourse = await advanceEnrollment(tx, execution.userId, execution.taskId)
+  if (finishedCourse) {
+    await xpService.award(execution.userId, 'course.finished', tx)
+  }
+  await streakService.tick(execution.userId, new Date(), tx)
+  await runAchievements(tx, execution.userId, 'lesson.passed', {
+    taskId: execution.taskId,
+    runtimeMs: execution.runtimeMs ?? 0,
+    passed: true,
+    at: new Date()
+  })
+  if (finishedCourse) {
+    await runAchievements(tx, execution.userId, 'course.finished', {})
+  }
+
+  await advanceChallenges(ctx)
+}
+
+async function handleChallengeOnly(ctx: SubmitContext): Promise<void> {
+  if (!ctx.event.passed) return
+  await ctx.tx.userActivity.create({
+    data: {
+      userId: ctx.execution.userId,
+      type: 'lesson.passed',
+      payload: { executionId: ctx.execution.id }
+    }
+  })
+  await advanceChallenges(ctx)
+}
+
+async function advanceChallenges(ctx: SubmitContext): Promise<void> {
+  const { tx, execution, event } = ctx
+  if (!event.passed) return
+  if (execution.contextKind === 'DAILY' && execution.contextRef) {
+    const [date, indexStr] = execution.contextRef.split('#')
+    const taskIndex = Number(indexStr)
+    if (date && Number.isFinite(taskIndex)) {
+      await dailyChallengeService.markSolved({
+        userId: execution.userId,
+        date,
+        taskIndex
+      })
+      await runAchievements(tx, execution.userId, 'daily.cleared', { at: new Date() })
+      const fullClear = await dailyChallengeService.hasFullClear(execution.userId, date)
+      if (fullClear) {
+        await xpService.award(execution.userId, 'daily.cleared', tx)
+        await streakService.tick(execution.userId, new Date(), tx)
+      }
+    }
+  }
+  if (execution.contextKind === 'WEEKLY' && execution.contextRef) {
+    const [isoWeek, indexStr] = execution.contextRef.split('#')
+    const taskIndex = Number(indexStr)
+    if (isoWeek && Number.isFinite(taskIndex)) {
+      await weeklyChallengeService.markSolved({
+        userId: execution.userId,
+        isoWeek,
+        taskIndex
+      })
+      const fullClear = await weeklyChallengeService.hasFullClear(execution.userId, isoWeek)
+      if (fullClear) {
+        await xpService.award(execution.userId, 'weekly.cleared', tx)
+        await runAchievements(tx, execution.userId, 'weekly.cleared', {})
+      }
+    }
+  }
+}
+
+async function runAchievements(
+  tx: Tx,
   userId: string,
-  taskId: string
+  trigger: Parameters<typeof achievementService.evaluate>[0]['trigger'],
+  payload: Record<string, unknown>
 ) {
+  await achievementService.evaluate({ userId, trigger, payload, tx })
+}
+
+async function advanceEnrollment(tx: Tx, userId: string, taskId: string): Promise<boolean> {
   const task = await tx.courseTask.findUnique({
     where: { id: taskId },
     include: { module: { include: { course: true } } }
   })
-  if (!task) return
+  if (!task) return false
   const enrollment = await tx.enrollment.findUnique({
     where: { userId_courseId: { userId, courseId: task.module.course.id } }
   })
-  if (!enrollment) return
+  if (!enrollment) return false
   const completed = enrollment.completedLessonIds.includes(taskId)
     ? enrollment.completedLessonIds
     : [...enrollment.completedLessonIds, taskId]
@@ -98,16 +202,17 @@ async function advanceEnrollment(
     where: { module: { courseId: task.module.course.id } }
   })
   const percent = totalTasks === 0 ? 0 : Math.round((completed.length / totalTasks) * 100)
-  const isComplete = percent >= 100
+  const isComplete = percent >= 100 && enrollment.status !== 'FINISHED'
   await tx.enrollment.update({
     where: { id: enrollment.id },
     data: {
       completedLessonIds: completed,
       progressPercent: percent,
-      status: isComplete ? 'FINISHED' : enrollment.status,
-      finishedAt: isComplete ? new Date() : enrollment.finishedAt
+      status: percent >= 100 ? 'FINISHED' : enrollment.status,
+      finishedAt: percent >= 100 ? enrollment.finishedAt ?? new Date() : enrollment.finishedAt
     }
   })
+  return isComplete
 }
 
 async function invalidateCaches(userId: string): Promise<void> {
@@ -120,7 +225,8 @@ async function invalidateCaches(userId: string): Promise<void> {
     cache.del(cacheKeys.profile(user.username, userId)),
     cache.del(cacheKeys.profile(user.username, null)),
     cache.del(cacheKeys.achievements(user.username)),
-    cache.delPrefix(`activity:${user.username}:`)
+    cache.delPrefix(`activity:${user.username}:`),
+    cache.delPrefix('leaderboard:')
   ])
 }
 
@@ -139,6 +245,9 @@ function mapStatus(
   }
 }
 
+void EXECUTION_COMPLETED_TOPIC
+void ([] as XpSource[]) // keep typing import alive
+
 export async function runResultConsumer(): Promise<void> {
   console.log('[consumer] result-consumer starting')
   await startConsumer({ queue: QUEUE, prefetch: 8 }, handleEvent)
@@ -150,5 +259,3 @@ if (import.meta.url.startsWith('file:') && process.argv[1]?.endsWith('executionR
     process.exit(1)
   })
 }
-
-void EXECUTION_COMPLETED_TOPIC

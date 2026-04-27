@@ -5,6 +5,9 @@
   "type": "module",
   "scripts": {
     "build": "next build",
+    "prebuild": "node scripts/copy-monaco.mjs",
+    "predev": "node scripts/copy-monaco.mjs",
+    "monaco:copy": "node scripts/copy-monaco.mjs",
     "check": "next lint && tsc --noEmit",
     "db:generate": "node scripts/run-prisma.mjs migrate dev",
     "db:migrate": "node scripts/run-prisma.mjs migrate deploy",
@@ -38,6 +41,7 @@
     "@mantine/notifications": "^8.3.18",
     "@mantine/spotlight": "^8.3.18",
     "@monaco-editor/react": "^4.7.0",
+    "monaco-editor": "^0.52.2",
     "@prisma/client": "^6.19.3",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-popover": "^1.1.15",

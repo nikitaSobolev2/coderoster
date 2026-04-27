@@ -1,0 +1,73 @@
+@import '~/shared/assets/styles/mixins.scss';
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+
+  &__avatar {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 1rem;
+    border: 1px solid var(--platform-color-border);
+    border-radius: var(--platform-card-radius-sm);
+    background: var(--platform-color-surface-hover);
+  }
+
+  &__avatarPreview {
+    width: 5.5rem;
+    height: 5.5rem;
+    border-radius: 50%;
+    overflow: hidden;
+    background: var(--color-bg-el);
+    border: 1px solid var(--platform-color-border);
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+  }
+
+  &__avatarImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  &__avatarPlaceholder {
+    font-size: var(--font-size-h3);
+    @include fontYandexDisplay();
+    color: var(--color-text);
+    letter-spacing: 0.05em;
+  }
+
+  &__avatarMeta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+
+    h3 {
+      margin: 0;
+      font-size: var(--font-size-h4);
+      @include fontYandexDisplay();
+      color: var(--color-text);
+    }
+
+    p {
+      margin: 0;
+      font-size: var(--font-size-default);
+      color: var(--color-text-secondary);
+    }
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 0.5rem;
+  }
+
+  &__hint {
+    font-size: var(--font-size-h6);
+    color: var(--color-text-secondary);
+  }
+}

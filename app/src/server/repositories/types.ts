@@ -59,6 +59,15 @@ export interface LessonTestSpec {
   expectedStdout?: string
 }
 
+export interface CourseTaskAutotest {
+  id: string
+  order: number
+  name: string
+  input: string | null
+  expected: string
+  hidden: boolean
+}
+
 export interface LessonDetail extends LessonSummary {
   courseSlug: string
   courseTitle: string
@@ -166,6 +175,8 @@ export interface ProfileCommentsPage {
   nextCursor: string | null
 }
 
+export type UserRole = 'learner' | 'author' | 'moderator' | 'admin'
+
 export interface UserSettings {
   displayName: string
   username: string
@@ -176,6 +187,9 @@ export interface UserSettings {
   appearance: {
     colorScheme: 'dark' | 'light'
   }
+  joinedAt: Date
+  role: UserRole
+  deletionRequestedAt: Date | null
 }
 
 export interface SearchHit {
@@ -226,11 +240,17 @@ export interface AuthenticatedUser {
 
 export type ExecutionStatus = 'queued' | 'running' | 'success' | 'failed' | 'timeout' | 'cancelled'
 
+export type ExecutionMode = 'run' | 'submit'
+export type ExecutionContextKind = 'course' | 'sandbox' | 'daily' | 'weekly'
+
 export interface ExecutionRecord {
   id: string
   status: ExecutionStatus
   language: Language
-  taskId: string
+  taskId: string | null
+  mode: ExecutionMode
+  contextKind: ExecutionContextKind
+  contextRef: string | null
   stdout: string | null
   stderr: string | null
   runtimeMs: number | null

@@ -3,6 +3,7 @@
 import { useRef } from 'react'
 import Link from 'next/link'
 import { faArrowRightToBracket } from '@fortawesome/free-solid-svg-icons'
+import type { IconDefinition } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { useCursorFillTarget } from '~/features/home/hooks/useCursorFillTarget'
 import styles from './styles.module.scss'
@@ -12,13 +13,15 @@ export interface Props {
   href?: string
   fullLabel?: string
   shortLabel?: string
+  icon?: IconDefinition
 }
 
 export default function IslandCta({
   className = '',
   href = '/login',
   fullLabel = 'Начать сейчас',
-  shortLabel = 'Начать'
+  shortLabel = 'Начать',
+  icon = faArrowRightToBracket
 }: Props) {
   const ref = useRef<HTMLAnchorElement>(null)
   useCursorFillTarget(ref)
@@ -29,7 +32,7 @@ export default function IslandCta({
       <span className={styles.cta__labelShort} aria-hidden>
         {shortLabel}
       </span>
-      <FontAwesomeIcon icon={faArrowRightToBracket} className={styles.cta__icon} aria-hidden />
+      <FontAwesomeIcon icon={icon} className={styles.cta__icon} aria-hidden />
     </Link>
   )
 }

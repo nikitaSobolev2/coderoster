@@ -9,6 +9,7 @@ import { withAuth } from '@workos-inc/authkit-nextjs'
 
 import { env } from '~/env'
 import { db } from '~/server/db'
+import { isTruthyFlag } from '~/server/lib/featureFlags'
 import { getAppRepositories, type Repositories } from '~/server/repositories'
 import type { AuthenticatedUser } from '~/server/repositories/types'
 import { userSyncService } from '~/server/services/UserSyncService'
@@ -43,7 +44,11 @@ async function resolveCurrentUser(): Promise<AuthenticatedUser | null> {
     const session = await withAuth()
     if (!session.user) return null
 
-    if (env.USE_FAKE_DATA) {
+    if (isTruthyFlag(env.USE_FAKE_DATA)) {
+      console.log('[trpc] FAKE branch hit', {
+        workosId: session.user.id,
+        email: session.user.email
+      })
       const fallbackName = session.user.firstName ?? session.user.email
       return {
         id: session.user.id,
@@ -59,6 +64,12 @@ async function resolveCurrentUser(): Promise<AuthenticatedUser | null> {
       firstName: session.user.firstName ?? null,
       lastName: session.user.lastName ?? null,
       profilePictureUrl: session.user.profilePictureUrl ?? null
+    })
+    console.log('[trpc] resolved user', {
+      workosId: session.user.id,
+      localId: local.id,
+      username: local.username,
+      email: local.email
     })
     return {
       id: local.id,

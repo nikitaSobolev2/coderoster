@@ -33,10 +33,11 @@ const KEY = {
   courseDetail: (slug: string) => `course:slug:${slug}`,
   lessonDetail: (courseSlug: string, lessonId: string) => `lesson:${courseSlug}:${lessonId}`,
   profile: (username: string, viewerId: string | null) =>
-    `profile:${username}:${viewerId ?? 'guest'}`,
-  activity: (username: string, year: number) => `activity:${username}:${year}`,
-  achievements: (username: string) => `achievements:${username}`,
-  comments: (username: string, cursor: string | null) => `comments:${username}:${cursor ?? 'head'}`,
+    `profile:${username.toLowerCase()}:${viewerId ?? 'guest'}`,
+  activity: (username: string, year: number) => `activity:${username.toLowerCase()}:${year}`,
+  achievements: (username: string) => `achievements:${username.toLowerCase()}`,
+  comments: (username: string, cursor: string | null) =>
+    `comments:${username.toLowerCase()}:${cursor ?? 'head'}`,
   search: (query: string) => `search:${query.toLowerCase()}`
 }
 

@@ -93,8 +93,8 @@ function isAbortedRequest(error: Error): boolean {
   const cause = (error as { cause?: unknown }).cause
   if (cause instanceof Error && cause.name === 'AbortError') return true
   if (error instanceof TRPCClientError) {
-    const code = error.data?.code
-    return code === 'CLIENT_CLOSED_REQUEST'
+    const data = error.data as { code?: string } | null | undefined
+    return data?.code === 'CLIENT_CLOSED_REQUEST'
   }
   return false
 }

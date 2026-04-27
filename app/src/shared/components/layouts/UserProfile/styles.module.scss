@@ -1,0 +1,70 @@
+@use '~/shared/assets/styles/mixins' as *;
+
+.userProfile {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.userProfile__platform {
+  @include buttonReset;
+  @include bluredBg;
+  @include tapTarget;
+  @include focusRing;
+
+  display: inline-flex;
+  align-items: center;
+  height: var(--height-header-island-action);
+  padding: 0 1.1em;
+  gap: 0.75em;
+  background: transparent;
+  font-size: var(--font-size-h5);
+  border-radius: var(--radius-pill);
+  letter-spacing: var(--letter-spacing-button);
+  color: var(--color-text);
+  border: var(--border-width-hair) solid var(--color-bg-el-border);
+  transition:
+    border-color var(--transition-button),
+    background-color var(--transition-button);
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--color-text-semivisible);
+  }
+
+  @include reducedMotion {
+    transition: none;
+  }
+}
+
+.userProfile__signOut {
+  @include buttonReset;
+  @include tapTarget;
+  @include focusRing;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--height-header-island-action);
+  height: var(--height-header-island-action);
+  border-radius: 50%;
+  color: var(--color-text);
+  border: var(--border-width-hair) solid var(--color-bg-el-border);
+  transition:
+    border-color var(--transition-button),
+    color var(--transition-button);
+
+  &:hover:not(:disabled),
+  &:focus-visible:not(:disabled) {
+    border-color: var(--color-text-semivisible);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+
+  @include reducedMotion {
+    transition: none;
+  }
+}

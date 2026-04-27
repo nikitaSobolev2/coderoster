@@ -1,0 +1,48 @@
+# Dependencies
+node_modules/
+.pnp/
+.pnp.js
+.yarn/
+
+# Testing
+coverage/
+
+# Next.js
+app/.next/
+app/out/
+app/build/
+
+# Production
+dist/
+build/
+
+# Misc
+*.local
+*.log
+*.tsbuildinfo
+
+# Editors
+.idea/
+.vscode/*
+!.vscode/launch.json
+!.vscode/settings.json
+
+# Env
+.env
+.env.local
+.env*.local
+.env.production
+.env.development
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Go
+workers/**/bin/
+workers/**/*.exe
+workers/**/*.test
+workers/**/*.out
+
+# Docker
+.docker-data/

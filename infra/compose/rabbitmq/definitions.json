@@ -1,0 +1,112 @@
+{
+  "rabbit_version": "3.13",
+  "users": [
+    {
+      "name": "guest",
+      "password_hash": "0DMgYa2XyxGzQEcyIXR7GPjPDN3EGH6SXipdMpFhyO8J18LO",
+      "hashing_algorithm": "rabbit_password_hashing_sha256",
+      "tags": "administrator"
+    }
+  ],
+  "vhosts": [{ "name": "/" }],
+  "permissions": [
+    {
+      "user": "guest",
+      "vhost": "/",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    }
+  ],
+  "exchanges": [
+    {
+      "name": "coderoster.events",
+      "vhost": "/",
+      "type": "topic",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    },
+    {
+      "name": "coderoster.dlx",
+      "vhost": "/",
+      "type": "topic",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    }
+  ],
+  "queues": [
+    {
+      "name": "execution.requested",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-message-ttl": 600000,
+        "x-dead-letter-exchange": "coderoster.dlx",
+        "x-dead-letter-routing-key": "execution.requested.dead"
+      }
+    },
+    {
+      "name": "execution.requested.dlq",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+    {
+      "name": "execution.completed",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "coderoster.dlx",
+        "x-dead-letter-routing-key": "execution.completed.dead"
+      }
+    },
+    {
+      "name": "execution.completed.dlq",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    }
+  ],
+  "bindings": [
+    {
+      "source": "coderoster.events",
+      "vhost": "/",
+      "destination": "execution.requested",
+      "destination_type": "queue",
+      "routing_key": "execution.requested",
+      "arguments": {}
+    },
+    {
+      "source": "coderoster.events",
+      "vhost": "/",
+      "destination": "execution.completed",
+      "destination_type": "queue",
+      "routing_key": "execution.completed",
+      "arguments": {}
+    },
+    {
+      "source": "coderoster.dlx",
+      "vhost": "/",
+      "destination": "execution.requested.dlq",
+      "destination_type": "queue",
+      "routing_key": "execution.requested.dead",
+      "arguments": {}
+    },
+    {
+      "source": "coderoster.dlx",
+      "vhost": "/",
+      "destination": "execution.completed.dlq",
+      "destination_type": "queue",
+      "routing_key": "execution.completed.dead",
+      "arguments": {}
+    }
+  ]
+}

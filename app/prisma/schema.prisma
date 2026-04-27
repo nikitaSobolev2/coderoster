@@ -1,0 +1,359 @@
+// CodeRoster domain schema. Repository implementations live in
+// `app/src/server/repositories/*.repository.ts` and depend on this generated client.
+// Migrations live in `app/prisma/migrations/`.
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearchPostgres"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------- Identity ----------
+
+enum Role {
+  LEARNER
+  AUTHOR
+  MODERATOR
+  ADMIN
+}
+
+model User {
+  id               String   @id @default(cuid())
+  workosUserId     String   @unique
+  email            String   @unique
+  username         String   @unique
+  displayName      String
+  firstName        String?
+  lastName         String?
+  bio              String   @default("")
+  avatarUrl        String?
+  role             Role     @default(LEARNER)
+  socials          Json     @default("{}")
+  appearance       Json     @default("{\"colorScheme\":\"dark\"}")
+  commentsThreadId String?  @unique
+  joinedAt         DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  commentsThread     Thread?                @relation("ProfileThread", fields: [commentsThreadId], references: [id])
+  enrollments        Enrollment[]
+  taskAttempts       CourseTaskAttempt[]
+  authoredCourses    Course[]               @relation("CourseAuthor")
+  authoredCategories CourseCategory[]       @relation("CategoryAuthor")
+  comments           Comment[]
+  activities         UserActivity[]
+  activitySnapshots  UserActivitySnapshot[]
+  achievementTracks  UserAchievementTrack[]
+  executions         Execution[]
+
+  @@index([username])
+}
+
+// ---------- Catalog ----------
+
+enum CourseStatus {
+  DRAFT
+  PUBLISHED
+  HIDDEN
+}
+
+model CourseCategory {
+  id               String   @id @default(cuid())
+  slug             String   @unique
+  title            String
+  summary          String   @default("")
+  parentCategoryId String?
+  authorId         String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  parent   CourseCategory?  @relation("CategoryParent", fields: [parentCategoryId], references: [id])
+  children CourseCategory[] @relation("CategoryParent")
+  author   User             @relation("CategoryAuthor", fields: [authorId], references: [id])
+  courses  Course[]
+
+  @@index([parentCategoryId])
+}
+
+model Course {
+  id            String       @id @default(cuid())
+  slug          String       @unique
+  title         String
+  summary       String
+  shortSummary  String       @default("")
+  description   String       @default("")
+  language      String
+  difficulty    String
+  durationHours Int          @default(0)
+  xpReward      Int          @default(0)
+  coverImage    String?
+  status        CourseStatus @default(DRAFT)
+  tags          String[]     @default([])
+  authorId      String
+  categoryId    String?
+  publishedAt   DateTime?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  author      User            @relation("CourseAuthor", fields: [authorId], references: [id])
+  category    CourseCategory? @relation(fields: [categoryId], references: [id])
+  modules     CourseModule[]
+  enrollments Enrollment[]
+
+  @@index([status, language, difficulty])
+  @@index([categoryId])
+}
+
+model CourseModule {
+  id          String @id @default(cuid())
+  courseId    String
+  title       String
+  description String @default("")
+  order       Int
+
+  course Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  tasks  CourseTask[]
+
+  @@unique([courseId, order])
+}
+
+enum TaskKind {
+  THEORY
+  TASK
+  QUIZ
+}
+
+model CourseTask {
+  id               String   @id @default(cuid())
+  moduleId         String
+  title            String
+  summary          String   @default("")
+  description      String
+  result           Json?
+  initialData      Json     @default("{}")
+  order            Int
+  kind             TaskKind @default(TASK)
+  estimatedMinutes Int      @default(15)
+
+  module   CourseModule        @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  attempts CourseTaskAttempt[]
+
+  @@unique([moduleId, order])
+}
+
+enum AttemptStatus {
+  PENDING
+  ACTIVE
+  SUCCESS
+}
+
+model CourseTaskAttempt {
+  id           String        @id @default(cuid())
+  courseTaskId String
+  userId       String
+  currentData  Json          @default("{}")
+  status       AttemptStatus @default(PENDING)
+  tryN         Int           @default(0)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  task CourseTask @relation(fields: [courseTaskId], references: [id], onDelete: Cascade)
+  user User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([courseTaskId, userId])
+  @@index([userId, status])
+}
+
+// ---------- Enrollment ----------
+
+enum EnrollmentStatus {
+  ACTIVE
+  FINISHED
+  ABANDONED
+}
+
+model Enrollment {
+  id                 String           @id @default(cuid())
+  userId             String
+  courseId           String
+  status             EnrollmentStatus @default(ACTIVE)
+  progressPercent    Int              @default(0)
+  completedLessonIds String[]         @default([])
+  currentLessonId    String?
+  startedAt          DateTime         @default(now())
+  finishedAt         DateTime?
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+  @@index([userId, status])
+}
+
+// ---------- Activity / gamification ----------
+
+model UserActivity {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String
+  payload   Json     @default("{}")
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+model UserActivitySnapshot {
+  id     String @id @default(cuid())
+  userId String
+  date   String
+  count  Int    @default(0)
+  level  Int    @default(0)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([userId, date])
+}
+
+model Achievement {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  description String
+  goal        Int?
+  coverImage  String?
+  awardId     String?
+  category    String
+  rarity      String   @default("common")
+  hidden      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tracks UserAchievementTrack[]
+}
+
+enum AchievementStatus {
+  ACTIVE
+  SUCCESS
+}
+
+model UserAchievementTrack {
+  id            String            @id @default(cuid())
+  userId        String
+  achievementId String
+  status        AchievementStatus @default(ACTIVE)
+  currentN      Int               @default(0)
+  earnedAt      DateTime?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, achievementId])
+}
+
+// ---------- Comments ----------
+
+model Thread {
+  id         String   @id @default(cuid())
+  totalCount Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  comments     Comment[]
+  profileOwner User?     @relation("ProfileThread")
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  authorId  String
+  threadId  String
+  message   String
+  likesN    Int      @default(0)
+  dislikesN Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  author User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  thread Thread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  @@index([threadId, createdAt])
+}
+
+// ---------- Outbox + idempotency + executions ----------
+
+enum OutboxStatus {
+  PENDING
+  PUBLISHED
+  FAILED
+}
+
+model OutboxEvent {
+  id          String       @id @default(cuid())
+  topic       String
+  payload     Json
+  status      OutboxStatus @default(PENDING)
+  retries     Int          @default(0)
+  lastError   String?
+  createdAt   DateTime     @default(now())
+  publishedAt DateTime?
+
+  @@index([status, createdAt])
+}
+
+enum IdempotencyStatus {
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+model IdempotencyKey {
+  key       String            @id
+  userId    String?
+  endpoint  String
+  response  Json?
+  status    IdempotencyStatus @default(IN_PROGRESS)
+  createdAt DateTime          @default(now())
+  expiresAt DateTime
+
+  @@index([expiresAt])
+}
+
+enum ExecutionStatus {
+  QUEUED
+  RUNNING
+  SUCCESS
+  FAILED
+  TIMEOUT
+  CANCELLED
+}
+
+model Execution {
+  id           String          @id @default(cuid())
+  userId       String
+  taskId       String
+  language     String
+  code         String
+  status       ExecutionStatus @default(QUEUED)
+  stdout       String?
+  stderr       String?
+  runtimeMs    Int?
+  testResults  Json?
+  passed       Boolean?
+  errorMessage String?
+  enqueuedAt   DateTime        @default(now())
+  startedAt    DateTime?
+  finishedAt   DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, enqueuedAt])
+  @@index([status])
+  @@index([taskId])
+}

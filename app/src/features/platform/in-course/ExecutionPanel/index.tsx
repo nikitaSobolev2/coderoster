@@ -4,6 +4,7 @@ import { Tabs } from '@mantine/core'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCircleCheck, faCircleXmark, faSpinner } from '@fortawesome/free-solid-svg-icons'
 import type { RunResult } from '~/server/repositories/types'
+import TestResultsList from './TestResultsList'
 import styles from './styles.module.scss'
 
 export type ExecutionState = 'idle' | 'running' | 'done'
@@ -119,27 +120,9 @@ function SubmitPanel({
           {state === 'running' ? (
             <Loading />
           ) : !result ? (
-            <Empty hint="Тесты прогонятся при первом запуске." />
+            <Empty hint="Тесты прогонятся при проверке (режим с автотестами)." />
           ) : (
-            <ul className={styles.tests}>
-              {result.testResults.map(test => (
-                <li
-                  key={test.name}
-                  className={`${styles.test} ${test.passed ? styles.test_passed : styles.test_failed}`}
-                >
-                  <FontAwesomeIcon
-                    icon={test.passed ? faCircleCheck : faCircleXmark}
-                    className={styles.test__icon}
-                  />
-                  <div className={styles.test__body}>
-                    <span className={styles.test__title}>{test.name}</span>
-                    {test.message ? (
-                      <span className={styles.test__message}>{test.message}</span>
-                    ) : null}
-                  </div>
-                </li>
-              ))}
-            </ul>
+            <TestResultsList testResults={result.testResults} />
           )}
         </Tabs.Panel>
 

@@ -98,6 +98,10 @@ export interface TestResult {
   expected: string | null
   actual: string | null
   message: string | null
+  /** If true, omit expected/actual in UI (autograder / course policy). */
+  hidden?: boolean
+  /** Optional stdin the runner fed for this case (for transparency). */
+  input?: string | null
 }
 
 export interface RunResult {

@@ -1,0 +1,133 @@
+@use '~/shared/assets/styles/mixins' as *;
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.empty {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-h6);
+}
+
+.row {
+  border-radius: var(--platform-card-radius-sm);
+  border: var(--border-width-hair) solid var(--platform-color-border);
+  background: var(--platform-color-surface);
+  padding: 0.65rem 0.75rem;
+}
+
+.row_ok {
+  border-color: color-mix(in srgb, var(--color-positive) 32%, var(--platform-color-border));
+}
+
+.row_fail {
+  border-color: color-mix(in srgb, var(--color-negative) 38%, var(--platform-color-border));
+}
+
+.row__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem 0.6rem;
+  margin-bottom: 0.4rem;
+}
+
+.row__order {
+  font-size: var(--font-size-h6);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.row__icon {
+  color: var(--color-text-secondary);
+  font-size: 0.85em;
+}
+
+.row_ok .row__icon {
+  color: var(--color-positive);
+}
+
+.row_fail .row__icon {
+  color: var(--color-negative);
+}
+
+.row__name {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.row__verdict {
+  font-size: var(--font-size-h6);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.row__verdict[data-passed='true'] {
+  color: var(--color-positive);
+}
+
+.row__verdict[data-passed='false'] {
+  color: var(--color-negative);
+}
+
+.pairs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+@media (min-width: 600px) {
+  .pairs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem 0.75rem;
+  }
+}
+
+.row__block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.k {
+  font-size: var(--font-size-h6);
+  color: var(--color-text-secondary);
+  letter-spacing: 0.02em;
+}
+
+.v,
+.v_message {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: var(--font-size-default);
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--color-bg) 88%, transparent);
+  border-radius: var(--platform-card-radius-sm);
+  border: var(--border-width-hair) solid var(--platform-color-border);
+  padding: 0.5rem 0.55rem;
+  max-height: 12rem;
+  overflow: auto;
+}
+
+.v_message {
+  color: var(--color-text-secondary);
+}
+
+.row__hint {
+  margin: 0.25rem 0 0;
+  font-size: var(--font-size-h6);
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+}

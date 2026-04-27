@@ -36,7 +36,9 @@ export const executionTestResultSchema = z.object({
   passed: z.boolean(),
   expected: z.string().nullable(),
   actual: z.string().nullable(),
-  message: z.string().nullable()
+  message: z.string().nullable(),
+  hidden: z.boolean().optional().default(false),
+  input: z.string().nullable().optional()
 })
 
 export const executionCompletedSchema = z.object({

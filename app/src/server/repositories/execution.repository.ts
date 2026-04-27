@@ -67,11 +67,13 @@ export class FakeExecutionRepository implements ExecutionRepository {
       testResults: isSubmit
         ? [
             {
-              name: 'Базовый прогон',
+              name: 'Базовый прогон (демо-фикстура)',
               passed,
               expected: 'непустой вывод',
               actual: stdout || '<пусто>',
-              message: passed ? null : 'Программа не вывела ожидаемый результат'
+              message: passed ? null : 'Программа не вывела ожидаемый результат',
+              hidden: false,
+              input: null
             }
           ]
         : [],

@@ -110,7 +110,7 @@ func (r *Runner) runOnce(
 	runCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
-	stdout, stderr, runtimeMs, status, runErr := r.execute(runCtx, image, cmd, request.Code, "")
+	stdout, stderr, runtimeMs, status, runErr := r.execute(runCtx, image, cmd, request.Code)
 
 	completed := contracts.ExecutionCompleted{
 		ExecutionID: request.ExecutionID,
@@ -145,8 +145,10 @@ func (r *Runner) runSubmit(
 
 	for _, test := range request.Tests {
 		runCtx, cancel := context.WithTimeout(ctx, timeout)
-		stdinPayload := buildStdin(request.Code, test.Input, request.Language)
-		stdout, stderr, runtimeMs, status, _ := r.execute(runCtx, image, cmd, request.Code, stdinPayload)
+		// Full source piped to `python3 -` / php: may prepend stdin bootstrap so
+		// `input()` / fgets see the autotest input (see buildStdin).
+		program := buildStdin(request.Code, test.Input, request.Language)
+		stdout, stderr, runtimeMs, status, _ := r.execute(runCtx, image, cmd, program)
 		cancel()
 
 		actual := strings.TrimRight(stdout, " \t\r\n")
@@ -160,12 +162,15 @@ func (r *Runner) runSubmit(
 		if message != "" {
 			msgPtr = &message
 		}
+		inputCopy := test.Input
 		results = append(results, contracts.TestResult{
 			Name:     test.Name,
 			Passed:   passed,
 			Expected: &expectedCopy,
 			Actual:   &actualCopy,
 			Message:  msgPtr,
+			Hidden:   test.Hidden,
+			Input:    inputCopy,
 		})
 
 		totalRuntimeMs += runtimeMs
@@ -278,7 +283,6 @@ func (r *Runner) execute(
 	imageRef string,
 	cmd []string,
 	code string,
-	_unusedStdinTail string,
 ) (string, string, int, string, error) {
 	hostCfg := r.hostConfig()
 	containerCfg := &container.Config{

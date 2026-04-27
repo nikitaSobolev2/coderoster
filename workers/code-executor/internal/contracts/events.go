@@ -45,6 +45,8 @@ type TestResult struct {
 	Expected *string `json:"expected"`
 	Actual   *string `json:"actual"`
 	Message  *string `json:"message"`
+	Hidden   bool    `json:"hidden"`
+	Input    *string `json:"input"`
 }
 
 // ExecutionCompleted is the terminal event emitted by the worker.

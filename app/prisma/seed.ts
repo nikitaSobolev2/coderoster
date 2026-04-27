@@ -268,7 +268,12 @@ async function seedPython(authorId: string) {
       title: 'Hello, World',
       starter: '# Выведи строку Hello, World на экран\n',
       body: '## Привет, мир\n\nКлассика: первая программа выводит строку `Hello, World` в консоль.',
-      tests: [{ name: 'Точный вывод', expected: 'Hello, World' }]
+      tests: [
+        {
+          name: 'Печать ровно «Hello, World» (как в примере приветствия)',
+          expected: 'Hello, World'
+        }
+      ]
     },
     {
       slug: 'l-py-1-2',
@@ -276,14 +281,14 @@ async function seedPython(authorId: string) {
       starter:
         '# Создай переменную name со значением "CodeRoster" и выведи её через print\nname = ""\n',
       body: '## Переменные\n\nПрисвой переменной `name` строку `"CodeRoster"` и выведи её.',
-      tests: [{ name: 'CodeRoster', expected: 'CodeRoster' }]
+      tests: [{ name: 'Имя платформы в stdout: «CodeRoster»', expected: 'CodeRoster' }]
     },
     {
       slug: 'l-py-1-3',
       title: 'Числа и строки',
       starter: '# Сложи числа a и b и выведи результат\na = 2\nb = 3\n',
       body: '## Числа и строки\n\nСложи `a` и `b`, выведи число.',
-      tests: [{ name: '2 + 3', expected: '5' }]
+      tests: [{ name: 'Сумма 2 + 3 выводится числом 5', expected: '5' }]
     }
   ])
   await seedModule(
@@ -298,21 +303,21 @@ async function seedPython(authorId: string) {
         title: 'Условные выражения',
         starter: '# Выведи "even" если n чётное, иначе "odd"\nn = 7\n',
         body: '## Условные выражения\n\nИспользуй `if`/`else`.',
-        tests: [{ name: 'odd для 7', expected: 'odd' }]
+        tests: [{ name: 'Для 7 возвращается метка «odd»', expected: 'odd' }]
       },
       {
         slug: 'l-py-2-2',
         title: 'Цикл while',
         starter: '# Выведи числа от 1 до 5 через while\n',
         body: '## Цикл while\n\nИтерируй пока условие истинно.',
-        tests: [{ name: '1..5', expected: '1\n2\n3\n4\n5' }]
+        tests: [{ name: 'Числа 1…5, каждое с новой строки', expected: '1\n2\n3\n4\n5' }]
       },
       {
         slug: 'l-py-2-3',
         title: 'Цикл for',
         starter: '# Сумма от 1 до n включительно через for\nn = 5\n',
         body: '## Цикл for\n\nИспользуй `range`.',
-        tests: [{ name: 'sum 1..5', expected: '15' }]
+        tests: [{ name: 'Сумма 1+2+3+4+5 в stdout: 15', expected: '15' }]
       }
     ]
   )

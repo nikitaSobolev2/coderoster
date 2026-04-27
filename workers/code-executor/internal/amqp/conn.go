@@ -42,13 +42,32 @@ func Connect(url string) (*Client, error) {
 		conn.Close()
 		return nil, fmt.Errorf("declare exchange: %w", err)
 	}
+	// Must match `infra/compose/rabbitmq/definitions.json` (DLX + routing key) or
+	// `queue.declare` fails with 406 if the broker already imported definitions.
+	if err := channel.ExchangeDeclare(
+		contracts.DeadLetterExchange,
+		"topic",
+		true,
+		false,
+		false,
+		false,
+		nil,
+	); err != nil {
+		channel.Close()
+		conn.Close()
+		return nil, fmt.Errorf("declare dlx: %w", err)
+	}
 	if _, err := channel.QueueDeclare(
 		contracts.ExecutionRequestedQueue,
 		true,
 		false,
 		false,
 		false,
-		nil,
+		amqplib.Table{
+			"x-message-ttl":             int32(600_000),
+			"x-dead-letter-exchange":    contracts.DeadLetterExchange,
+			"x-dead-letter-routing-key":   contracts.ExecutionRequestedDeadRoutingKey,
+		},
 	); err != nil {
 		channel.Close()
 		conn.Close()

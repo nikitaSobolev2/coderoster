@@ -181,6 +181,9 @@ services:
     build:
       context: ./workers/code-executor
       dockerfile: Dockerfile
+    # Image defaults to non-root; mounted docker.sock is root:docker 660 on typical hosts.
+    # Root here only for Docker API (pull/run sandboxes), not for executing user code inside child containers.
+    user: "0:0"
     restart: unless-stopped
     environment:
       RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER:-guest}:${RABBITMQ_DEFAULT_PASS:-guest}@rabbitmq:5672

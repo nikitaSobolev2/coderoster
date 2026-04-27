@@ -8,6 +8,7 @@ import { faCircleCheck, faPlay } from '@fortawesome/free-solid-svg-icons'
 import CodeEditor from '~/features/platform/in-course/CodeEditor'
 import ExecutionPanel, { type ExecutionState } from '~/features/platform/in-course/ExecutionPanel'
 import EmptyState from '~/shared/components/ui/EmptyState'
+import { mapTerminalExecutionRecordToView } from '~/shared/lib/executionTerminalView'
 import { api } from '~/trpc/react'
 import type { ExecutionRecord, Language, RunResult } from '~/server/repositories/types'
 import styles from './styles.module.scss'
@@ -156,23 +157,13 @@ function DailyTaskPanel({ task, attempt, taskIndex, isAuthenticated }: DailyTask
   useEffect(() => {
     const record = pollQuery.data
     if (!record || !isTerminal(record.status)) return
-    if (record.status === 'success') {
-      const result: RunResult = {
-        stdout: record.stdout ?? '',
-        stderr: record.stderr ?? '',
-        runtimeMs: record.runtimeMs ?? 0,
-        passed: Boolean(record.passed),
-        testResults: record.testResults
-      }
-      setExecutionResult(result)
-      setExecutionState('done')
-      if (result.passed) {
-        notifications.show({ color: 'green', message: 'Тесты пройдены, дейлик зачтён.' })
-        void utils.daily.getToday.invalidate()
-      }
-    } else {
-      setExecutionError(record.errorMessage ?? `Ошибка запуска: ${record.status}`)
-      setExecutionState('done')
+    const { result, errorMessage } = mapTerminalExecutionRecordToView(record)
+    setExecutionResult(result)
+    setExecutionError(errorMessage)
+    setExecutionState('done')
+    if (result?.passed) {
+      notifications.show({ color: 'green', message: 'Тесты пройдены, дейлик зачтён.' })
+      void utils.daily.getToday.invalidate()
     }
   }, [pollQuery.data, utils])
 

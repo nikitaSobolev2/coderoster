@@ -20,6 +20,7 @@ import type {
   LessonDetail,
   RunResult
 } from '~/server/repositories/types'
+import { mapTerminalExecutionRecordToView } from '~/shared/lib/executionTerminalView'
 import TaskNav from '../TaskNav'
 import TaskPane from '../TaskPane'
 import CodeEditor from '../CodeEditor'
@@ -74,30 +75,22 @@ export default function InCourseShell({
     status !== 'queued' && status !== 'running'
 
   const applyExecutionRecord = (record: ExecutionRecord) => {
-    if (record.status === 'success') {
-      const result: RunResult = {
-        stdout: record.stdout ?? '',
-        stderr: record.stderr ?? '',
-        runtimeMs: record.runtimeMs ?? 0,
-        passed: Boolean(record.passed),
-        testResults: record.testResults
-      }
-      setExecutionResult(result)
-      setExecutionState('done')
-      if (record.mode === 'submit' && result.passed) {
+    const { result, errorMessage } = mapTerminalExecutionRecordToView(record)
+    setExecutionResult(result)
+    setExecutionError(errorMessage)
+    setExecutionState('done')
+    if (result && record.mode === 'submit') {
+      if (result.passed) {
         notifications.show({
           color: 'green',
           message: 'Все тесты пройдены — задача зачтена.'
         })
-      } else if (record.mode === 'submit' && !result.passed) {
+      } else {
         notifications.show({
           color: 'orange',
           message: 'Часть тестов провалена. Попробуй ещё раз.'
         })
       }
-    } else {
-      setExecutionError(record.errorMessage ?? `Запуск завершился со статусом ${record.status}`)
-      setExecutionState('done')
     }
   }
 

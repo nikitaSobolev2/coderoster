@@ -1,9 +1,32 @@
 import 'server-only'
 import * as amqp from 'amqplib'
+import type { Options } from 'amqplib'
 import { env } from '~/env'
 
 export const EXCHANGE = 'coderoster.events'
 export const DLX = 'coderoster.dlx'
+
+/**
+ * Per-queue assert options — must match `infra/compose/rabbitmq/definitions.json`
+ * or RabbitMQ returns 406 PRECONDITION_FAILED on `queue.declare` (inequivalent args).
+ */
+const BROKER_QUEUE_ASSERT: Record<string, Options.AssertQueue> = {
+  'execution.requested': {
+    durable: true,
+    arguments: {
+      'x-message-ttl': 600_000,
+      'x-dead-letter-exchange': DLX,
+      'x-dead-letter-routing-key': 'execution.requested.dead'
+    }
+  },
+  'execution.completed': {
+    durable: true,
+    arguments: {
+      'x-dead-letter-exchange': DLX,
+      'x-dead-letter-routing-key': 'execution.completed.dead'
+    }
+  }
+}
 
 type ChannelModel = Awaited<ReturnType<typeof amqp.connect>>
 
@@ -52,10 +75,11 @@ export async function ensureQueueBound(queue: string, topic: string): Promise<vo
   const key = `${queue}::${topic}`
   if (declared.has(key)) return
   const channel = await getAmqpChannel()
-  await channel.assertQueue(queue, {
+  const assertOptions = BROKER_QUEUE_ASSERT[queue] ?? {
     durable: true,
     arguments: { 'x-dead-letter-exchange': DLX }
-  })
+  }
+  await channel.assertQueue(queue, assertOptions)
   await channel.bindQueue(queue, EXCHANGE, topic)
   declared.add(key)
 }

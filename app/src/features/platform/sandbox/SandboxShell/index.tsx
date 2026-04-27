@@ -8,6 +8,7 @@ import { notifications } from '@mantine/notifications'
 import CodeEditor from '~/features/platform/in-course/CodeEditor'
 import ExecutionPanel, { type ExecutionState } from '~/features/platform/in-course/ExecutionPanel'
 import type { ExecutionRecord, Language, RunResult } from '~/server/repositories/types'
+import { mapTerminalExecutionRecordToView } from '~/shared/lib/executionTerminalView'
 import { api } from '~/trpc/react'
 import styles from './styles.module.scss'
 
@@ -69,17 +70,9 @@ export default function SandboxShell({ isAuthenticated }: Props) {
   useEffect(() => {
     const record = pollQuery.data
     if (!record || !isTerminal(record.status)) return
-    if (record.status === 'success') {
-      setExecutionResult({
-        stdout: record.stdout ?? '',
-        stderr: record.stderr ?? '',
-        runtimeMs: record.runtimeMs ?? 0,
-        passed: false,
-        testResults: record.testResults
-      })
-    } else {
-      setExecutionError(record.errorMessage ?? `Ошибка запуска: ${record.status}`)
-    }
+    const { result, errorMessage } = mapTerminalExecutionRecordToView(record)
+    setExecutionResult(result)
+    setExecutionError(errorMessage)
     setExecutionState('done')
   }, [pollQuery.data])
 

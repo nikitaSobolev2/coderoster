@@ -43,8 +43,8 @@ export const env = createEnv({
     EXECUTION_MEMORY_MB: z.coerce.number().int().positive().default(128),
     EXECUTION_CPUS: z.coerce.number().positive().default(0.5),
     EXECUTION_PIDS_LIMIT: z.coerce.number().int().positive().default(64),
-    WORKER_PYTHON_IMAGE: z.string().default('coderoster/sandbox-python:latest'),
-    WORKER_PHP_IMAGE: z.string().default('coderoster/sandbox-php:latest'),
+    WORKER_PYTHON_IMAGE: z.string().default('python:3.12-slim'),
+    WORKER_PHP_IMAGE: z.string().default('php:8.3-cli-alpine'),
     ACTIVITY_SNAPSHOT_CRON: z.string().default('30 0 * * *')
   },
 

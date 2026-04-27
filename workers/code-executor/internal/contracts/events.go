@@ -5,10 +5,13 @@ package contracts
 
 const (
 	ExchangeName            = "coderoster.events"
+	DeadLetterExchange      = "coderoster.dlx"
 	ExecutionRequestedTopic = "execution.requested"
 	ExecutionCompletedTopic = "execution.completed"
 	ExecutionRequestedQueue = "execution.requested"
 	ExecutionCompletedQueue = "execution.completed"
+	// Routing keys for rejected messages — must match RabbitMQ definitions.json
+	ExecutionRequestedDeadRoutingKey = "execution.requested.dead"
 
 	ModeRun    = "run"
 	ModeSubmit = "submit"

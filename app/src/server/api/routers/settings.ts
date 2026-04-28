@@ -2,8 +2,7 @@ import { z } from 'zod'
 import { TRPCError } from '@trpc/server'
 import { createTRPCRouter, protectedProcedure } from '~/server/api/trpc'
 import { idempotentProcedure } from '~/server/api/procedures'
-import { cache } from '~/server/cache'
-import { cacheKeys } from '~/server/repositories/cached'
+import { invalidateProfileCachesForUsername } from '~/server/cache/invalidateProfileCaches'
 import { userSyncService } from '~/server/services/UserSyncService'
 
 const socialsSchema = z
@@ -64,11 +63,7 @@ export const settingsRouter = createTRPCRouter({
 })
 
 async function invalidateUserCaches(username: string): Promise<void> {
-  await Promise.all([
-    cache.del(cacheKeys.profile(username, null)),
-    cache.del(cacheKeys.achievements(username)),
-    cache.delPrefix(`profile:${username.toLowerCase()}:`)
-  ])
+  await invalidateProfileCachesForUsername(username)
 }
 
 function isUniqueConstraintError(error: unknown): boolean {

@@ -3,6 +3,7 @@
 .navCategory__trigger,
 .navCategory__link {
   @include buttonReset;
+  @include bluredBg;
 
   display: inline-flex;
   align-items: center;
@@ -39,8 +40,8 @@
 }
 
 .navCategory__dropdown {
-  background: color-mix(in srgb, var(--color-bg) 92%, transparent);
-  backdrop-filter: var(--blur-effect-default);
+  @include bluredBg;
+
   border: var(--border-width-hair) solid var(--platform-color-border);
   box-shadow: var(--platform-shadow-popover);
   padding: 0.75rem;
@@ -55,6 +56,8 @@
 }
 
 .leaf {
+  @include bluredBg;
+
   display: flex;
   align-items: flex-start;
   gap: 0.85rem;

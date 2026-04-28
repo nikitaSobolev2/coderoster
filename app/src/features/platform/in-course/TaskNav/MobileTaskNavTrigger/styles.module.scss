@@ -1,0 +1,82 @@
+@use '~/shared/assets/styles/mixins' as *;
+@use '~/shared/assets/styles/breakpoints' as bp;
+
+.trigger {
+  @include buttonReset;
+  @include clickable;
+  @include focusGlow;
+  @include liquidGlass(true);
+
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 1rem;
+  border-radius: 999px;
+  color: var(--color-text);
+  font-size: var(--font-size-default);
+  letter-spacing: 0.02em;
+
+  @include bp.max-width(bp.$bp-md) {
+    display: inline-flex;
+  }
+}
+
+.drawer {
+  @include liquidGlass(true);
+
+  border-radius: var(--platform-card-radius) var(--platform-card-radius) 0 0;
+  border-bottom: none;
+}
+
+.drawer__body {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.drawer__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: var(--border-width-hair) solid var(--platform-color-divider);
+  flex-shrink: 0;
+}
+
+.drawer__title {
+  font-size: var(--font-size-h4);
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.drawer__close {
+  @include buttonReset;
+  @include clickable;
+  @include focusGlow;
+
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-text);
+  transition: background var(--transition-default);
+
+  &:hover {
+    background: var(--platform-color-surface-hover);
+  }
+}
+
+.drawer__nav {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+
+  /* nested TaskNav fills container; strip its own scroll lock */
+  & > * {
+    height: auto;
+    border-right: none;
+    background: transparent;
+  }
+}

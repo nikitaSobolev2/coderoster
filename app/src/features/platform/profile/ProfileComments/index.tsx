@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Avatar, Button, Textarea } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { api } from '~/trpc/react'
+import { formatStableDateDdMmYyyy } from '~/shared/lib/formatStableDate'
 import styles from './styles.module.scss'
 
 export interface Props {
@@ -86,7 +87,7 @@ export default function ProfileComments({ username, isAuthenticated }: Props) {
                   <span className={styles.comment__name}>{comment.authorDisplayName}</span>
                   <span className={styles.comment__handle}>@{comment.authorUsername}</span>
                   <span className={styles.comment__time}>
-                    {new Date(comment.createdAt).toLocaleDateString('ru-RU')}
+                    {formatStableDateDdMmYyyy(comment.createdAt)}
                   </span>
                 </div>
                 <p className={styles.comment__text}>{comment.body}</p>

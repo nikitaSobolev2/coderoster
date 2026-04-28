@@ -1,6 +1,9 @@
 @use '~/shared/assets/styles/mixins' as *;
+@use '~/shared/assets/styles/breakpoints' as bp;
 
 .panel {
+  @include liquidGlass(true);
+
   position: sticky;
   top: calc(var(--platform-header-height) + 1.5rem);
   display: flex;
@@ -8,8 +11,13 @@
   gap: 1rem;
   padding: var(--platform-card-padding);
   border-radius: var(--platform-card-radius);
-  border: var(--border-width-hair) solid var(--platform-color-border);
-  background: var(--platform-color-surface);
+}
+
+@include bp.max-width(bp.$bp-md) {
+  .panel {
+    position: static;
+    top: auto;
+  }
 }
 
 .panel__title {

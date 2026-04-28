@@ -1,4 +1,4 @@
-@import '~/shared/assets/styles/mixins.scss';
+@use '~/shared/assets/styles/mixins' as *;
 
 .shell {
   display: grid;
@@ -12,8 +12,7 @@
     padding: 0.75rem 1rem;
     border-radius: var(--platform-card-radius);
     border: 1px solid var(--platform-color-border);
-    background: var(--platform-color-surface);
-    backdrop-filter: var(--blur-effect-default);
+    @include bluredBg;
     flex-wrap: wrap;
     gap: 0.75rem;
   }
@@ -27,13 +26,13 @@
     border-radius: var(--platform-card-radius);
     overflow: hidden;
     border: 1px solid var(--platform-color-border);
-    background: var(--platform-color-surface);
+    @include bluredBg;
   }
 
   &__output {
     border-radius: var(--platform-card-radius);
     border: 1px solid var(--platform-color-border);
-    background: var(--platform-color-surface);
+    @include bluredBg;
     overflow: hidden;
   }
 }

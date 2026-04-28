@@ -9,6 +9,7 @@ import { useLoadingStore } from '~/features/home/components/common/AppLoader/loa
 import { registerSectionScrollToIdHandler } from '~/features/home/components/common/SectionScroller/section-scroll-api'
 import { useMatchMedia } from '~/shared/hooks/useMatchMedia'
 import { getSectionIndexFromScroll } from './getSectionIndexFromScroll'
+import { getDocumentScrollTopPx, getScrollableRoot } from './getDocumentScrollTopPx'
 import { getSectionScrollObserverType } from './getSectionScrollObserverType'
 import { useSectionScrollerStore, type SectionDescriptor } from './section-scroller.store'
 import styles from './styles.module.scss'
@@ -50,7 +51,8 @@ export default function SectionScroller({ sections, children }: Readonly<Props>)
     if (typeof window === 'undefined') return
 
     const syncIndexFromWindowScroll = () => {
-      const next = getSectionIndexFromScroll(sections, window.scrollY, window.innerHeight)
+      const scrollTop = getScrollableRoot().scrollTop
+      const next = getSectionIndexFromScroll(sections, scrollTop, window.innerHeight)
       sectionIndexRef.current = next
       setActiveIndex(next)
     }
@@ -153,9 +155,9 @@ function createSnapNavigator(options: SnapNavigatorOptions): Navigator {
     sectionIndexRef.current = target
     setActiveIndex(target)
     setAnimating(true)
-    gsap.to(window, {
+    gsap.to(getScrollableRoot(), {
       duration: SCROLL_DURATION_S,
-      scrollTo: { y: sectionElement.offsetTop, autoKill: true },
+      scrollTo: { y: getDocumentScrollTopPx(sectionElement), autoKill: true },
       ease: 'power2.inOut',
       overwrite: 'auto',
       onComplete: () => {
@@ -180,7 +182,10 @@ function createNativeNavigator(options: NativeNavigatorOptions): Navigator {
     if (!sectionElement) return
     sectionIndexRef.current = target
     setActiveIndex(target)
-    window.scrollTo({ top: sectionElement.offsetTop, behavior: 'smooth' })
+    getScrollableRoot().scrollTo({
+      top: getDocumentScrollTopPx(sectionElement),
+      behavior: 'smooth'
+    })
   }
 }
 

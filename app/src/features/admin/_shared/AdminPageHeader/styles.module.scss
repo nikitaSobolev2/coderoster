@@ -1,6 +1,8 @@
 @use '~/shared/assets/styles/mixins' as *;
 
 .header {
+  @include bluredBg;
+
   display: flex;
   align-items: flex-end;
   justify-content: space-between;

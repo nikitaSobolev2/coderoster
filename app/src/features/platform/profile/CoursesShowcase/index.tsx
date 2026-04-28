@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { Progress, Tabs } from '@mantine/core'
 import type { CourseShowcase } from '~/server/repositories/types'
+import { formatStableDateDdMmYyyy } from '~/shared/lib/formatStableDate'
 import styles from './styles.module.scss'
 
 export interface Props {
@@ -56,7 +57,7 @@ export default function CoursesShowcase({ active, finished }: Props) {
                     <span className={styles.row__title}>{course.title}</span>
                     <span className={styles.row__date}>
                       {enrollment.finishedAt
-                        ? new Date(enrollment.finishedAt).toLocaleDateString('ru-RU')
+                        ? formatStableDateDdMmYyyy(enrollment.finishedAt)
                         : '—'}
                     </span>
                   </Link>

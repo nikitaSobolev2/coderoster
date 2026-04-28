@@ -37,12 +37,12 @@
   }
 
   &__tile {
+    @include bluredBg;
     display: flex;
     gap: 1rem;
     padding: 1rem;
     border-radius: var(--platform-card-radius-sm);
     border: 1px solid var(--platform-color-border);
-    background: var(--platform-color-surface);
     transition:
       transform var(--transition-default),
       border-color var(--transition-default),

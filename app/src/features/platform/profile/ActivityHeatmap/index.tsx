@@ -11,7 +11,7 @@ export interface Props {
   initialYear: number
 }
 
-const WEEKDAYS = ['Пн', 'Ср', 'Пт']
+const WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
 const MONTH_LABELS = [
   'Янв',
   'Фев',
@@ -29,16 +29,14 @@ const MONTH_LABELS = [
 
 /**
  * GitHub-style year heatmap rendered from `profile.getActivity` cells.
- * Pure presentation — switching the year is a future enhancement; for now
- * we render whatever the server prefetched.
+ * Sparse API data is expanded to every calendar day in the year (UTC);
+ * days without rows use level 0 — base `.cell` tint (darkest in the scale).
  */
 export default function ActivityHeatmap({ username, initialCells, initialYear }: Props) {
   const [year] = useState(initialYear)
-  const total = useMemo(
-    () => initialCells.reduce((sum, cell) => sum + cell.count, 0),
-    [initialCells]
-  )
-  const weeks = useMemo(() => groupByWeek(initialCells), [initialCells])
+  const denseCells = useMemo(() => buildDenseYearCells(year, initialCells), [year, initialCells])
+  const total = useMemo(() => denseCells.reduce((sum, cell) => sum + cell.count, 0), [denseCells])
+  const weeks = useMemo(() => groupByWeek(denseCells), [denseCells])
 
   return (
     <section className={styles.heatmap} aria-label={`Активность ${username} за ${year}`}>
@@ -49,7 +47,7 @@ export default function ActivityHeatmap({ username, initialCells, initialYear }:
         </span>
       </header>
 
-      <div className={styles.heatmap__grid}>
+      <div className={styles.heatmap__chart}>
         <div className={styles.heatmap__weekdays}>
           {WEEKDAYS.map(day => (
             <span key={day} className={styles.heatmap__weekday}>
@@ -64,32 +62,40 @@ export default function ActivityHeatmap({ username, initialCells, initialYear }:
                 cell ? (
                   <Tooltip
                     key={cell.date}
-                    label={`${cell.date}: ${cell.count} ${cell.count === 1 ? 'событие' : 'событий'}`}
+                    label={
+                      cell.count === 0
+                        ? `${cell.date}: нет событий`
+                        : `${cell.date}: ${cell.count} ${cell.count === 1 ? 'событие' : 'событий'}`
+                    }
                     withArrow
                     openDelay={150}
                   >
-                    <span
-                      className={styles.cell}
-                      data-level={cell.level}
-                      role="gridcell"
-                      aria-label={`${cell.date}: ${cell.count}`}
-                    />
+                    <span className={styles.weekCell}>
+                      <span
+                        className={styles.cell}
+                        data-level={cell.level}
+                        role="gridcell"
+                        aria-label={`${cell.date}: ${cell.count}`}
+                      />
+                    </span>
                   </Tooltip>
                 ) : (
-                  <span key={`empty-${weekIndex}-${dayIndex}`} className={styles.cell_empty} />
+                  <span key={`empty-${weekIndex}-${dayIndex}`} className={styles.weekCell}>
+                    <span className={styles.cell_empty} />
+                  </span>
                 )
               )}
             </div>
           ))}
         </div>
+        <div className={styles.heatmap__months} aria-hidden="true">
+          {MONTH_LABELS.map(label => (
+            <span key={label}>{label}</span>
+          ))}
+        </div>
       </div>
 
       <Legend />
-      <div className={styles.heatmap__months} aria-hidden="true">
-        {MONTH_LABELS.map(label => (
-          <span key={label}>{label}</span>
-        ))}
-      </div>
     </section>
   )
 }
@@ -106,11 +112,28 @@ function Legend() {
   )
 }
 
+function buildDenseYearCells(year: number, sparse: ActivityCell[]): ActivityCell[] {
+  const byDate = new Map(sparse.map(cell => [cell.date, cell]))
+  const cells: ActivityCell[] = []
+  const cursor = new Date(Date.UTC(year, 0, 1))
+  const end = new Date(Date.UTC(year, 11, 31))
+  while (cursor <= end) {
+    const dateStr = cursor.toISOString().slice(0, 10)
+    const existing = byDate.get(dateStr)
+    cells.push(existing ?? { date: dateStr, count: 0, level: 0 })
+    cursor.setUTCDate(cursor.getUTCDate() + 1)
+  }
+  return cells
+}
+
 function groupByWeek(cells: ActivityCell[]): (ActivityCell | null)[][] {
   if (cells.length === 0) return []
-  const firstDate = new Date(cells[0]!.date)
+  const firstDate = new Date(`${cells[0]!.date}T00:00:00.000Z`)
   const startWeekday = (firstDate.getUTCDay() + 6) % 7
   const padded: (ActivityCell | null)[] = [...Array<null>(startWeekday).fill(null), ...cells]
+  while (padded.length % 7 !== 0) {
+    padded.push(null)
+  }
   const weeks: (ActivityCell | null)[][] = []
   for (let index = 0; index < padded.length; index += 7) {
     weeks.push(padded.slice(index, index + 7))

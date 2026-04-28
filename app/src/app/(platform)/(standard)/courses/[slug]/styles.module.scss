@@ -2,6 +2,8 @@
 @use '~/shared/assets/styles/breakpoints' as bp;
 
 .page {
+  @include bluredBg;
+
   width: min(100%, var(--platform-shell-max-width));
   margin: 0 auto;
   padding: 1.5rem var(--platform-shell-padding-inline) 2rem;

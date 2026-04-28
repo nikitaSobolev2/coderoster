@@ -12,7 +12,7 @@
     padding: 1rem;
     border: 1px solid var(--platform-color-border);
     border-radius: var(--platform-card-radius-sm);
-    background: var(--platform-color-surface-hover);
+    @include bluredBg;
   }
 
   &__avatarPreview {

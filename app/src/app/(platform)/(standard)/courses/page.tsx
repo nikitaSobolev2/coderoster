@@ -36,11 +36,29 @@ export default async function CoursesPage({ searchParams }: PageProps) {
 }
 
 const CATEGORY_SLUG_PATTERN = /^[a-z0-9-]+$/
+const LANGUAGES: ReadonlySet<string> = new Set(['python', 'php'])
+const DIFFICULTIES: ReadonlySet<string> = new Set(['beginner', 'intermediate', 'advanced'])
+const SORTS: ReadonlySet<string> = new Set(['popular', 'newest', 'shortest'])
 
 function parseInitialFilters(params: Record<string, string | string[] | undefined>): CoursesQuery {
   const initial: CoursesQuery = { sort: 'popular' }
   const category = pickFirst(params.category)
   if (category && CATEGORY_SLUG_PATTERN.test(category)) initial.categorySlug = category
+
+  const query = pickFirst(params.q)
+  if (query) initial.q = query.slice(0, 100)
+
+  const language = pickFirst(params.language)
+  if (language && LANGUAGES.has(language)) initial.language = language as CoursesQuery['language']
+
+  const difficulty = pickFirst(params.difficulty)
+  if (difficulty && DIFFICULTIES.has(difficulty)) {
+    initial.difficulty = difficulty as CoursesQuery['difficulty']
+  }
+
+  const sort = pickFirst(params.sort)
+  if (sort && SORTS.has(sort)) initial.sort = sort as CoursesQuery['sort']
+
   return initial
 }
 

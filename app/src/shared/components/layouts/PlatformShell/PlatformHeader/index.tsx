@@ -9,6 +9,7 @@ import Logo from '~/shared/components/common/Logo'
 import NavCategory from './NavCategory'
 import SearchTrigger from './SearchTrigger'
 import UserMenu, { type ViewerUser } from './UserMenu'
+import MobileMenu from './MobileMenu'
 import { NAV_CATEGORIES, type NavCategoryConfig } from './categories'
 import styles from './styles.module.scss'
 
@@ -34,6 +35,7 @@ export default async function PlatformHeader() {
         <div className={styles.header__actions}>
           <SearchTrigger />
           <UserMenu user={viewer} />
+          <MobileMenu categories={navCategories} />
         </div>
       </div>
     </header>

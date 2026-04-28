@@ -6,7 +6,7 @@
   border-radius: var(--platform-card-radius);
   overflow: hidden;
   border: var(--border-width-hair) solid var(--platform-color-border);
-  background: var(--platform-color-surface);
+  @include bluredBg;
 }
 
 .header__cover {
@@ -24,6 +24,8 @@
       transparent 65%
     ),
     linear-gradient(135deg, color-mix(in srgb, var(--color-bg) 65%, transparent), transparent);
+
+  z-index: -1;
 }
 
 .header__inner {
@@ -36,7 +38,7 @@
 .header__identity {
   display: flex;
   gap: 1.25rem;
-  margin-top: -56px;
+  margin-top: -80px;
   align-items: flex-end;
 }
 

@@ -21,8 +21,9 @@
     box-shadow var(--transition-default);
 
   &_scrolled {
-    border-color: color-mix(in srgb, var(--color-r3f-directional) 35%, var(--color-bg-el-border));
-    box-shadow: var(--shadow-header-island-active);
+    // border-color: color-mix(in srgb, var(--color-r3f-directional) 35%, var(--color-bg-el-border));
+    // box-shadow: var(--shadow-header-island-active);
+    border-color: var(--color-bg-el-border);
   }
 
   @include reducedMotion {

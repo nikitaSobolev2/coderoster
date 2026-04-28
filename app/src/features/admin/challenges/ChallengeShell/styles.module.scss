@@ -27,13 +27,13 @@
 }
 
 .tree__row {
+  @include bluredBg;
   display: flex;
   align-items: center;
   gap: 0.4rem;
   padding: 0.55rem 0.65rem;
   border-radius: var(--platform-card-radius-sm);
   border: var(--border-width-hair) solid var(--platform-color-border);
-  background: var(--platform-color-surface);
   color: var(--color-text);
   cursor: pointer;
   transition: background-color 120ms ease;

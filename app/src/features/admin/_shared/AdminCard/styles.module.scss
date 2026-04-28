@@ -1,10 +1,11 @@
 @use '~/shared/assets/styles/mixins' as *;
 
 .card {
+  @include bluredBg;
+
   display: flex;
   flex-direction: column;
   gap: 0;
-  background: var(--platform-color-surface);
   border: var(--border-width-hair) solid var(--platform-color-border);
   border-radius: var(--platform-card-radius);
   box-shadow: var(--platform-shadow-card);

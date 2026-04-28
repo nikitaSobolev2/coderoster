@@ -4,6 +4,8 @@ import { Prisma } from '@prisma/client'
 import { env } from '~/env'
 import { db } from '~/server/db'
 
+import { levelForActivityCount } from '~/server/lib/activityHeatmapLevel'
+
 interface AggregateRow {
   userId: string
   date: string
@@ -30,12 +32,12 @@ export async function snapshotPreviousDay(): Promise<void> {
     const count = Number(row.count)
     await db.userActivitySnapshot.upsert({
       where: { userId_date: { userId: row.userId, date: row.date } },
-      update: { count, level: levelFor(count) },
+      update: { count, level: levelForActivityCount(count) },
       create: {
         userId: row.userId,
         date: row.date,
         count,
-        level: levelFor(count)
+        level: levelForActivityCount(count)
       }
     })
   }
@@ -46,14 +48,6 @@ function previousDay(): string {
   const date = new Date()
   date.setUTCDate(date.getUTCDate() - 1)
   return date.toISOString().slice(0, 10)
-}
-
-function levelFor(count: number): number {
-  if (count === 0) return 0
-  if (count <= 1) return 1
-  if (count <= 3) return 2
-  if (count <= 5) return 3
-  return 4
 }
 
 export function scheduleActivitySnapshot(): void {

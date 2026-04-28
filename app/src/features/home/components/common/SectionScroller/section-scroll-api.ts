@@ -1,5 +1,6 @@
 import { gsap } from 'gsap'
 import { ScrollToPlugin } from 'gsap/ScrollToPlugin'
+import { getDocumentScrollTopPx, getScrollableRoot } from './getDocumentScrollTopPx'
 
 gsap.registerPlugin(ScrollToPlugin)
 
@@ -24,9 +25,9 @@ export function scrollToSectionById(id: string) {
   if (typeof document === 'undefined') return
   const el = document.getElementById(id)
   if (!el) return
-  gsap.to(window, {
+  gsap.to(getScrollableRoot(), {
     duration: SCROLL_DURATION_S,
-    scrollTo: { y: el.offsetTop, autoKill: true },
+    scrollTo: { y: getDocumentScrollTopPx(el), autoKill: true },
     ease: 'power2.inOut'
   })
 }

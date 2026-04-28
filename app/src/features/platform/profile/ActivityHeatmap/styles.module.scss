@@ -1,15 +1,16 @@
 @use '~/shared/assets/styles/mixins' as *;
-@use '~/shared/assets/styles/breakpoints' as bp;
 
 .heatmap {
+  @include bluredBg;
+
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
   padding: var(--platform-card-padding);
   border-radius: var(--platform-card-radius);
   border: var(--border-width-hair) solid var(--platform-color-border);
-  background: var(--platform-color-surface);
-  overflow-x: auto;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .heatmap__head {
@@ -31,41 +32,66 @@
   color: var(--color-text-secondary);
 }
 
-.heatmap__grid {
-  display: flex;
-  gap: 0.5rem;
+// Weekday column + weeks share row 1; month labels sit under weeks only (col 2).
+.heatmap__chart {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  column-gap: 0.5rem;
+  row-gap: 0.35rem;
+  width: 100%;
+  min-width: 0;
 }
 
 .heatmap__weekdays {
+  grid-column: 1;
+  grid-row: 1;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   font-size: 0.65rem;
   color: var(--color-text-secondary);
+  flex-shrink: 0;
+  align-self: stretch;
 }
 
 .heatmap__weekday {
-  height: calc(11px * 2 + 2px);
   display: flex;
   align-items: center;
+  line-height: 1;
 }
 
 .heatmap__weeks {
+  grid-column: 2;
+  grid-row: 1;
   display: flex;
+  width: 100%;
+  min-width: 0;
   gap: 2px;
 }
 
 .week {
   display: flex;
+  flex: 1 1 0;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
+}
+
+.weekCell {
+  display: block;
+  width: 100%;
+  flex-shrink: 0;
+  aspect-ratio: 1;
+  min-height: 0;
 }
 
 .cell {
-  width: 11px;
-  height: 11px;
+  display: block;
+  width: 100%;
+  height: 100%;
   border-radius: 2px;
-  display: inline-block;
+  box-sizing: border-box;
   background: color-mix(in srgb, var(--color-text) 6%, transparent);
 
   &[data-level='1'] {
@@ -83,9 +109,10 @@
 }
 
 .cell_empty {
-  width: 11px;
-  height: 11px;
-  display: inline-block;
+  display: block;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
   background: transparent;
 }
 
@@ -96,6 +123,13 @@
   align-self: flex-end;
   font-size: var(--font-size-h6);
   color: var(--color-text-secondary);
+
+  .cell {
+    width: 11px;
+    height: 11px;
+    flex-shrink: 0;
+    aspect-ratio: auto;
+  }
 }
 
 .legend__label {
@@ -103,9 +137,12 @@
 }
 
 .heatmap__months {
+  grid-column: 2;
+  grid-row: 2;
   display: flex;
   justify-content: space-between;
-  padding-left: 1.75rem;
+  width: 100%;
+  min-width: 0;
   font-size: var(--font-size-h6);
   color: var(--color-text-secondary);
   letter-spacing: 0.04em;

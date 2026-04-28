@@ -3,7 +3,7 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(clamp(260px, 30vw, 320px), 1fr));
   gap: 1.25rem;
   transition: opacity var(--transition-default);
 }
@@ -14,19 +14,50 @@
 }
 
 .skeleton {
+  @include liquidGlass;
+
   display: flex;
   flex-direction: column;
   padding: 1rem;
   border-radius: var(--platform-card-radius);
-  border: var(--border-width-hair) solid var(--platform-color-border);
-  background: var(--platform-color-surface);
+  position: relative;
+  overflow: hidden;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      110deg,
+      transparent 30%,
+      color-mix(in srgb, var(--color-text) 6%, transparent) 50%,
+      transparent 70%
+    );
+    transform: translateX(-100%);
+    animation: shimmer 1.6s ease-in-out infinite;
+    pointer-events: none;
+  }
+}
+
+@keyframes shimmer {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton::after {
+    animation: none;
+  }
 }
 
 .empty {
+  @include liquidGlass;
+
   padding: 3rem;
   text-align: center;
   color: var(--color-text-secondary);
-  border: var(--border-width-hair) dashed var(--platform-color-border);
+  border-style: dashed;
   border-radius: var(--platform-card-radius);
 }
 

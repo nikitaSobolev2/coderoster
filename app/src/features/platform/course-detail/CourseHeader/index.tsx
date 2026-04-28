@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { Avatar, Badge } from '@mantine/core'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faClock, faGraduationCap, faStar, faUsers } from '@fortawesome/free-solid-svg-icons'
@@ -32,20 +33,43 @@ export default function CourseHeader({ course }: Props) {
       />
       <div className={styles.header__topline}>
         {course.category ? (
-          <Badge variant="light" color="grape" radius="sm">
-            {course.category.title}
-          </Badge>
+          <Link
+            href={`/courses?category=${course.category.slug}`}
+            className={styles.header__chipLink}
+            prefetch={false}
+          >
+            <Badge variant="light" color="grape" radius="sm">
+              {course.category.title}
+            </Badge>
+          </Link>
         ) : null}
-        <Badge variant="light" color="indigo" radius="sm">
-          {LANGUAGE_LABELS[course.language]}
-        </Badge>
-        <Badge variant="default" radius="sm">
-          {DIFFICULTY_LABELS[course.difficulty]}
-        </Badge>
+        <Link
+          href={`/courses?language=${course.language}`}
+          className={styles.header__chipLink}
+          prefetch={false}
+        >
+          <Badge variant="light" color="indigo" radius="sm">
+            {LANGUAGE_LABELS[course.language]}
+          </Badge>
+        </Link>
+        <Link
+          href={`/courses?difficulty=${course.difficulty}`}
+          className={styles.header__chipLink}
+          prefetch={false}
+        >
+          <Badge variant="default" radius="sm">
+            {DIFFICULTY_LABELS[course.difficulty]}
+          </Badge>
+        </Link>
         {course.tags.map(tag => (
-          <span key={tag} className={styles.header__tag}>
+          <Link
+            key={tag}
+            href={`/courses?q=${encodeURIComponent(tag)}`}
+            className={styles.header__tag}
+            prefetch={false}
+          >
             #{tag}
-          </span>
+          </Link>
         ))}
       </div>
       <h1 className={styles.header__title}>{course.title}</h1>

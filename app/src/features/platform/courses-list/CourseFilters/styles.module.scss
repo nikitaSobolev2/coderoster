@@ -2,10 +2,12 @@
 @use '~/shared/assets/styles/breakpoints' as bp;
 
 .filters {
+  @include bluredBg;
+
   padding: 1.25rem;
   border-radius: var(--platform-card-radius);
-  border: var(--border-width-hair) solid var(--platform-color-border);
-  background: var(--platform-color-surface);
+  border: var(--border-width-hair) solid var(--platform-glass-border);
+  box-shadow: var(--platform-glass-shadow);
 }
 
 .filters__row {
@@ -21,7 +23,7 @@
 }
 
 .filters__searchInput {
-  background: var(--platform-color-surface);
+  @include bluredBg;
   border-color: var(--platform-color-border);
   color: var(--color-text);
 }
@@ -69,7 +71,25 @@
 }
 
 @include bp.max-width(bp.$bp-sm) {
+  .filters {
+    padding: 1rem;
+  }
+
+  .filters__row {
+    gap: 0.5rem;
+  }
+
+  .filters__search {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
   .filters__sort {
     width: 100%;
+  }
+
+  .filters__activeRow {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }

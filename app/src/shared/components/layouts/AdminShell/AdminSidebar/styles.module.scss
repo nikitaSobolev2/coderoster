@@ -1,6 +1,8 @@
 @use '~/shared/assets/styles/mixins' as *;
 
 .sidebar {
+  @include scrollbarSlim;
+
   display: flex;
   flex-direction: column;
   width: 260px;
@@ -9,9 +11,8 @@
   position: sticky;
   top: 0;
   padding: 1.25rem 1rem;
-  background: color-mix(in srgb, var(--color-bg) 82%, transparent);
-  backdrop-filter: var(--blur-effect-default);
-  border-right: var(--border-width-hair) solid var(--platform-color-divider);
+  @include bluredBg;
+  border-right: var(--border-width-hair) solid var(--platform-glass-border);
 }
 
 .sidebar__brand {
@@ -70,27 +71,35 @@
 }
 
 .sidebar__link {
+  @include clickable;
+  @include focusGlow;
+
   display: flex;
   align-items: center;
   gap: 0.7rem;
-  padding: 0.5rem 0.7rem;
+  padding: 0.55rem 0.7rem;
+  min-height: 2.25rem;
   border-radius: var(--platform-card-radius-sm);
   color: var(--color-text-secondary);
   text-decoration: none;
   transition:
     background var(--transition-default),
-    color var(--transition-default);
+    color var(--transition-default),
+    transform var(--transition-default);
 
   &:hover {
     background: var(--platform-color-surface-hover);
     color: var(--color-text);
+    transform: translateX(2px);
   }
 }
 
 .sidebar__link_active {
-  background: var(--platform-color-surface);
+  background: var(--platform-color-accent-soft);
   color: var(--color-text);
-  box-shadow: inset 0 0 0 1px var(--platform-color-border);
+  box-shadow:
+    inset 0 0 0 1px var(--platform-glass-border),
+    inset 2px 0 0 var(--platform-color-accent);
 }
 
 .sidebar__icon {
@@ -106,6 +115,9 @@
 }
 
 .sidebar__back {
+  @include clickable;
+  @include focusGlow;
+
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
@@ -114,9 +126,14 @@
   font-size: var(--font-size-h6);
   letter-spacing: var(--letter-spacing-button);
   text-transform: uppercase;
-  transition: color var(--transition-default);
+  padding: 0.4rem 0.5rem;
+  border-radius: 0.25rem;
+  transition:
+    color var(--transition-default),
+    transform var(--transition-default);
 
   &:hover {
     color: var(--color-text);
+    transform: translateX(-2px);
   }
 }

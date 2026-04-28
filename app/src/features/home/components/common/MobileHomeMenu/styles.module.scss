@@ -44,7 +44,6 @@
   width: 100%;
   border-radius: var(--border-radius-el) var(--border-radius-el) 0 0;
   border: var(--border-width-hair) solid var(--color-bg-el-border);
-  background: var(--color-bg-semivisible);
   transform: translateY(100%);
   transition: transform var(--transition-long) var(--easing-cursor);
   pointer-events: auto;

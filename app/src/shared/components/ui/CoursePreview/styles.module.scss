@@ -1,13 +1,14 @@
 @use '~/shared/assets/styles/mixins' as *;
 
 .preview {
+  @include bluredBg;
+
   position: relative;
   display: block;
   width: 100%;
   aspect-ratio: 16 / 9;
   border-radius: var(--platform-card-radius);
   overflow: hidden;
-  background: var(--platform-color-surface);
   border: var(--border-width-hair) solid var(--platform-color-border);
 }
 

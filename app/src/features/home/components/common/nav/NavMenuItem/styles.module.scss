@@ -1,11 +1,17 @@
 @use '~/shared/assets/styles/mixins' as *;
 
 .navMenuItem {
+  align-self: flex-start;
+  width: auto;
+  max-width: 100%;
+
   &__button {
     --cursor-fill-color: var(--color-text);
 
     @include buttonReset;
 
+    width: fit-content;
+    max-width: 100%;
     position: relative;
     border-radius: var(--border-radius-button);
     color: var(--color-text);

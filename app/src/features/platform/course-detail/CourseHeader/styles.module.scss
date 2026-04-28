@@ -15,10 +15,44 @@
   gap: 0.5rem;
 }
 
+.header__chipLink {
+  @include clickable;
+  @include focusGlow;
+
+  display: inline-flex;
+  text-decoration: none;
+  color: inherit;
+  border-radius: var(--platform-card-radius-sm);
+  transition: transform var(--transition-default);
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+}
+
 .header__tag {
+  @include clickable;
+  @include focusGlow;
+
+  display: inline-block;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
   font-size: var(--font-size-h6);
   color: var(--color-text-secondary);
   letter-spacing: 0.04em;
+  text-decoration: none;
+  border: var(--border-width-hair) solid transparent;
+  transition:
+    color var(--transition-default),
+    background var(--transition-default),
+    border-color var(--transition-default);
+
+  &:hover,
+  &:focus-visible {
+    color: var(--color-text);
+    background: var(--platform-color-surface-hover);
+    border-color: var(--platform-glass-border);
+  }
 }
 
 .header__title {

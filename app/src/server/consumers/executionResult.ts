@@ -3,7 +3,7 @@ import type { Prisma } from '@prisma/client'
 import { db } from '~/server/db'
 import { startConsumer } from '~/server/amqp/consumer'
 import { cache } from '~/server/cache'
-import { cacheKeys } from '~/server/repositories/cached'
+import { invalidateProfileCachesForUsername } from '~/server/cache/invalidateProfileCaches'
 import { achievementService } from '~/server/services/AchievementService'
 import { streakService } from '~/server/services/StreakService'
 import { xpService, type XpSource } from '~/server/services/XpService'
@@ -223,10 +223,7 @@ async function invalidateCaches(userId: string): Promise<void> {
   })
   if (!user) return
   await Promise.all([
-    cache.del(cacheKeys.profile(user.username, userId)),
-    cache.del(cacheKeys.profile(user.username, null)),
-    cache.del(cacheKeys.achievements(user.username)),
-    cache.delPrefix(`activity:${user.username}:`),
+    invalidateProfileCachesForUsername(user.username),
     cache.delPrefix('leaderboard:')
   ])
 }

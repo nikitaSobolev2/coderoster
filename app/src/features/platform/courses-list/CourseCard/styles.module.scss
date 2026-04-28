@@ -1,27 +1,20 @@
 @use '~/shared/assets/styles/mixins' as *;
+@use '~/shared/assets/styles/breakpoints' as bp;
 
 .card {
+  @include liquidGlass;
+  @include liquidGlassHover;
+
+  position: relative;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   gap: 1.25rem;
   padding: var(--platform-card-padding);
   border-radius: var(--platform-card-radius);
-  border: var(--border-width-hair) solid var(--platform-color-border);
-  background: var(--platform-color-surface);
   color: inherit;
   text-decoration: none;
-  transition:
-    border-color var(--transition-default),
-    background var(--transition-default),
-    transform var(--transition-default);
-
-  &:hover,
-  &:focus-visible {
-    border-color: var(--platform-color-accent);
-    background: var(--platform-color-surface-hover);
-    transform: translateY(-2px);
-  }
+  overflow: hidden;
 }
 
 .card__head {
@@ -34,6 +27,23 @@
   display: flex;
   gap: 0.4rem;
   flex-wrap: wrap;
+  position: relative;
+  z-index: 2;
+}
+
+.card__chipLink {
+  @include clickable;
+  @include focusGlow;
+
+  display: inline-flex;
+  text-decoration: none;
+  color: inherit;
+  border-radius: var(--platform-card-radius-sm);
+  transition: transform var(--transition-default);
+
+  &:hover {
+    transform: translateY(-1px);
+  }
 }
 
 .card__title {
@@ -43,21 +53,75 @@
   line-height: 1.25;
 }
 
+.card__titleLink {
+  @include clickable;
+
+  display: inline;
+  color: inherit;
+  text-decoration: none;
+  transition: color var(--transition-default);
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    z-index: 1;
+  }
+
+  &:hover {
+    color: var(--color-text);
+  }
+
+  &:focus-visible {
+    outline: none;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+}
+
 .card__description {
   color: var(--color-text-secondary);
   line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .card__tags {
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
+  position: relative;
+  z-index: 2;
 }
 
 .card__tag {
+  @include clickable;
+  @include focusGlow;
+
+  display: inline-block;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
   font-size: var(--font-size-h6);
   color: var(--color-text-secondary);
   letter-spacing: 0.04em;
+  text-decoration: none;
+  background: transparent;
+  border: var(--border-width-hair) solid transparent;
+  transition:
+    color var(--transition-default),
+    background var(--transition-default),
+    border-color var(--transition-default);
+
+  &:hover,
+  &:focus-visible {
+    color: var(--color-text);
+    background: var(--platform-color-surface-hover);
+    border-color: var(--platform-glass-border);
+  }
 }
 
 .card__foot {
@@ -68,6 +132,7 @@
   color: var(--color-text-secondary);
   font-size: var(--font-size-h6);
   letter-spacing: 0.04em;
+  flex-wrap: wrap;
 }
 
 .stat {
@@ -78,4 +143,10 @@
 
 .stat__icon {
   opacity: 0.7;
+}
+
+@include bp.max-width(bp.$bp-sm) {
+  .card__foot {
+    gap: 0.85rem;
+  }
 }

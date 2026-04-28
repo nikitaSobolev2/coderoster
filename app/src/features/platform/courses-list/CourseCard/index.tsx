@@ -21,9 +21,15 @@ export interface Props {
   course: CourseSummary
 }
 
+/**
+ * Course summary card. The whole tile is clickable via an overlay anchor on
+ * the title (`::before`), while category + tag chips render as nested anchors
+ * pointing at pre-filtered catalog routes — they sit above the overlay so a
+ * tap on a chip drives a tag-filtered list rather than the course detail.
+ */
 export default function CourseCard({ course }: Props) {
   return (
-    <Link href={`/courses/${course.slug}`} className={styles.card}>
+    <article className={styles.card}>
       <CoursePreview
         slug={course.slug}
         title={course.title}
@@ -34,25 +40,57 @@ export default function CourseCard({ course }: Props) {
       <header className={styles.card__head}>
         <div className={styles.card__badges}>
           {course.category ? (
-            <Badge variant="light" color="grape" radius="sm">
-              {course.category.title}
-            </Badge>
+            <Link
+              href={`/courses?category=${course.category.slug}`}
+              className={styles.card__chipLink}
+              prefetch={false}
+            >
+              <Badge variant="light" color="grape" radius="sm">
+                {course.category.title}
+              </Badge>
+            </Link>
           ) : null}
-          <Badge variant="light" color="indigo" radius="sm">
-            {LANGUAGE_LABELS[course.language]}
-          </Badge>
-          <Badge variant="default" radius="sm">
-            {DIFFICULTY_LABELS[course.difficulty]}
-          </Badge>
+          <Link
+            href={`/courses?language=${course.language}`}
+            className={styles.card__chipLink}
+            prefetch={false}
+          >
+            <Badge variant="light" color="indigo" radius="sm">
+              {LANGUAGE_LABELS[course.language]}
+            </Badge>
+          </Link>
+          <Link
+            href={`/courses?difficulty=${course.difficulty}`}
+            className={styles.card__chipLink}
+            prefetch={false}
+          >
+            <Badge variant="default" radius="sm">
+              {DIFFICULTY_LABELS[course.difficulty]}
+            </Badge>
+          </Link>
         </div>
-        <h3 className={styles.card__title}>{course.title}</h3>
+        <h3 className={styles.card__title}>
+          <Link
+            href={`/courses/${course.slug}`}
+            className={styles.card__titleLink}
+            prefetch={false}
+          >
+            {course.title}
+          </Link>
+        </h3>
         <p className={styles.card__description}>{course.description}</p>
       </header>
 
       <ul className={styles.card__tags}>
         {course.tags.slice(0, 4).map(tag => (
-          <li key={tag} className={styles.card__tag}>
-            #{tag}
+          <li key={tag}>
+            <Link
+              href={`/courses?q=${encodeURIComponent(tag)}`}
+              className={styles.card__tag}
+              prefetch={false}
+            >
+              #{tag}
+            </Link>
           </li>
         ))}
       </ul>
@@ -62,7 +100,7 @@ export default function CourseCard({ course }: Props) {
         <Stat icon={faStar} label={`+${course.xpReward} XP`} />
         <Stat icon={faUsers} label={course.enrollmentCount.toLocaleString('ru-RU')} />
       </footer>
-    </Link>
+    </article>
   )
 }
 

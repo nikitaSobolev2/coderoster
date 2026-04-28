@@ -1,3 +1,5 @@
+@use '~/shared/assets/styles/mixins' as *;
+
 .editor {
   display: flex;
   flex-direction: column;
@@ -16,9 +18,10 @@
 }
 
 .shell {
+  @include bluredBg;
+
   display: flex;
   flex-direction: column;
-  background: var(--platform-color-surface);
   border: var(--border-width-hair) solid var(--platform-color-border);
   border-radius: var(--platform-card-radius-sm);
   overflow: hidden;

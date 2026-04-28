@@ -234,14 +234,51 @@
   --platform-color-accent-soft: color-mix(in srgb, var(--platform-color-accent) 18%, transparent);
   --platform-shadow-card: 0 24px 60px -32px rgba(0, 0, 0, 0.65);
   --platform-shadow-popover: 0 30px 80px -24px rgba(0, 0, 0, 0.85);
+
+  /* Liquid-glass surfaces (frosted, with subtle inner highlight) */
+  --platform-glass-bg: color-mix(in srgb, var(--color-text) 5%, transparent);
+  --platform-glass-bg-strong: color-mix(in srgb, var(--color-text) 8%, transparent);
+  --platform-glass-border: color-mix(in srgb, var(--color-text) 14%, transparent);
+  --platform-glass-blur: blur(18px) saturate(140%);
+  --platform-glass-shadow:
+    0 1px 0 color-mix(in srgb, var(--color-text) 10%, transparent) inset,
+    0 -1px 0 color-mix(in srgb, var(--color-bg) 35%, transparent) inset,
+    0 24px 60px -32px rgba(0, 0, 0, 0.7);
+  --platform-glass-shadow-hover:
+    0 1px 0 color-mix(in srgb, var(--color-text) 16%, transparent) inset,
+    0 -1px 0 color-mix(in srgb, var(--color-bg) 30%, transparent) inset,
+    0 30px 80px -28px rgba(0, 0, 0, 0.75),
+    0 0 0 1px color-mix(in srgb, var(--platform-color-accent) 40%, transparent);
+  --platform-glass-sheen: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--color-text) 8%, transparent) 0%,
+    transparent 35%,
+    transparent 65%,
+    color-mix(in srgb, var(--color-text) 4%, transparent) 100%
+  );
+
+  /* Ambient grid backdrop — non-fixed, scrolls with page */
+  --platform-grid-color: color-mix(in srgb, var(--color-text) 4%, transparent);
+  --platform-grid-color-strong: color-mix(in srgb, var(--color-text) 6%, transparent);
+  --platform-grid-size: 64px;
+  --platform-grid-size-sm: 32px;
+  --platform-grid-vignette: radial-gradient(
+    ellipse 80% 60% at 50% 0%,
+    color-mix(in srgb, var(--platform-color-accent) 12%, transparent) 0%,
+    transparent 60%
+  );
+
+  /* Mobile bottom island (platform/admin) */
+  --platform-mobile-island-inset: max(env(safe-area-inset-bottom, 0px), 0.75rem);
+  --platform-mobile-island-height: 56px;
   /* -----end Platform shell----- */
 }
 
 /* Mobile token overrides — tighter editorial scale; matches $bp-nav (768px) */
 @media (max-width: 768px) {
   :root {
-    --font-size-h1: 32px;
-    --font-size-h2: 24px;
+    --font-size-h1: clamp(28px, 8vw, 36px);
+    --font-size-h2: clamp(22px, 6.5vw, 28px);
     --font-size-h3: 18px;
     --letter-spacing-title: 2px;
 
@@ -253,5 +290,9 @@
     --gap-section-heading: 2em;
     --gap-howto-row: 2.5em;
     --padding-fear-card: 1.5em 1.25em;
+
+    --platform-shell-padding-inline: 1rem;
+    --platform-card-padding: 1.1rem;
+    --platform-grid-size: 40px;
   }
 }

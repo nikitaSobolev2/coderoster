@@ -12,8 +12,7 @@
     padding: 0.75rem;
     border-radius: var(--platform-card-radius);
     border: 1px solid var(--platform-color-border);
-    background: var(--platform-color-surface);
-    backdrop-filter: var(--blur-effect-default);
+    @include bluredBg;
   }
 
   &__list {
@@ -88,9 +87,8 @@
   &__mobileSwitcher {
     display: none;
     border: 1px solid var(--platform-color-border);
-    background: var(--platform-color-surface);
     border-radius: var(--platform-card-radius);
-    backdrop-filter: var(--blur-effect-default);
+    @include bluredBg;
   }
 
   &__mobileSummary {
@@ -147,8 +145,7 @@
     padding: 1.75rem;
     border-radius: var(--platform-card-radius);
     border: 1px solid var(--platform-color-border);
-    background: var(--platform-color-surface);
-    backdrop-filter: var(--blur-effect-default);
+    @include bluredBg;
     box-shadow: var(--platform-shadow-card);
   }
 

@@ -37,6 +37,7 @@
 }
 
 @mixin bluredBg() {
+  -webkit-backdrop-filter: var(--blur-effect-default);
   backdrop-filter: var(--blur-effect-default);
   background: var(--color-bg-semivisible);
 }
@@ -66,5 +67,171 @@
 @mixin reducedMotion() {
   @media (prefers-reduced-motion: reduce) {
     @content;
+  }
+}
+
+/* ----- Platform liquid-glass surface -----
+ * Frosted bg + subtle inner highlight + accent border.
+ * Use $strong: true for elevated surfaces (panels, sticky islands).
+ */
+@mixin liquidGlass($strong: false) {
+  @include bluredBg;
+
+  // background: if($strong, var(--platform-glass-bg-strong), var(--platform-glass-bg));
+  // backdrop-filter: var(--platform-glass-blur);
+  // -webkit-backdrop-filter: var(--platform-glass-blur);
+  border: var(--border-width-hair) solid var(--platform-glass-border);
+  box-shadow: var(--platform-glass-shadow);
+  position: relative;
+  isolation: isolate;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--platform-glass-sheen);
+    opacity: 0.5;
+    pointer-events: none;
+    z-index: -1;
+  }
+}
+
+@mixin liquidGlassHover() {
+  transition:
+    border-color var(--transition-default),
+    box-shadow var(--transition-default),
+    transform var(--transition-default);
+
+  &:hover,
+  &:focus-visible {
+    box-shadow: var(--platform-glass-shadow-hover);
+    border-color: color-mix(
+      in srgb,
+      var(--platform-color-accent) 50%,
+      var(--platform-glass-border)
+    );
+    transform: translateY(-2px);
+  }
+
+  @include reducedMotion {
+    &:hover,
+    &:focus-visible {
+      transform: none;
+    }
+  }
+}
+
+/* ----- Ambient thin-grid background -----
+ * Non-fixed (scrolls with page); subtle accent vignette on top.
+ * Apply to a positioned ::before pseudo on the shell wrapper.
+ */
+@mixin gridBackdrop() {
+  background-color: var(--color-bg);
+  background-image:
+    var(--platform-grid-vignette),
+    linear-gradient(
+      color-mix(in srgb, var(--platform-grid-color) 65%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--platform-grid-color) 65%, transparent) 1px,
+      transparent 1px
+    );
+  background-size:
+    100% 100%,
+    var(--platform-grid-size) var(--platform-grid-size),
+    var(--platform-grid-size) var(--platform-grid-size);
+  background-position:
+    center top,
+    center top,
+    center top;
+  background-repeat: no-repeat, repeat, repeat;
+  background-attachment: scroll;
+}
+
+@mixin clickable() {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@mixin focusGlow() {
+  &:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 2px var(--color-bg),
+      0 0 0 4px color-mix(in srgb, var(--platform-color-accent) 70%, transparent);
+  }
+}
+
+@mixin scrollbarSlim() {
+  scrollbar-width: thin;
+  scrollbar-color: var(--platform-color-border) transparent;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: var(--platform-color-border);
+    border-radius: 999px;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background: var(--platform-color-accent-soft);
+  }
+}
+
+/* Unified cursor reset for platform + admin chrome (see globals.scss). */
+@mixin platformChromeShellCursors() {
+  body[data-platform-shell='true'],
+  body[data-admin-shell='true'] {
+    a,
+    button,
+    select,
+    summary,
+    [role='button'],
+    [role='link'],
+    [role='tab'],
+    [role='menuitem'],
+    [role='option'],
+    [role='switch'],
+    [role='checkbox'],
+    [role='radio'],
+    label[for] {
+      cursor: pointer;
+    }
+
+    input:is([type='checkbox'], [type='radio'], [type='range'], [type='file'], [type='color']),
+    input:is([type='button'], [type='submit'], [type='reset'], [type='image']) {
+      cursor: pointer;
+    }
+
+    textarea,
+    input:not([type]),
+    input:is(
+      [type='text'],
+      [type='search'],
+      [type='email'],
+      [type='password'],
+      [type='url'],
+      [type='tel'],
+      [type='number'],
+      [type='date'],
+      [type='datetime-local'],
+      [type='month'],
+      [type='week'],
+      [type='time']
+    ) {
+      cursor: text;
+    }
+
+    *:focus-visible {
+      outline: none;
+      box-shadow:
+        0 0 0 2px var(--color-bg),
+        0 0 0 4px color-mix(in srgb, var(--platform-color-accent) 70%, transparent);
+      border-radius: var(--platform-card-radius-sm);
+    }
   }
 }

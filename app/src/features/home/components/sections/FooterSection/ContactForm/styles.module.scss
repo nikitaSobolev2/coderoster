@@ -42,8 +42,7 @@
   &:focus,
   &:not(:placeholder-shown) {
     border-color: var(--color-text-secondary);
-    background: var(--color-bg-semivisible);
-    backdrop-filter: var(--blur-effect-default);
+    @include bluredBg;
     box-shadow: var(--shadow-form-input-focus);
   }
 

@@ -2,6 +2,8 @@ import { z } from 'zod'
 import { TRPCError } from '@trpc/server'
 import { adminProcedure } from '~/server/api/procedures'
 import { createTRPCRouter } from '~/server/api/trpc'
+import { db } from '~/server/db'
+import { invalidateProfileCachesForUserId } from '~/server/cache/invalidateProfileCaches'
 
 const userIdInput = z.object({ id: z.string().min(1) })
 
@@ -66,7 +68,9 @@ export const adminUsersRouter = createTRPCRouter({
         message: 'Нельзя снять с себя роль администратора через эту форму.'
       })
     }
-    return ctx.repositories.admin.users.update(input.id, input.patch)
+    const next = await ctx.repositories.admin.users.update(input.id, input.patch)
+    await invalidateProfileCachesForUserId(input.id)
+    return next
   }),
 
   ban: adminProcedure.input(banInput).mutation(async ({ ctx, input }) => {
@@ -85,11 +89,13 @@ export const adminUsersRouter = createTRPCRouter({
 
   grantAchievement: adminProcedure.input(grantInput).mutation(async ({ ctx, input }) => {
     await ctx.repositories.admin.users.grantAchievement(input.id, input.achievementId)
+    await invalidateProfileCachesForUserId(input.id)
     return { ok: true as const }
   }),
 
   revokeAchievement: adminProcedure.input(grantInput).mutation(async ({ ctx, input }) => {
     await ctx.repositories.admin.users.revokeAchievement(input.id, input.achievementId)
+    await invalidateProfileCachesForUserId(input.id)
     return { ok: true as const }
   }),
 
@@ -106,7 +112,12 @@ export const adminUsersRouter = createTRPCRouter({
   deleteActivity: adminProcedure
     .input(z.object({ activityId: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
+      const activity = await db.userActivity.findUnique({
+        where: { id: input.activityId },
+        select: { userId: true }
+      })
       await ctx.repositories.admin.users.deleteActivity(input.activityId)
+      if (activity) await invalidateProfileCachesForUserId(activity.userId)
       return { ok: true as const }
     }),
 

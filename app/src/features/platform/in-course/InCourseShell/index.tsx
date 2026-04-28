@@ -22,6 +22,7 @@ import type {
 } from '~/server/repositories/types'
 import { mapTerminalExecutionRecordToView } from '~/shared/lib/executionTerminalView'
 import TaskNav from '../TaskNav'
+import MobileTaskNavTrigger from '../TaskNav/MobileTaskNavTrigger'
 import TaskPane from '../TaskPane'
 import CodeEditor from '../CodeEditor'
 import ExecutionPanel, { type ExecutionState } from '../ExecutionPanel'
@@ -163,15 +164,22 @@ export default function InCourseShell({
 
   return (
     <div className={styles.shell}>
-      <TaskNav
-        course={course}
-        currentLessonId={lesson.id}
-        completedLessonIds={completedLessonIds}
-      />
+      <aside className={styles.shell__nav}>
+        <TaskNav
+          course={course}
+          currentLessonId={lesson.id}
+          completedLessonIds={completedLessonIds}
+        />
+      </aside>
       <TaskPane lesson={lesson} />
       <section className={styles.workspace}>
         <header className={styles.workspace__head}>
           <div className={styles.workspace__lang}>
+            <MobileTaskNavTrigger
+              course={course}
+              currentLessonId={lesson.id}
+              completedLessonIds={completedLessonIds}
+            />
             <SegmentedControl
               value={language}
               onChange={value => setLanguage(value as Language)}

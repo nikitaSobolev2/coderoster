@@ -1,6 +1,10 @@
 import { z } from 'zod'
 import { createTRPCRouter, protectedProcedure, publicProcedure } from '~/server/api/trpc'
 import { commentProcedure } from '~/server/api/procedures'
+import {
+  invalidateProfileCachesForCommentId,
+  invalidateProfileCachesForUsername
+} from '~/server/cache/invalidateProfileCaches'
 
 export const commentRouter = createTRPCRouter({
   listOnProfile: publicProcedure
@@ -21,13 +25,16 @@ export const commentRouter = createTRPCRouter({
         body: z.string().trim().min(1).max(1000)
       })
     )
-    .mutation(({ ctx, input }) =>
-      ctx.repositories.comment.post(ctx.user.id, input.username, input.body)
-    ),
+    .mutation(async ({ ctx, input }) => {
+      const row = await ctx.repositories.comment.post(ctx.user.id, input.username, input.body)
+      await invalidateProfileCachesForUsername(input.username)
+      return row
+    }),
 
   delete: protectedProcedure
     .input(z.object({ commentId: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
+      await invalidateProfileCachesForCommentId(input.commentId)
       await ctx.repositories.comment.delete(ctx.user.id, input.commentId)
       return { ok: true as const }
     }),
@@ -41,6 +48,7 @@ export const commentRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       await ctx.repositories.comment.like(ctx.user.id, input.commentId, input.vote)
+      await invalidateProfileCachesForCommentId(input.commentId)
       return { ok: true as const }
     })
 })

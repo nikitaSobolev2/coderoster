@@ -2,11 +2,14 @@
 @use '~/shared/assets/styles/breakpoints' as bp;
 
 .shell {
+  @include gridBackdrop;
+
+  position: relative;
   display: flex;
   flex-direction: column;
   min-height: 100svh;
-  background: var(--color-bg);
   color: var(--color-text);
+  isolation: isolate;
 }
 
 .shell__main {
@@ -25,6 +28,12 @@
 @include bp.max-width(bp.$bp-nav) {
   .shell__main {
     padding-top: calc(var(--platform-header-height) + 1rem);
-    padding-bottom: 3rem;
+    padding-bottom: calc(
+      var(--platform-mobile-island-height) + var(--platform-mobile-island-inset) + 1.5rem
+    );
+  }
+
+  .shell__main_fluid {
+    padding-bottom: 0;
   }
 }

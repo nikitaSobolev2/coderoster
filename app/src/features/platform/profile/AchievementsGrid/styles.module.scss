@@ -7,7 +7,7 @@
   padding: var(--platform-card-padding);
   border-radius: var(--platform-card-radius);
   border: var(--border-width-hair) solid var(--platform-color-border);
-  background: var(--platform-color-surface);
+  @include bluredBg;
 }
 
 .section__head {
@@ -87,8 +87,7 @@
   flex-direction: column;
   gap: 0.25rem;
   max-width: 280px;
-  background: color-mix(in srgb, var(--color-bg) 92%, transparent);
-  backdrop-filter: var(--blur-effect-default);
+  @include bluredBg;
   border: var(--border-width-hair) solid var(--platform-color-border);
   padding: 0.75rem 0.85rem;
   border-radius: var(--platform-card-radius-sm);

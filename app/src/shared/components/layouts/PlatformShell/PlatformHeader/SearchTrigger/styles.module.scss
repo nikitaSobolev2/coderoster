@@ -1,7 +1,10 @@
 @use '~/shared/assets/styles/mixins' as *;
+@use '~/shared/assets/styles/breakpoints' as bp;
 
 .trigger {
   @include buttonReset;
+  @include clickable;
+  @include focusGlow;
 
   display: inline-flex;
   align-items: center;
@@ -10,12 +13,13 @@
   min-width: 220px;
   border-radius: 999px;
   background: var(--platform-color-surface);
-  border: var(--border-width-hair) solid var(--platform-color-border);
+  border: var(--border-width-hair) solid var(--platform-glass-border);
   color: var(--color-text-secondary);
   transition:
     background var(--transition-default),
     color var(--transition-default),
-    border-color var(--transition-default);
+    border-color var(--transition-default),
+    box-shadow var(--transition-default);
 
   &:hover,
   &:focus-visible {
@@ -23,9 +27,10 @@
     background: var(--platform-color-surface-hover);
     border-color: color-mix(
       in srgb,
-      var(--platform-color-accent) 30%,
-      var(--platform-color-border)
+      var(--platform-color-accent) 50%,
+      var(--platform-glass-border)
     );
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--platform-color-accent) 12%, transparent);
   }
 }
 
@@ -41,4 +46,19 @@
 
 .trigger__badge {
   margin-left: auto;
+}
+
+@include bp.max-width(bp.$bp-search) {
+  .trigger {
+    min-width: 0;
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .trigger__label,
+  .trigger__badge {
+    display: none;
+  }
 }

@@ -1,3 +1,5 @@
+@use '~/shared/assets/styles/mixins' as *;
+
 .field {
   display: flex;
   flex-direction: column;
@@ -21,6 +23,8 @@
 }
 
 .dropzone {
+  @include bluredBg;
+
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -29,7 +33,6 @@
   min-height: 180px;
   padding: 1.5rem;
   text-align: center;
-  background: var(--platform-color-surface);
   border: var(--border-width-hair) dashed var(--platform-color-border);
   border-radius: var(--platform-card-radius-sm);
   color: var(--color-text-secondary);
@@ -75,11 +78,12 @@
 }
 
 .preview {
+  @include bluredBg;
+
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
   padding: 0.75rem;
-  background: var(--platform-color-surface);
   border: var(--border-width-hair) solid var(--platform-color-border);
   border-radius: var(--platform-card-radius-sm);
 }
@@ -124,11 +128,12 @@
 }
 
 .uploading {
+  @include bluredBg;
+
   display: flex;
   flex-direction: column;
   gap: 0.55rem;
   padding: 1.25rem;
-  background: var(--platform-color-surface);
   border: var(--border-width-hair) solid var(--platform-color-border);
   border-radius: var(--platform-card-radius-sm);
 }

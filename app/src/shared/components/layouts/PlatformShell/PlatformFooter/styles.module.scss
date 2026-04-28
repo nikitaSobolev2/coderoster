@@ -2,17 +2,15 @@
 @use '~/shared/assets/styles/breakpoints' as bp;
 
 .footer {
+  @include bluredBg;
+
   position: relative;
   margin-top: 4rem;
   padding-top: 3rem;
   padding-bottom: 2rem;
-  border-top: var(--border-width-hair) solid var(--platform-color-divider);
-  background: linear-gradient(
-    180deg,
-    transparent,
-    color-mix(in srgb, var(--platform-color-accent) 6%, transparent)
-  );
+  border-top: var(--border-width-hair) solid var(--platform-glass-border);
   overflow: hidden;
+  isolation: isolate;
 }
 
 .footer__wordmark {
@@ -70,22 +68,30 @@
 }
 
 .footer__social {
+  @include clickable;
+  @include focusGlow;
+
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 2.25rem;
   height: 2.25rem;
   border-radius: 999px;
-  border: var(--border-width-hair) solid var(--platform-color-border);
+  border: var(--border-width-hair) solid var(--platform-glass-border);
+  background: var(--platform-glass-bg);
   color: var(--color-text-secondary);
   transition:
     color var(--transition-default),
-    border-color var(--transition-default);
+    border-color var(--transition-default),
+    background var(--transition-default),
+    transform var(--transition-default);
 
   &:hover,
   &:focus-visible {
     color: var(--color-text);
     border-color: var(--platform-color-accent);
+    background: var(--platform-color-surface-hover);
+    transform: translateY(-2px);
   }
 }
 
@@ -116,14 +122,23 @@
 }
 
 .footer__link {
+  @include clickable;
+  @include focusGlow;
+
+  display: inline-block;
   color: var(--color-text-secondary);
   text-decoration: none;
   font-size: var(--font-size-default);
-  transition: color var(--transition-default);
+  padding: 0.15rem 0;
+  border-radius: 0.25rem;
+  transition:
+    color var(--transition-default),
+    transform var(--transition-default);
 
   &:hover,
   &:focus-visible {
     color: var(--color-text);
+    transform: translateX(2px);
   }
 }
 

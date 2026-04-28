@@ -17,7 +17,7 @@
   padding: 3rem 2rem;
   border-radius: var(--platform-card-radius);
   border: var(--border-width-hair) solid var(--platform-color-border);
-  background: var(--platform-color-surface);
+  @include bluredBg;
 }
 
 .section__eyebrow {

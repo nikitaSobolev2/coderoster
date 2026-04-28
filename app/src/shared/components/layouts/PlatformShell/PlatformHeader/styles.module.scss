@@ -2,15 +2,19 @@
 @use '~/shared/assets/styles/breakpoints' as bp;
 
 .header {
+  @include bluredBg;
+
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: var(--z-header-sticky);
   height: var(--platform-header-height);
-  background: color-mix(in srgb, var(--color-bg) 78%, transparent);
-  backdrop-filter: var(--blur-effect-default);
-  border-bottom: var(--border-width-hair) solid var(--platform-color-divider);
+  overflow: visible;
+  border-bottom: var(--border-width-hair) solid var(--platform-glass-border);
+  box-shadow:
+    0 1px 0 color-mix(in srgb, var(--color-text) 6%, transparent) inset,
+    0 12px 32px -24px rgba(0, 0, 0, 0.6);
 }
 
 .header__inner {
@@ -36,6 +40,7 @@
   align-items: center;
   gap: 0.25rem;
   margin-right: auto;
+  overflow: visible;
 }
 
 .header__actions {

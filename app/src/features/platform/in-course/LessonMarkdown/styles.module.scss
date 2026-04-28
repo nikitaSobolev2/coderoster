@@ -26,9 +26,10 @@
 }
 
 .md__code {
+  @include bluredBg;
+
   padding: 0.1em 0.4em;
   border-radius: 0.3em;
-  background: var(--platform-color-surface);
   border: var(--border-width-hair) solid var(--platform-color-border);
   font-family: 'JetBrains Mono', 'Fira Code', monospace;
   font-size: 0.9em;

@@ -1,5 +1,7 @@
 import 'server-only'
+import { Prisma } from '@prisma/client'
 import { db } from '~/server/db'
+import { levelForActivityCount } from '~/server/lib/activityHeatmapLevel'
 import { findUserByUsernameLoose } from '~/server/lib/userLookup'
 import {
   calculateProfileStats,
@@ -9,6 +11,9 @@ import {
 } from './mappers'
 import type { ActivityCell, EarnedAchievement, PublicProfile } from './types'
 import { getFakeAchievements, getFakeActivity, getFakeProfile } from './fixtures'
+
+type PgDateRow = { d: string }
+type PgCountRow = { c: bigint }
 
 export interface ProfileRepository {
   getByUsername(username: string, viewerUserId: string | null): Promise<PublicProfile | null>
@@ -51,11 +56,48 @@ export class PrismaProfileRepository implements ProfileRepository {
     if (!user) return []
     const start = `${year}-01-01`
     const end = `${year}-12-31`
-    const snapshots = await db.userActivitySnapshot.findMany({
-      where: { userId: user.id, date: { gte: start, lte: end } },
-      orderBy: { date: 'asc' }
-    })
-    return snapshots.map(toActivityCell)
+
+    const todayRows = await db.$queryRaw<PgDateRow[]>(
+      Prisma.sql`SELECT to_char(CURRENT_DATE, 'YYYY-MM-DD') AS d`
+    )
+    const pgToday = todayRows[0]?.d
+    if (!pgToday) return []
+
+    const todayInSelectedYear = pgToday >= start && pgToday <= end
+
+    const [snapshots, liveTodayRows] = await Promise.all([
+      db.userActivitySnapshot.findMany({
+        where: {
+          userId: user.id,
+          date: { gte: start, lte: end },
+          ...(todayInSelectedYear ? { NOT: { date: pgToday } } : {})
+        },
+        orderBy: { date: 'asc' }
+      }),
+      todayInSelectedYear
+        ? db.$queryRaw<PgCountRow[]>(
+            Prisma.sql`
+            SELECT COUNT(*)::bigint AS c
+            FROM "UserActivity"
+            WHERE "userId" = ${user.id}
+              AND "createdAt"::date = CURRENT_DATE`
+          )
+        : Promise.resolve(null)
+    ])
+
+    const cells: ActivityCell[] = snapshots.map(toActivityCell)
+
+    if (todayInSelectedYear && liveTodayRows) {
+      const count = Number(liveTodayRows[0]?.c ?? 0)
+      cells.push({
+        date: pgToday,
+        count,
+        level: levelForActivityCount(count)
+      })
+      cells.sort((a, b) => a.date.localeCompare(b.date))
+    }
+
+    return cells
   }
 
   async getAchievements(username: string): Promise<EarnedAchievement[]> {

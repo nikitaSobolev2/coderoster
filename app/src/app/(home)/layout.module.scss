@@ -1,7 +1,13 @@
+@use '~/shared/assets/styles/mixins' as *;
 @use '~/shared/assets/styles/breakpoints' as bp;
 
-/* Matches former globals: hide native cursor so `~/features/home/.../Cursor` shows on marketing home only. */
+/* Same ambient thin-grid + vignette as platform shell (scrolls with page, non-fixed). */
 .homeShell {
+  @include gridBackdrop;
+
+  position: relative;
+  isolation: isolate;
+  color: var(--color-text);
   min-height: 100svh;
   cursor: none;
 

@@ -20,7 +20,7 @@
 }
 
 .row_active {
-  background: var(--platform-color-surface);
+  @include bluredBg;
   box-shadow: inset 0 0 0 1px var(--platform-color-border);
 }
 
@@ -79,7 +79,8 @@
 }
 
 .task_active {
-  background: var(--platform-color-surface);
+  @include bluredBg;
+
   box-shadow: inset 0 0 0 1px var(--platform-color-border);
 }
 

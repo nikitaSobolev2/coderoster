@@ -31,7 +31,11 @@ export default function NavCategory({ category }: Props) {
       position="bottom-start"
       offset={12}
       shadow="xl"
-      withinPortal={false}
+      withinPortal
+      zIndex={1500}
+      floatingStrategy="fixed"
+      hideDetached={false}
+      middlewares={{ flip: true, shift: true, inline: false }}
       classNames={{ dropdown: styles.navCategory__dropdown }}
     >
       <HoverCard.Target>

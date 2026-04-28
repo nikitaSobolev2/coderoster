@@ -1,3 +1,5 @@
+@use '~/shared/assets/styles/mixins' as *;
+
 .field {
   display: flex;
   flex-direction: column;
@@ -22,6 +24,8 @@
 }
 
 .iconPreview {
+  @include bluredBg;
+
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -29,20 +33,20 @@
   height: 3rem;
   flex-shrink: 0;
   border-radius: var(--platform-card-radius-sm);
-  background: var(--platform-color-surface);
   border: var(--border-width-hair) solid var(--platform-color-border);
   font-size: 1.4rem;
   color: var(--color-text);
 }
 
 .iconChip {
+  @include bluredBg;
+
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
   padding: 0.35rem 0.6rem;
   border-radius: 999px;
   border: var(--border-width-hair) solid var(--platform-color-border);
-  background: var(--platform-color-surface);
   font-size: 0.825rem;
   color: var(--color-text);
   cursor: pointer;

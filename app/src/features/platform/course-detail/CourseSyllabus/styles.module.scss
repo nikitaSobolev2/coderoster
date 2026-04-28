@@ -13,9 +13,10 @@
 }
 
 .syllabus__item {
+  @include bluredBg;
+
   border: var(--border-width-hair) solid var(--platform-color-border);
   border-radius: var(--platform-card-radius);
-  background: var(--platform-color-surface);
   margin-bottom: 0.75rem;
   overflow: hidden;
 }

@@ -1,3 +1,4 @@
+import AdminBodyAttribute from './AdminBodyAttribute'
 import AdminSidebar from './AdminSidebar'
 import AdminTopbar, { type AdminViewer } from './AdminTopbar'
 import styles from './styles.module.scss'
@@ -12,10 +13,13 @@ export interface Props {
  * top bar. Hides the platform footer entirely; admin pages are dense and
  * benefit from full vertical space.
  */
-export default function AdminShell({ children, viewer }: Props) {
+export default function AdminShell({ children, viewer }: Readonly<Props>) {
   return (
     <div className={styles.shell}>
-      <AdminSidebar />
+      <AdminBodyAttribute />
+      <div className={styles.shell__sidebar}>
+        <AdminSidebar />
+      </div>
       <div className={styles.shell__main}>
         <AdminTopbar viewer={viewer} />
         <div className={styles.shell__content}>{children}</div>

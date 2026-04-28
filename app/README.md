@@ -126,29 +126,29 @@ WorkOS sync (and on `npm run db:seed`).
 
 ## Tech Stack
 
-| Layer           | Library / Tool                           | Role                                                                               |
-| --------------- | ---------------------------------------- | ---------------------------------------------------------------------------------- |
-| Framework       | **Next.js 15** + **React 19**            | App Router, RSC by default, `reactCompiler: true`, `output: 'standalone'`          |
-| Language        | **TypeScript** (strict)                  | `noUncheckedIndexedAccess`, Bundler module resolution                              |
-| API             | **tRPC v11** + **TanStack Query v5**     | End-to-end type-safe API, server prefetch + `HydrateClient`                        |
-| Database        | **Prisma 6** + PostgreSQL 16             | Schema-first ORM, `prisma migrate` workflow, full domain in `prisma/schema.prisma` |
-| Cache / locks   | **Redis 7** (`ioredis`)                  | Read-through cache, fixed-window rate limits, distributed lock helper              |
-| Broker          | **RabbitMQ 3** (`amqplib`)               | Topic exchange + DLX for execution.requested / execution.completed events          |
-| Worker          | **Go 1.23 + Docker SDK**                 | `workers/code-executor` runs Python / PHP user code in ephemeral sandboxes         |
-| Auth            | **WorkOS AuthKit**                       | OAuth / SSO; mirrored to local `User` rows by `UserSyncService` (Redis-cached)     |
-| UI Library      | **Mantine 8** + `@mantine/notifications` | Forms, modals, notifications, spotlight, mega-menu hover cards, tabs, progress     |
-| Code Editor     | **`@monaco-editor/react`** (lazy)        | In-browser Monaco editor for the in-course experience                              |
-| 3D              | **Three.js 0.176** + **R3F** + **drei**  | Interactive planet scene on the landing page                                       |
-| Animation       | **GSAP 3.13**                            | Scroll-triggered animations (`ScrollTrigger` plugin)                               |
-| State           | **Zustand 4**                            | Lightweight client state: cursor position, planet scale/visibility                 |
-| Styling         | **Sass** (CSS modules)                   | `.module.scss` per component + global SCSS; no Tailwind                            |
-| Icons           | **Font Awesome 6**                       | SVG icon components                                                                |
-| Rich Text       | **Tiptap 2**                             | Admin lesson authoring (link extension + starter kit)                              |
-| Validation      | **Zod**                                  | Runtime schema validation for tRPC inputs and environment                          |
-| Sanitization    | **`sanitize-html`**                      | Server-side scrub of every persisted markdown / comment / bio                      |
-| Cron            | **`node-cron`**                          | Daily activity snapshot job                                                        |
-| Env             | **T3 Env** (`@t3-oss/env-nextjs`)        | Type-safe environment variable access                                              |
-| Package Manager | **npm 10**                               | `package-lock.json` committed                                                      |
+| Layer           | Library / Tool                           | Role                                                                                                            |
+| --------------- | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Framework       | **Next.js 15** + **React 19**            | App Router, RSC by default, `reactCompiler: true`, `output: 'standalone'`                                       |
+| Language        | **TypeScript** (strict)                  | `noUncheckedIndexedAccess`, Bundler module resolution                                                           |
+| API             | **tRPC v11** + **TanStack Query v5**     | End-to-end type-safe API, server prefetch + `HydrateClient`                                                     |
+| Database        | **Prisma 6** + PostgreSQL 16             | Schema-first ORM, `prisma migrate` workflow, full domain in `prisma/schema.prisma`                              |
+| Cache / locks   | **Redis 7** (`ioredis`)                  | Read-through cache, fixed-window rate limits, distributed lock helper                                           |
+| Broker          | **RabbitMQ 3** (`amqplib`)               | Topic exchange + DLX for execution.requested / execution.completed events                                       |
+| Worker          | **Go 1.23 + Docker SDK**                 | `workers/code-executor` runs Python / PHP user code in ephemeral sandboxes                                      |
+| Auth            | **WorkOS AuthKit**                       | OAuth / SSO; mirrored to local `User` rows by `UserSyncService` (Postgres `findUnique`, uncached for freshness) |
+| UI Library      | **Mantine 8** + `@mantine/notifications` | Forms, modals, notifications, spotlight, mega-menu hover cards, tabs, progress                                  |
+| Code Editor     | **`@monaco-editor/react`** (lazy)        | In-browser Monaco editor for the in-course experience                                                           |
+| 3D              | **Three.js 0.176** + **R3F** + **drei**  | Interactive planet scene on the landing page                                                                    |
+| Animation       | **GSAP 3.13**                            | Scroll-triggered animations (`ScrollTrigger` plugin)                                                            |
+| State           | **Zustand 4**                            | Lightweight client state: cursor position, planet scale/visibility                                              |
+| Styling         | **Sass** (CSS modules)                   | `.module.scss` per component + global SCSS; no Tailwind                                                         |
+| Icons           | **Font Awesome 6**                       | SVG icon components                                                                                             |
+| Rich Text       | **Tiptap 2**                             | Admin lesson authoring (link extension + starter kit)                                                           |
+| Validation      | **Zod**                                  | Runtime schema validation for tRPC inputs and environment                                                       |
+| Sanitization    | **`sanitize-html`**                      | Server-side scrub of every persisted markdown / comment / bio                                                   |
+| Cron            | **`node-cron`**                          | Daily activity snapshot job                                                                                     |
+| Env             | **T3 Env** (`@t3-oss/env-nextjs`)        | Type-safe environment variable access                                                                           |
+| Package Manager | **npm 10**                               | `package-lock.json` committed                                                                                   |
 
 ---
 
@@ -244,11 +244,7 @@ cheap range scan.
 
 ### Auth gating
 
-WorkOS middleware (`src/middleware.ts`) only matches `/`, `/account/*`, `/settings/*`, and
-`/learn/*`. Public-read pages (`/courses`, `/u/[username]`, etc.) are not in the matcher, so
-guests browse them without a session. Mutations that need a user use the new
-`protectedProcedure` builder in `src/server/api/trpc.ts`, which throws `UNAUTHORIZED` if
-`ctx.user` is null.
+AuthKit middleware (`src/middleware.ts`) runs on almost every route via a broad matcher (excluding Next internals and `/assets`). Routes listed in `middlewareAuth.unauthenticatedPaths` stay reachable without signing in (`/courses`, `/u/[username]`, `/login`, `/callback`, `/api/*`, etc.). Authenticated-only routes (`/settings/*`, `/learn/*`, `/account/*`, …) redirect guests to login. Admin UI routes rely on `(admin)` layout plus `adminProcedure` server-side (role check). Mutations that require identity use `protectedProcedure` in `src/server/api/trpc.ts`, which throws `UNAUTHORIZED` when `ctx.user` is null.
 
 ---
 

@@ -116,8 +116,15 @@ services:
   app:
     build: *app_build
     restart: unless-stopped
+    # Webpack dev + polling: Turbopack + bind-mount + anonymous node_modules produces bogus watch roots (`/app/@mantine` …) and broken HMR on Docker Desktop (Windows).
+    command: [ "npm", "run", "dev:docker" ]
     environment:
       <<: *app_env
+      # Bind mounts: host fs events often invisible inside container; webpack dev respects this.
+      NEXT_DEV_IN_DOCKER: "1"
+      WATCHPACK_POLLING: "true"
+      # Stable across container restarts so the browser is not stuck posting stale Server Action ids (Failed to find Server Action).
+      NEXT_SERVER_ACTIONS_ENCRYPTION_KEY: ${NEXT_SERVER_ACTIONS_ENCRYPTION_KEY:-coderoster-dev-sa-key-min-32-chars-required-by-next}
     ports:
       - "3000:3000"
     volumes: *app_volumes

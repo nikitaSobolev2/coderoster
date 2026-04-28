@@ -4,13 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sync"
 
 	"github.com/coderoster/code-executor/internal/contracts"
 	amqplib "github.com/rabbitmq/amqp091-go"
 )
 
 // Producer publishes events into the platform-wide topic exchange.
+// Publish serializes channel access — amqp091-go Channel is not safe for concurrent Publish.
 type Producer struct {
+	mu      sync.Mutex
 	channel *amqplib.Channel
 }
 
@@ -25,6 +28,8 @@ func (p *Producer) Publish(ctx context.Context, topic string, payload any) error
 	if err != nil {
 		return fmt.Errorf("marshal: %w", err)
 	}
+	p.mu.Lock()
+	defer p.mu.Unlock()
 	return p.channel.PublishWithContext(
 		ctx,
 		contracts.ExchangeName,

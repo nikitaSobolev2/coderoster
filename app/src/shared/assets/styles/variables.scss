@@ -197,7 +197,7 @@
   /* -----end Transitions----- */
 
   /* -----start Z-Index----- */
-  --z-planet: -1;
+  --z-planet: 1; /* above HomeParallaxGrid vignette (0); below main (2 on home) */
   --z-base: 1;
   --z-section-active: 5;
   --z-hint: 700;

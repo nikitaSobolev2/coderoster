@@ -17,6 +17,14 @@ export default tseslint.config(
       ...tseslint.configs.recommendedTypeChecked,
       ...tseslint.configs.stylisticTypeChecked
     ],
+    languageOptions: {
+      parserOptions: {
+        projectService: true
+      }
+    },
+    linterOptions: {
+      reportUnusedDisableDirectives: true
+    },
     rules: {
       '@typescript-eslint/array-type': 'off',
       '@typescript-eslint/consistent-type-definitions': 'off',
@@ -34,16 +42,6 @@ export default tseslint.config(
       // existing components incrementally.
       'react-hooks/set-state-in-effect': 'warn',
       'react-hooks/purity': 'warn'
-    }
-  },
-  {
-    linterOptions: {
-      reportUnusedDisableDirectives: true
-    },
-    languageOptions: {
-      parserOptions: {
-        projectService: true
-      }
     }
   }
 )

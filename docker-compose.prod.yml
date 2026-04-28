@@ -1,3 +1,6 @@
+# Compose merge file: `docker compose -f docker-compose.yml -f docker-compose.prod.yml up`.
+# Adds resource limits and trims exposed ports for DB/Redis; extend further per environment (secrets, TLS, Rabbit users).
+
 services:
   db:
     ports: []

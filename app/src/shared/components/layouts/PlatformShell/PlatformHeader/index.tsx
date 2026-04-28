@@ -24,7 +24,7 @@ export default async function PlatformHeader() {
   return (
     <header className={styles.header}>
       <div className={styles.header__inner}>
-        <Link href="/" className={styles.header__logo} aria-label="На главную">
+        <Link href="/courses" className={styles.header__logo} aria-label="На главную">
           <Logo />
         </Link>
         <nav className={styles.header__nav} aria-label="Платформа">

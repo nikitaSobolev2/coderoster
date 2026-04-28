@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import { Avatar, SegmentedControl, Skeleton } from '@mantine/core'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faRankingStar } from '@fortawesome/free-solid-svg-icons'
 import EmptyState from '~/shared/components/ui/EmptyState'
 import { api } from '~/trpc/react'

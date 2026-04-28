@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, type CSSProperties } from 'react'
 import clsx from 'clsx'
 import { ActionIcon, Button, Group, Progress } from '@mantine/core'
 import { Dropzone, IMAGE_MIME_TYPE, type FileWithPath } from '@mantine/dropzone'
@@ -100,9 +100,9 @@ export default function ImageUploadField({
   const isUploading = progress !== null
   const hasValue = !!value
 
-  const previewStyle =
+  const previewStyle: CSSProperties | undefined =
     aspectRatio !== undefined
-      ? ({ ['--upload-aspect-ratio' as string]: aspectRatio } as React.CSSProperties)
+      ? ({ ['--upload-aspect-ratio']: aspectRatio } as CSSProperties)
       : undefined
 
   return (
@@ -113,9 +113,9 @@ export default function ImageUploadField({
         <div className={styles.uploading}>
           <div className={styles.uploading__label}>
             <span>Загружаем…</span>
-            <span>{Math.round(progress!)}%</span>
+            <span>{Math.round(progress ?? 0)}%</span>
           </div>
-          <Progress value={progress!} animated />
+          <Progress value={progress ?? 0} animated />
         </div>
       ) : hasValue ? (
         <div className={styles.preview}>
@@ -126,7 +126,7 @@ export default function ImageUploadField({
             )}
             style={previewStyle}
           >
-            <img className={styles.preview__image} src={value!} alt="" />
+            <img className={styles.preview__image} src={value ?? ''} alt="" />
           </div>
           <div className={styles.preview__actions}>
             <span className={styles.preview__filename}>{value}</span>
@@ -190,7 +190,7 @@ export default function ImageUploadField({
         onChange={event => {
           const file = event.currentTarget.files?.[0]
           event.currentTarget.value = ''
-          if (file) void upload(file as FileWithPath)
+          if (file) void upload(file)
         }}
       />
 

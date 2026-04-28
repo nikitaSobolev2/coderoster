@@ -17,6 +17,9 @@ const UPLOAD_ORIGIN = (() => {
   }
 })()
 
+/** Linux fs notify breaks on Docker bind mounts from Windows/macOS; webpack dev uses watchOptions + WATCHPACK_POLLING. */
+const isDockerDev = process.env.NEXT_DEV_IN_DOCKER === '1'
+
 const SECURITY_HEADERS = [
   {
     key: 'Strict-Transport-Security',
@@ -52,6 +55,13 @@ const config = {
   experimental: {
     reactCompiler: true
   },
+  ...(isDockerDev
+    ? {
+        watchOptions: {
+          pollIntervalMs: Number(process.env.WATCH_POLL_INTERVAL_MS) || 1000
+        }
+      }
+    : {}),
   async headers() {
     return [
       {

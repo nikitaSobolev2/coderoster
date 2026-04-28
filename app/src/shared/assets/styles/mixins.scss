@@ -126,6 +126,37 @@
  * Non-fixed (scrolls with page); subtle accent vignette on top.
  * Apply to a positioned ::before pseudo on the shell wrapper.
  */
+@mixin gridBackdropVignetteOnly() {
+  background-color: var(--color-bg);
+  background-image: var(--platform-grid-vignette);
+  background-size: 100% 100%;
+  background-position: center top;
+  background-repeat: no-repeat;
+  background-attachment: scroll;
+}
+
+/* Thin grid lines only (no vignette); use on a separate layer (e.g. home parallax). */
+@mixin gridBackdropGridLayersOnly() {
+  background-image:
+    linear-gradient(
+      color-mix(in srgb, var(--platform-grid-color) 65%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--platform-grid-color) 65%, transparent) 1px,
+      transparent 1px
+    );
+  background-size:
+    var(--platform-grid-size) var(--platform-grid-size),
+    var(--platform-grid-size) var(--platform-grid-size);
+  background-position:
+    center top,
+    center top;
+  background-repeat: repeat, repeat;
+  background-attachment: scroll;
+}
+
 @mixin gridBackdrop() {
   background-color: var(--color-bg);
   background-image:

@@ -45,10 +45,9 @@ async function resolveCurrentUser(): Promise<AuthenticatedUser | null> {
     if (!session.user) return null
 
     if (isTruthyFlag(env.USE_FAKE_DATA)) {
-      console.log('[trpc] FAKE branch hit', {
-        workosId: session.user.id,
-        email: session.user.email
-      })
+      if (env.NODE_ENV === 'development') {
+        console.log('[trpc] USE_FAKE_DATA: session resolved (redacted)')
+      }
       const fallbackName = session.user.firstName ?? session.user.email
       return {
         id: session.user.id,
@@ -68,12 +67,9 @@ async function resolveCurrentUser(): Promise<AuthenticatedUser | null> {
       lastName: session.user.lastName ?? null,
       profilePictureUrl: session.user.profilePictureUrl ?? null
     })
-    console.log('[trpc] resolved user', {
-      workosId: session.user.id,
-      localId: local.id,
-      username: local.username,
-      email: local.email
-    })
+    if (env.NODE_ENV === 'development') {
+      console.log('[trpc] resolved user', { localId: local.id, username: local.username })
+    }
     return {
       id: local.id,
       username: local.username,
@@ -87,6 +83,11 @@ async function resolveCurrentUser(): Promise<AuthenticatedUser | null> {
     console.error('[trpc] resolveCurrentUser failed', error)
     return null
   }
+}
+
+function logProcedureTiming(path: string, durationMs: number): void {
+  if (env.NODE_ENV !== 'development') return
+  console.log(`[TRPC] ${path} took ${durationMs}ms`)
 }
 
 export const t = initTRPC.context<typeof createTRPCContext>().create({
@@ -112,8 +113,7 @@ const timingMiddleware = t.middleware(async ({ next, path }) => {
     await new Promise(resolve => setTimeout(resolve, waitMs))
   }
   const result = await next()
-  const end = Date.now()
-  console.log(`[TRPC] ${path} took ${end - start}ms to execute`)
+  logProcedureTiming(path, Date.now() - start)
   return result
 })
 

@@ -1,0 +1,46 @@
+@use '~/shared/assets/styles/mixins' as *;
+
+.wrapper {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  isolation: isolate;
+}
+
+/* Full scroll height of .wrapper (not 200vh @ 50% — that centers on long pages and misses hero). */
+.layer {
+  --home-parallax-edge-slack: 40px;
+
+  @include gridBackdropGridLayersOnly;
+
+  position: absolute;
+  z-index: 0;
+  left: 50%;
+  top: calc(-1 * var(--home-parallax-edge-slack));
+  bottom: calc(-1 * var(--home-parallax-edge-slack));
+  width: 200vw;
+  transform: translateX(-50%);
+  will-change: transform;
+}
+
+/* Viewport-locked gradients: document-sized box would center the radial mid-page only. */
+.vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      ellipse 92% 85% at 50% 50%,
+      transparent 0%,
+      color-mix(in srgb, var(--color-bg) 45%, transparent) 48%,
+      color-mix(in srgb, var(--color-bg) 88%, transparent) 72%,
+      var(--color-bg) 100%
+    ),
+    var(--platform-grid-vignette);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  background-attachment: fixed, fixed;
+}

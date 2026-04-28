@@ -2,14 +2,14 @@
 
 import { useEffect, useRef } from 'react'
 import { useMatchMedia } from '~/shared/hooks/useMatchMedia'
+import { HOME_DESKTOP_INTERACTION_MQ } from '~/shared/constants/homeDesktopInteractionMediaQuery'
 import styles from './styles.module.scss'
 import { useCursorStore, type CursorStore } from './cursor.store'
 
 const FOLLOW_LERP = 0.18
-const DESKTOP_POINTER_MQ = '(hover: hover) and (pointer: fine) and (min-width: 769px)'
 
 export default function Cursor() {
-  const isDesktopPointer = useMatchMedia(DESKTOP_POINTER_MQ)
+  const isDesktopPointer = useMatchMedia(HOME_DESKTOP_INTERACTION_MQ)
   if (!isDesktopPointer) return null
   return <CursorRuntime />
 }

@@ -3,13 +3,19 @@
 
 /* Same ambient thin-grid + vignette as platform shell (scrolls with page, non-fixed). */
 .homeShell {
-  @include gridBackdrop;
-
   position: relative;
   isolation: isolate;
   color: var(--color-text);
   min-height: 100svh;
   cursor: none;
+
+  @include bp.min-width(bp.$bp-nav-up) {
+    @include gridBackdrop;
+
+    @media (hover: hover) and (pointer: fine) {
+      @include gridBackdropVignetteOnly;
+    }
+  }
 
   a,
   button,
@@ -30,6 +36,8 @@
   }
 
   @include bp.max-width(bp.$bp-nav) {
+    @include gridBackdrop;
+
     cursor: auto;
 
     a,

@@ -90,12 +90,10 @@ export class StorageService {
    * call, then memoises the result so subsequent uploads pay no overhead.
    */
   ensureBucket(): Promise<void> {
-    if (!this.bucketReady) {
-      this.bucketReady = this.bootstrapBucket().catch(error => {
-        this.bucketReady = null
-        throw error
-      })
-    }
+    this.bucketReady ??= this.bootstrapBucket().catch(error => {
+      this.bucketReady = null
+      throw error
+    })
     return this.bucketReady
   }
 

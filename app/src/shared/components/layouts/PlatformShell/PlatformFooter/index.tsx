@@ -4,14 +4,21 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core'
 import { db } from '~/server/db'
 import Logo from '~/shared/components/common/Logo'
-import { FOOTER_COLUMNS, type FooterColumn } from './links'
 import NewsletterForm from './NewsletterForm'
 import styles from './styles.module.scss'
+
+interface FooterColumn {
+  id: string
+  title: string
+  links: { label: string; href: string }[]
+}
 
 const GROUP_TITLES: Record<string, string> = {
   about: 'Компания',
   support: 'Поддержка',
-  legal: 'Правовое'
+  legal: 'Правовое',
+  platform: 'Платформа',
+  resources: 'Ресурсы'
 }
 
 interface SocialLink {
@@ -27,13 +34,12 @@ const SOCIALS: SocialLink[] = [
 ]
 
 /**
- * Slim platform footer. Same visual treatment as the home FooterSection
- * (background wordmark, frosted top border) but content is link columns
- * plus a newsletter signup instead of a contact form.
+ * Slim platform footer. Link columns are 100 % CMS-driven: an admin curates
+ * `ContentPage` rows with `placement = FOOTER` and they show up here. No
+ * hardcoded URL graveyard hiding behind the wordmark anymore.
  */
 export default async function PlatformFooter() {
-  const dynamicColumns = await loadDynamicColumns()
-  const columns = mergeColumns(FOOTER_COLUMNS, dynamicColumns)
+  const columns = await loadFooterColumns()
   return (
     <footer className={styles.footer}>
       <span className={styles.footer__wordmark} aria-hidden="true">
@@ -69,7 +75,7 @@ export default async function PlatformFooter() {
                 <ul className={styles.footer__columnLinks}>
                   {column.links.map(link => (
                     <li key={link.href + link.label}>
-                      <Link href={link.href} className={styles.footer__link}>
+                      <Link href={link.href} className={styles.footer__link} prefetch={false}>
                         {link.label}
                       </Link>
                     </li>
@@ -95,43 +101,30 @@ export default async function PlatformFooter() {
   )
 }
 
-async function loadDynamicColumns(): Promise<FooterColumn[]> {
+async function loadFooterColumns(): Promise<FooterColumn[]> {
   try {
     const rows = await db.contentPage.findMany({
       where: { placement: 'FOOTER', published: true },
       orderBy: [{ groupKey: 'asc' }, { order: 'asc' }],
       select: { slug: true, title: true, groupKey: true }
     })
-    const grouped = new Map<string, FooterColumn>()
-    for (const row of rows) {
-      const id = row.groupKey || 'about'
-      const existing = grouped.get(id)
-      if (existing) {
-        existing.links.push({ label: row.title, href: `/p/${row.slug}` })
-      } else {
-        grouped.set(id, {
-          id,
-          title: GROUP_TITLES[id] ?? row.groupKey,
-          links: [{ label: row.title, href: `/p/${row.slug}` }]
-        })
-      }
-    }
-    return Array.from(grouped.values())
+    return groupRowsByKey(rows)
   } catch {
     return []
   }
 }
 
-/**
- * Replaces the static "company" column with the dynamic content-pages
- * columns whenever the DB has any. Falls back to the static link list when
- * no published page exists yet (typical fresh install).
- */
-function mergeColumns(staticColumns: FooterColumn[], dynamic: FooterColumn[]): FooterColumn[] {
-  if (dynamic.length === 0) return staticColumns
-  const dynamicIds = new Set(dynamic.map(column => column.id))
-  const filtered = staticColumns.filter(
-    column => !dynamicIds.has(column.id) && column.id !== 'company'
-  )
-  return [...filtered, ...dynamic]
+function groupRowsByKey(rows: { slug: string; title: string; groupKey: string }[]): FooterColumn[] {
+  const grouped = new Map<string, FooterColumn>()
+  for (const row of rows) {
+    const id = row.groupKey || 'about'
+    const existing = grouped.get(id)
+    const link = { label: row.title, href: `/p/${row.slug}` }
+    if (existing) {
+      existing.links.push(link)
+    } else {
+      grouped.set(id, { id, title: GROUP_TITLES[id] ?? row.groupKey, links: [link] })
+    }
+  }
+  return Array.from(grouped.values())
 }

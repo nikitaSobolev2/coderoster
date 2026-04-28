@@ -1,13 +1,10 @@
 import {
   faBolt,
   faCalendarCheck,
-  faChartLine,
   faCode,
   faGraduationCap,
   faRankingStar,
-  faRoute,
-  faTrophy,
-  faUser
+  faTrophy
 } from '@fortawesome/free-solid-svg-icons'
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core'
 
@@ -16,7 +13,7 @@ export interface NavLeaf {
   title: string
   description: string
   href: string
-  icon: IconDefinition
+  icon?: IconDefinition
 }
 
 export interface NavCategoryConfig {
@@ -26,6 +23,12 @@ export interface NavCategoryConfig {
   items?: NavLeaf[]
 }
 
+/**
+ * Static top-level header nav. Dynamic content (e.g. course categories
+ * pulled from the DB) is appended in `PlatformHeader/index.tsx` so that
+ * editorial structure stays declarative here while live data stays where
+ * the request runs.
+ */
 export const NAV_CATEGORIES: NavCategoryConfig[] = [
   {
     id: 'learn',
@@ -37,13 +40,6 @@ export const NAV_CATEGORIES: NavCategoryConfig[] = [
         description: 'Каталог курсов по языкам и темам',
         href: '/courses',
         icon: faGraduationCap
-      },
-      {
-        id: 'paths',
-        title: 'Маршруты',
-        description: 'Длинные траектории до уровня middle',
-        href: '/coming-soon',
-        icon: faRoute
       },
       {
         id: 'achievements',
@@ -91,26 +87,7 @@ export const NAV_CATEGORIES: NavCategoryConfig[] = [
         description: 'Топ по XP и решённым задачам',
         href: '/leaderboard',
         icon: faRankingStar
-      },
-      {
-        id: 'profiles',
-        title: 'Профили',
-        description: 'Зайди в свой профиль',
-        href: '/u/me',
-        icon: faUser
-      },
-      {
-        id: 'analytics',
-        title: 'Метрики',
-        description: 'Прогресс по неделям и сильные/слабые темы',
-        href: '/coming-soon',
-        icon: faChartLine
       }
     ]
-  },
-  {
-    id: 'docs',
-    label: 'Документация',
-    href: '/coming-soon'
   }
 ]

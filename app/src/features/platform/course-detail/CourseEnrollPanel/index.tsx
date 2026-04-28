@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { Button, Modal, Progress } from '@mantine/core'
+import { Button, Modal, Progress, Skeleton } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { notifications } from '@mantine/notifications'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -62,6 +62,18 @@ export default function CourseEnrollPanel({ course, isAuthenticated }: Props) {
         >
           Войти и начать
         </Button>
+      </aside>
+    )
+  }
+
+  if (enrollmentQuery.isPending) {
+    return (
+      <aside className={styles.panel} aria-busy="true">
+        <Skeleton height={24} width="60%" radius="sm" />
+        <Skeleton height={14} radius="sm" />
+        <Skeleton height={14} radius="sm" width="80%" />
+        <Skeleton height={40} radius="md" mt="xs" />
+        <Skeleton height={36} radius="md" />
       </aside>
     )
   }

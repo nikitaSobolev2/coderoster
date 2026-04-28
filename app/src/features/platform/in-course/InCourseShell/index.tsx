@@ -69,7 +69,11 @@ export default function InCourseShell({
   const [executionMode, setExecutionMode] = useState<Mode>('run')
   const [completedLessonIds, setCompletedLessonIds] = useState<string[]>(initialCompletedLessonIds)
 
-  const { code, setCode, reset } = useDraftPersistence(lesson.id, lesson.starterCode)
+  const { code, setCode, reset } = useDraftPersistence(
+    lesson.id,
+    lesson.starterCode,
+    isAuthenticated
+  )
 
   const isTerminal = (status: ExecutionRecord['status']): boolean =>
     status !== 'queued' && status !== 'running'

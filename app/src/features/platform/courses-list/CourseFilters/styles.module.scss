@@ -2,19 +2,10 @@
 @use '~/shared/assets/styles/breakpoints' as bp;
 
 .filters {
-  display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
   padding: 1.25rem;
   border-radius: var(--platform-card-radius);
   border: var(--border-width-hair) solid var(--platform-color-border);
   background: var(--platform-color-surface);
-}
-
-.filters__chipLabel {
-  flex: 0 0 auto;
-  align-self: center;
-  min-width: 4.25rem;
 }
 
 .filters__row {
@@ -39,8 +30,38 @@
   width: 220px;
 }
 
+.filters__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  align-items: end;
+}
+
+.filters__duration {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top: 0.25rem;
+}
+
+.filters__durationLabel {
+  font-size: var(--font-size-h6);
+  color: var(--color-text-secondary);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.filters__activeRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding-top: 0.5rem;
+  border-top: var(--border-width-hair) dashed var(--platform-color-border);
+}
+
 .filters__meta {
-  margin-top: 0.5rem;
   color: var(--color-text-secondary);
   font-size: var(--font-size-h6);
   letter-spacing: 0.06em;

@@ -18,6 +18,13 @@ export interface AuthorRef {
   avatarUrl: string | null
 }
 
+export interface CategoryRef {
+  id: string
+  slug: string
+  title: string
+  iconKey: string | null
+}
+
 export interface CourseSummary {
   id: string
   slug: string
@@ -31,6 +38,7 @@ export interface CourseSummary {
   thumbnail: string | null
   tags: string[]
   author: AuthorRef
+  category: CategoryRef | null
 }
 
 export interface LessonSummary {
@@ -237,6 +245,12 @@ export interface CoursesQuery {
   q?: string
   language?: Language
   difficulty?: Difficulty
+  /** CourseCategory slug. */
+  categorySlug?: string
+  /** Inclusive lower bound for `durationHours`. */
+  durationMin?: number
+  /** Inclusive upper bound for `durationHours`. */
+  durationMax?: number
   sort?: 'popular' | 'newest' | 'shortest'
   cursor?: string
   limit?: number

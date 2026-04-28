@@ -55,6 +55,7 @@ export default function TaskNav({ course, currentLessonId, completedLessonIds }:
                       href={`/learn/${course.slug}/${lesson.id}`}
                       className={className}
                       aria-current={isCurrent ? 'page' : undefined}
+                      prefetch={false}
                     >
                       <FontAwesomeIcon
                         icon={isCurrent ? faPlay : isDone ? faCircleCheck : faCircle}

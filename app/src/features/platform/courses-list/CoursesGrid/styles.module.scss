@@ -13,6 +13,15 @@
   pointer-events: none;
 }
 
+.skeleton {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  border-radius: var(--platform-card-radius);
+  border: var(--border-width-hair) solid var(--platform-color-border);
+  background: var(--platform-color-surface);
+}
+
 .empty {
   padding: 3rem;
   text-align: center;

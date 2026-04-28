@@ -14,14 +14,77 @@ async function main() {
   await upsertDemoLearnerNikareich()
 
   await seedAchievements()
-  await seedPython(author.id)
-  await seedPhp(phpAuthor.id)
-  await seedAlgo(algoAuthor.id)
+  const categories = await seedCourseCategories(author.id)
+  await seedPython(author.id, categories.python)
+  await seedPhp(phpAuthor.id, categories.php)
+  await seedAlgo(algoAuthor.id, categories.algorithms)
   await seedContentPages()
   await seedAppSettings()
   await promoteBootstrapAdmin()
 
   console.log('[seed] done')
+}
+
+interface CategoryIdMap {
+  python: string
+  php: string
+  algorithms: string
+  webDev: string
+  databases: string
+}
+
+async function seedCourseCategories(authorId: string): Promise<CategoryIdMap> {
+  const definitions = [
+    { slug: 'python', title: 'Python', summary: 'Курсы по Python', iconKey: 'python', order: 1 },
+    { slug: 'php', title: 'PHP', summary: 'Курсы по PHP', iconKey: 'php', order: 2 },
+    {
+      slug: 'algorithms',
+      title: 'Алгоритмы',
+      summary: 'Структуры данных и интервью',
+      iconKey: 'algorithm',
+      order: 3
+    },
+    {
+      slug: 'web-development',
+      title: 'Веб-разработка',
+      summary: 'Frontend, backend и протоколы',
+      iconKey: 'globe',
+      order: 4
+    },
+    {
+      slug: 'databases',
+      title: 'Базы данных',
+      summary: 'SQL, индексы, моделирование',
+      iconKey: 'database',
+      order: 5
+    }
+  ]
+  const ids = {} as CategoryIdMap
+  for (const definition of definitions) {
+    const row = await prisma.courseCategory.upsert({
+      where: { slug: definition.slug },
+      update: {
+        title: definition.title,
+        summary: definition.summary,
+        iconKey: definition.iconKey,
+        order: definition.order
+      },
+      create: {
+        slug: definition.slug,
+        title: definition.title,
+        summary: definition.summary,
+        iconKey: definition.iconKey,
+        order: definition.order,
+        authorId
+      }
+    })
+    if (definition.slug === 'python') ids.python = row.id
+    if (definition.slug === 'php') ids.php = row.id
+    if (definition.slug === 'algorithms') ids.algorithms = row.id
+    if (definition.slug === 'web-development') ids.webDev = row.id
+    if (definition.slug === 'databases') ids.databases = row.id
+  }
+  return ids
 }
 
 /**
@@ -244,10 +307,10 @@ async function seedAchievements() {
   }
 }
 
-async function seedPython(authorId: string) {
+async function seedPython(authorId: string, categoryId: string) {
   const course = await prisma.course.upsert({
     where: { slug: 'python-basics' },
-    update: {},
+    update: { categoryId },
     create: {
       slug: 'python-basics',
       title: 'Python с нуля',
@@ -262,7 +325,8 @@ async function seedPython(authorId: string) {
       tags: ['основы', 'синтаксис', 'практика'],
       status: CourseStatus.PUBLISHED,
       publishedAt: new Date(),
-      authorId
+      authorId,
+      categoryId
     }
   })
   await seedModule(course.id, 'mod-py-1', 'Старт', 'Установка, запуск, первая программа.', 1, [
@@ -340,10 +404,10 @@ async function seedPython(authorId: string) {
   ])
 }
 
-async function seedPhp(authorId: string) {
+async function seedPhp(authorId: string, categoryId: string) {
   const course = await prisma.course.upsert({
     where: { slug: 'php-api-fundamentals' },
-    update: {},
+    update: { categoryId },
     create: {
       slug: 'php-api-fundamentals',
       title: 'PHP: серверный API',
@@ -358,7 +422,8 @@ async function seedPhp(authorId: string) {
       tags: ['backend', 'http', 'pdo'],
       status: CourseStatus.PUBLISHED,
       publishedAt: new Date(),
-      authorId
+      authorId,
+      categoryId
     }
   })
   await seedModule(
@@ -407,10 +472,10 @@ async function seedPhp(authorId: string) {
   )
 }
 
-async function seedAlgo(authorId: string) {
+async function seedAlgo(authorId: string, categoryId: string) {
   const course = await prisma.course.upsert({
     where: { slug: 'algorithms-introduction' },
-    update: {},
+    update: { categoryId },
     create: {
       slug: 'algorithms-introduction',
       title: 'Алгоритмы для собеседований',
@@ -425,7 +490,8 @@ async function seedAlgo(authorId: string) {
       tags: ['собеседование', 'алгоритмы', 'big-o'],
       status: CourseStatus.PUBLISHED,
       publishedAt: new Date(),
-      authorId
+      authorId,
+      categoryId
     }
   })
   await seedModule(
@@ -550,6 +616,86 @@ async function seedContentPages() {
       body:
         '## Контакты\n\nПо любым вопросам пишите на support@coderoster.dev. ' +
         'Telegram-канал и зеркала — в подвале сайта.'
+    },
+    {
+      slug: 'help',
+      title: 'Помощь',
+      excerpt: 'Частые вопросы и поддержка.',
+      groupKey: 'support',
+      order: 2,
+      body:
+        '## Помощь\n\nЕсли что-то не работает или ты не понимаешь, как пройти урок — ' +
+        'напиши нам в Telegram-канал, мы стараемся отвечать в течение суток.'
+    },
+    {
+      slug: 'privacy',
+      title: 'Privacy Policy',
+      excerpt: 'Как мы храним и обрабатываем твои данные.',
+      groupKey: 'legal',
+      order: 1,
+      body:
+        '## Privacy Policy\n\nМы собираем минимум персональных данных, не передаём их третьим ' +
+        'лицам и удаляем по запросу. Подробности — в разделе настроек аккаунта.'
+    },
+    {
+      slug: 'terms',
+      title: 'Terms of Service',
+      excerpt: 'Условия использования платформы.',
+      groupKey: 'legal',
+      order: 2,
+      body:
+        '## Terms of Service\n\nИспользуя CodeRoster, ты соглашаешься писать код ответственно: ' +
+        'не нарушать законы, не атаковать инфраструктуру и не публиковать чужой материал.'
+    },
+    {
+      slug: 'cookie',
+      title: 'Cookie Policy',
+      excerpt: 'Как мы используем cookies.',
+      groupKey: 'legal',
+      order: 3,
+      body:
+        '## Cookie Policy\n\nМы используем строго необходимые cookies для авторизации и ' +
+        'продуктовой аналитики. Маркетинговые cookies отсутствуют.'
+    },
+    {
+      slug: 'roadmap',
+      title: 'Roadmap',
+      excerpt: 'Что мы строим в ближайших релизах.',
+      groupKey: 'platform',
+      order: 1,
+      body:
+        '## Roadmap\n\nПлан публичный и обновляется в каждом спринте. Голосуй за фичи в ' +
+        'Telegram-канале — мы учитываем приоритеты сообщества.'
+    },
+    {
+      slug: 'changelog',
+      title: 'Changelog',
+      excerpt: 'История релизов и обновлений.',
+      groupKey: 'platform',
+      order: 2,
+      body:
+        '## Changelog\n\nКаждый релиз получает запись с описанием новых курсов, фиксов и ' +
+        'улучшений. Архив — на этой странице.'
+    },
+    {
+      slug: 'status',
+      title: 'Статус сервиса',
+      excerpt: 'Доступность платформы.',
+      groupKey: 'resources',
+      order: 1,
+      body:
+        '## Статус сервиса\n\nПри плановых работах или инцидентах мы публикуем апдейты в ' +
+        'Telegram-канале и здесь. Если страница не открывается — проверь сначала статус.'
+    },
+    {
+      slug: 'blog',
+      title: 'Блог',
+      excerpt: 'Заметки из практики и индустрии.',
+      groupKey: 'resources',
+      order: 2,
+      body:
+        '## Блог\n\nДлинные тексты от авторов курсов: разбор сложных тем, личный опыт, разборы ' +
+        'собеседований. Подписывайся на рассылку, чтобы не пропустить.'
     }
   ]
   for (const page of pages) {

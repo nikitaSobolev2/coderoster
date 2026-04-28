@@ -1,13 +1,15 @@
 import Link from 'next/link'
 import { withAuth } from '@workos-inc/authkit-nextjs'
+import { faLayerGroup } from '@fortawesome/free-solid-svg-icons'
 import { env } from '~/env'
 import { isTruthyFlag } from '~/server/lib/featureFlags'
+import { getAppRepositories } from '~/server/repositories'
 import { userSyncService } from '~/server/services/UserSyncService'
 import Logo from '~/shared/components/common/Logo'
 import NavCategory from './NavCategory'
 import SearchTrigger from './SearchTrigger'
 import UserMenu, { type ViewerUser } from './UserMenu'
-import { NAV_CATEGORIES } from './categories'
+import { NAV_CATEGORIES, type NavCategoryConfig } from './categories'
 import styles from './styles.module.scss'
 
 /**
@@ -16,7 +18,7 @@ import styles from './styles.module.scss'
  * username (handles renames + WorkOS email changes without 404s).
  */
 export default async function PlatformHeader() {
-  const viewer = await resolveViewer()
+  const [viewer, navCategories] = await Promise.all([resolveViewer(), resolveNavCategories()])
 
   return (
     <header className={styles.header}>
@@ -25,7 +27,7 @@ export default async function PlatformHeader() {
           <Logo />
         </Link>
         <nav className={styles.header__nav} aria-label="Платформа">
-          {NAV_CATEGORIES.map(category => (
+          {navCategories.map(category => (
             <NavCategory key={category.id} category={category} />
           ))}
         </nav>
@@ -36,6 +38,38 @@ export default async function PlatformHeader() {
       </div>
     </header>
   )
+}
+
+/**
+ * Splices the live "Категории" mega-menu (CMS-managed `CourseCategory` rows)
+ * in front of the static nav so that learners see the editorial taxonomy
+ * the admin curates without redeploying the front-end.
+ */
+async function resolveNavCategories(): Promise<NavCategoryConfig[]> {
+  const dynamicCategory = await buildCategoriesNavEntry()
+  if (!dynamicCategory) return NAV_CATEGORIES
+  return [dynamicCategory, ...NAV_CATEGORIES]
+}
+
+async function buildCategoriesNavEntry(): Promise<NavCategoryConfig | null> {
+  try {
+    const categories = await getAppRepositories().course.listCategories()
+    if (categories.length === 0) return null
+    return {
+      id: 'categories',
+      label: 'Категории',
+      items: categories.map(category => ({
+        id: `category-${category.slug}`,
+        title: category.title,
+        description: 'Курсы по категории',
+        href: `/courses?category=${category.slug}`,
+        icon: faLayerGroup
+      }))
+    }
+  } catch (error) {
+    console.error('[header] resolveNavCategories failed', error)
+    return null
+  }
 }
 
 async function resolveViewer(): Promise<ViewerUser | null> {

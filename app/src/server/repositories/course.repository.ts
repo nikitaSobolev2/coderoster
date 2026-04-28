@@ -1,13 +1,14 @@
 import 'server-only'
 import type { Prisma } from '@prisma/client'
 import { db } from '~/server/db'
-import { toCourseDetail, toCourseSummary } from './mappers'
-import type { CourseDetail, CoursesPage, CoursesQuery, CourseSummary } from './types'
+import { toCategoryRef, toCourseDetail, toCourseSummary } from './mappers'
+import type { CategoryRef, CourseDetail, CoursesPage, CoursesQuery, CourseSummary } from './types'
 import { findFakeCourseBySlug, getFakeCourseSummaries } from './fixtures'
 
 export interface CourseRepository {
   list(query: CoursesQuery): Promise<CoursesPage>
   getBySlug(slug: string): Promise<CourseDetail | null>
+  listCategories(): Promise<CategoryRef[]>
 }
 
 export class FakeCourseRepository implements CourseRepository {
@@ -21,11 +22,21 @@ export class FakeCourseRepository implements CourseRepository {
   async getBySlug(slug: string): Promise<CourseDetail | null> {
     return findFakeCourseBySlug(slug)
   }
+
+  async listCategories(): Promise<CategoryRef[]> {
+    const seen = new Map<string, CategoryRef>()
+    for (const course of getFakeCourseSummaries()) {
+      if (course.category && !seen.has(course.category.slug)) {
+        seen.set(course.category.slug, course.category)
+      }
+    }
+    return Array.from(seen.values())
+  }
 }
 
 export class PrismaCourseRepository implements CourseRepository {
   async list(query: CoursesQuery): Promise<CoursesPage> {
-    const where = buildWhere(query)
+    const where = await buildWhere(query)
     const orderBy = buildOrderBy(query.sort)
     const limit = Math.min(60, Math.max(1, query.limit ?? 24))
 
@@ -38,6 +49,7 @@ export class PrismaCourseRepository implements CourseRepository {
         orderBy,
         include: {
           author: true,
+          category: true,
           _count: { select: { enrollments: true } }
         }
       }),
@@ -59,6 +71,7 @@ export class PrismaCourseRepository implements CourseRepository {
       where: { slug },
       include: {
         author: true,
+        category: true,
         modules: {
           include: { tasks: true },
           orderBy: { order: 'asc' }
@@ -69,12 +82,27 @@ export class PrismaCourseRepository implements CourseRepository {
     if (!course) return null
     return toCourseDetail(course)
   }
+
+  async listCategories(): Promise<CategoryRef[]> {
+    const rows = await db.courseCategory.findMany({
+      where: { courses: { some: { status: 'PUBLISHED' } } },
+      orderBy: [{ order: 'asc' }, { title: 'asc' }]
+    })
+    return rows.map(row => toCategoryRef(row)).filter((ref): ref is CategoryRef => ref !== null)
+  }
 }
 
-function buildWhere(query: CoursesQuery): Prisma.CourseWhereInput {
+async function buildWhere(query: CoursesQuery): Promise<Prisma.CourseWhereInput> {
   const where: Prisma.CourseWhereInput = { status: 'PUBLISHED' }
   if (query.language) where.language = query.language
   if (query.difficulty) where.difficulty = query.difficulty
+  if (query.categorySlug) where.category = { slug: query.categorySlug }
+  if (query.durationMin !== undefined || query.durationMax !== undefined) {
+    where.durationHours = {
+      ...(query.durationMin !== undefined ? { gte: query.durationMin } : {}),
+      ...(query.durationMax !== undefined ? { lte: query.durationMax } : {})
+    }
+  }
   if (query.q) {
     where.OR = [
       { title: { contains: query.q, mode: 'insensitive' } },
@@ -100,6 +128,9 @@ function buildOrderBy(sort: CoursesQuery['sort']): Prisma.CourseOrderByWithRelat
 function matchesFakeQuery(course: CourseSummary, query: CoursesQuery): boolean {
   if (query.language && course.language !== query.language) return false
   if (query.difficulty && course.difficulty !== query.difficulty) return false
+  if (query.categorySlug && course.category?.slug !== query.categorySlug) return false
+  if (query.durationMin !== undefined && course.durationHours < query.durationMin) return false
+  if (query.durationMax !== undefined && course.durationHours > query.durationMax) return false
   if (query.q) {
     const haystack = `${course.title} ${course.description} ${course.tags.join(' ')}`.toLowerCase()
     if (!haystack.includes(query.q.toLowerCase())) return false

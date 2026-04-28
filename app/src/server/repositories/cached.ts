@@ -7,6 +7,7 @@ import type { CommentRepository } from './comment.repository'
 import type { SearchRepository } from './search.repository'
 import type {
   ActivityCell,
+  CategoryRef,
   CourseDetail,
   CoursesPage,
   CoursesQuery,
@@ -21,6 +22,7 @@ import type {
 const TTL = {
   courseList: 60,
   courseDetail: 300,
+  courseCategories: 300,
   lessonDetail: 300,
   profile: 300,
   activity: 3_600,
@@ -30,8 +32,9 @@ const TTL = {
 }
 
 const KEY = {
-  courseList: (q: CoursesQuery) => `course:list:${stable(q)}`,
-  courseDetail: (slug: string) => `course:slug:${slug}`,
+  courseList: (q: CoursesQuery) => `course:list:v2:${stable(q)}`,
+  courseDetail: (slug: string) => `course:slug:v2:${slug}`,
+  courseCategories: 'course:categories:v1',
   lessonDetail: (courseSlug: string, lessonId: string) => `lesson:${courseSlug}:${lessonId}`,
   profile: (username: string, viewerId: string | null) =>
     `profile:${username.toLowerCase()}:${viewerId ?? 'guest'}`,
@@ -52,6 +55,10 @@ export class CachedCourseRepository implements CourseRepository {
 
   async getBySlug(slug: string): Promise<CourseDetail | null> {
     return cache.wrap(KEY.courseDetail(slug), TTL.courseDetail, () => this.inner.getBySlug(slug))
+  }
+
+  async listCategories(): Promise<CategoryRef[]> {
+    return cache.wrap(KEY.courseCategories, TTL.courseCategories, () => this.inner.listCategories())
   }
 }
 

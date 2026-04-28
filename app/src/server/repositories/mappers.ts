@@ -3,6 +3,7 @@ import type {
   Achievement as PrismaAchievement,
   Comment as PrismaComment,
   Course as PrismaCourse,
+  CourseCategory as PrismaCourseCategory,
   CourseModule as PrismaCourseModule,
   CourseTask as PrismaCourseTask,
   Enrollment as PrismaEnrollment,
@@ -16,6 +17,7 @@ import type {
   Achievement,
   ActivityCell,
   AuthorRef,
+  CategoryRef,
   CourseDetail,
   CourseSummary,
   Difficulty,
@@ -45,8 +47,21 @@ import type {
 
 type CourseWithRelations = PrismaCourse & {
   author: PrismaUser
+  category?: PrismaCourseCategory | null
   modules?: (PrismaCourseModule & { tasks: PrismaCourseTask[] })[]
   _count?: { enrollments: number }
+}
+
+export function toCategoryRef(
+  category: PrismaCourseCategory | null | undefined
+): CategoryRef | null {
+  if (!category) return null
+  return {
+    id: category.id,
+    slug: category.slug,
+    title: category.title,
+    iconKey: category.iconKey
+  }
 }
 
 const XP_PER_LEVEL = 1_000
@@ -73,7 +88,8 @@ export function toCourseSummary(course: CourseWithRelations): CourseSummary {
     enrollmentCount: course._count?.enrollments ?? 0,
     thumbnail: course.coverImage,
     tags: course.tags,
-    author: toAuthorRef(course.author)
+    author: toAuthorRef(course.author),
+    category: toCategoryRef(course.category ?? null)
   }
 }
 

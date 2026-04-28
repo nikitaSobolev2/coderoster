@@ -1,5 +1,8 @@
 import { handleAuth } from '@workos-inc/authkit-nextjs'
 
-// Redirect the user to `/` after successful sign in
-// The redirect can be customized: `handleAuth({ returnPathname: '/foo' })`
-export const GET = handleAuth()
+/**
+ * Forward authenticated learners straight into the platform catalog so the
+ * post-login experience surfaces course content first instead of the
+ * marketing landing page.
+ */
+export const GET = handleAuth({ returnPathname: '/courses' })

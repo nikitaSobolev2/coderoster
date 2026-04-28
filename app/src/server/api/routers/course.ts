@@ -13,6 +13,14 @@ export const courseRouter = createTRPCRouter({
           q: z.string().trim().max(120).optional(),
           language: languageSchema.optional(),
           difficulty: difficultySchema.optional(),
+          categorySlug: z
+            .string()
+            .trim()
+            .max(80)
+            .regex(/^[a-z0-9-]+$/)
+            .optional(),
+          durationMin: z.number().int().min(0).max(2_000).optional(),
+          durationMax: z.number().int().min(0).max(2_000).optional(),
           sort: sortSchema.optional(),
           cursor: z.string().optional(),
           limit: z.number().int().min(1).max(60).optional()
@@ -23,5 +31,7 @@ export const courseRouter = createTRPCRouter({
 
   getBySlug: publicProcedure
     .input(z.object({ slug: z.string().min(1).max(120) }))
-    .query(({ ctx, input }) => ctx.repositories.course.getBySlug(input.slug))
+    .query(({ ctx, input }) => ctx.repositories.course.getBySlug(input.slug)),
+
+  listCategories: publicProcedure.query(({ ctx }) => ctx.repositories.course.listCategories())
 })

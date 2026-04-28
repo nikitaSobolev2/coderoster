@@ -25,6 +25,13 @@ export const env = createEnv({
     WORKOS_CLIENT_ID: z.string(),
     WORKOS_COOKIE_PASSWORD: z.string(),
     /**
+     * AuthKit defaults the encrypted session cookie to 10 minutes which is
+     * way too aggressive for a learning platform — users are kicked out
+     * mid-lesson. Bumped to 30 days; AuthKit silently refreshes the access
+     * token via the embedded refresh token until that ceiling is hit.
+     */
+    WORKOS_COOKIE_MAX_AGE: z.coerce.number().int().positive().default(2_592_000),
+    /**
      * When `true`, server repositories return predefined fixtures instead of querying Prisma.
      * Useful for frontend development before the backend is wired up.
      */
@@ -103,6 +110,7 @@ export const env = createEnv({
     WORKOS_API_KEY: process.env.WORKOS_API_KEY,
     WORKOS_CLIENT_ID: process.env.WORKOS_CLIENT_ID,
     WORKOS_COOKIE_PASSWORD: process.env.WORKOS_COOKIE_PASSWORD,
+    WORKOS_COOKIE_MAX_AGE: process.env.WORKOS_COOKIE_MAX_AGE,
     USE_FAKE_DATA: process.env.USE_FAKE_DATA,
     REDIS_URL: process.env.REDIS_URL,
     RABBITMQ_URL: process.env.RABBITMQ_URL,

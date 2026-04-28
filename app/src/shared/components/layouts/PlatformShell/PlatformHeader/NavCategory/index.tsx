@@ -54,10 +54,12 @@ export default function NavCategory({ category }: Props) {
 function NavLeafItem({ item }: { item: NavLeaf }) {
   return (
     <li>
-      <Link className={styles.leaf} href={item.href}>
-        <span className={styles.leaf__icon}>
-          <FontAwesomeIcon icon={item.icon} />
-        </span>
+      <Link className={styles.leaf} href={item.href} prefetch={false}>
+        {item.icon ? (
+          <span className={styles.leaf__icon}>
+            <FontAwesomeIcon icon={item.icon} />
+          </span>
+        ) : null}
         <span className={styles.leaf__body}>
           <span className={styles.leaf__title}>{item.title}</span>
           <span className={styles.leaf__description}>{item.description}</span>

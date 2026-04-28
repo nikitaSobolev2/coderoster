@@ -35,6 +35,7 @@ const PYTHON_BASICS: CourseDetail = {
   thumbnail: null,
   tags: ['основы', 'синтаксис', 'практика'],
   author: author(),
+  category: { id: 'cat-py', slug: 'python', title: 'Python', iconKey: 'python' },
   learningOutcomes: [
     'Запускать программы на Python локально и в браузере',
     'Работать с переменными, числами, строками и списками',
@@ -89,6 +90,7 @@ const PHP_API: CourseDetail = {
   thumbnail: null,
   tags: ['backend', 'http', 'pdo'],
   author: author({ id: 'author-2', username: 'php_pro', displayName: 'Мария Лазарева' }),
+  category: { id: 'cat-php', slug: 'php', title: 'PHP', iconKey: 'php' },
   learningOutcomes: [
     'Понимать жизненный цикл HTTP-запроса в PHP',
     'Писать роутер без фреймворка',
@@ -132,6 +134,7 @@ const ALGORITHMS: CourseDetail = {
   thumbnail: null,
   tags: ['собеседование', 'алгоритмы', 'big-o'],
   author: author({ id: 'author-3', username: 'algo_dasha', displayName: 'Даша Кравцова' }),
+  category: { id: 'cat-algo', slug: 'algorithms', title: 'Алгоритмы', iconKey: 'algorithm' },
   learningOutcomes: [
     'Оценивать сложность по времени и памяти',
     'Применять «два указателя» на массивах и строках',

@@ -12,18 +12,28 @@ const REMOTE_SAVE_DEBOUNCE_MS = 700
  * `progress.saveDraft` mutation (server-side persistence), so a learner can
  * close the tab and pick up exactly where they left off.
  *
- * Remote saves use `useAuth().user` (not SSR `isAuthenticated`) so debounced
- * writes never fire before AuthKit client state matches cookies / tRPC context.
+ * Server-side persistence is gated on **two** independent signals:
+ *  1. `isAuthenticated` — provided by the calling page from `withAuth()` so
+ *     the server's session truth wins over any client cache lag.
+ *  2. `useAuth().user` — AuthKit's client view, which prevents firing while
+ *     hydration is still settling on first paint.
+ *
+ * Without (1) the mutation would be triggered on every keystroke for guest
+ * sessions and pile up `UNAUTHORIZED` errors in the network panel.
  *
  * Debounce is implemented as a `setTimeout` inside an effect: the cleanup
  * cancels the pending timer on every dependency change, which is exactly the
  * trailing-edge debounce we want, without needing refs or external libs.
  */
-export function useDraftPersistence(lessonId: string, starterCode: string) {
+export function useDraftPersistence(
+  lessonId: string,
+  starterCode: string,
+  isAuthenticated: boolean
+) {
   const { user, loading: authLoading } = useAuth()
   const [code, setCode] = useState(() => loadLocalDraft(lessonId) ?? starterCode)
   const { mutate: saveDraft } = api.progress.saveDraft.useMutation()
-  const canPersistRemote = Boolean(!authLoading && user)
+  const canPersistRemote = isAuthenticated && !authLoading && Boolean(user)
 
   useEffect(() => {
     if (typeof window !== 'undefined') {

@@ -31,6 +31,11 @@ export default function CourseHeader({ course }: Props) {
         decorative
       />
       <div className={styles.header__topline}>
+        {course.category ? (
+          <Badge variant="light" color="grape" radius="sm">
+            {course.category.title}
+          </Badge>
+        ) : null}
         <Badge variant="light" color="indigo" radius="sm">
           {LANGUAGE_LABELS[course.language]}
         </Badge>

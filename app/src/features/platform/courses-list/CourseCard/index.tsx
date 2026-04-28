@@ -33,6 +33,11 @@ export default function CourseCard({ course }: Props) {
       />
       <header className={styles.card__head}>
         <div className={styles.card__badges}>
+          {course.category ? (
+            <Badge variant="light" color="grape" radius="sm">
+              {course.category.title}
+            </Badge>
+          ) : null}
           <Badge variant="light" color="indigo" radius="sm">
             {LANGUAGE_LABELS[course.language]}
           </Badge>

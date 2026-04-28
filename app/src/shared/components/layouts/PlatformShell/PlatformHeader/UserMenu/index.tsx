@@ -26,7 +26,7 @@ export interface Props {
 export default function UserMenu({ user }: Props) {
   if (!user) {
     return (
-      <Link href="/login" className={styles.signInLink}>
+      <Link href="/login" className={styles.signInLink} prefetch={false}>
         Войти
       </Link>
     )
@@ -53,13 +53,19 @@ export default function UserMenu({ user }: Props) {
           <span className={styles.dropdown__handle}>@{user.username}</span>
         </div>
         <Menu.Divider />
-        <Menu.Item leftSection={<FontAwesomeIcon icon={faUser} />} component={Link} href="/u/me">
+        <Menu.Item
+          leftSection={<FontAwesomeIcon icon={faUser} />}
+          component={Link}
+          href="/u/me"
+          prefetch={false}
+        >
           Мой профиль
         </Menu.Item>
         <Menu.Item
           leftSection={<FontAwesomeIcon icon={faTrophy} />}
           component={Link}
           href="/achievements"
+          prefetch={false}
         >
           Достижения
         </Menu.Item>
@@ -67,6 +73,7 @@ export default function UserMenu({ user }: Props) {
           leftSection={<FontAwesomeIcon icon={faGear} />}
           component={Link}
           href="/settings"
+          prefetch={false}
         >
           Настройки
         </Menu.Item>
@@ -77,6 +84,7 @@ export default function UserMenu({ user }: Props) {
               leftSection={<FontAwesomeIcon icon={faShieldHalved} />}
               component={Link}
               href="/admin"
+              prefetch={false}
             >
               Админ&#8209;панель
             </Menu.Item>

@@ -7,6 +7,7 @@ import { api } from '~/trpc/react'
 import type { CoursesQuery } from '~/server/repositories/types'
 import CourseFilters from '../CourseFilters'
 import CoursesGrid from '../CoursesGrid'
+import { useCoursesGridDensity } from '../coursesGridDensity'
 import styles from './styles.module.scss'
 
 const DEFAULT_FILTERS: CoursesQuery = { sort: 'popular' }
@@ -20,6 +21,7 @@ export default function CoursesList({ initialFilters }: Props = {}) {
   const baseline = initialFilters ?? DEFAULT_FILTERS
   const [filters, setFilters] = useState<CoursesQuery>(baseline)
   const [appliedFilters, setAppliedFilters] = useState<CoursesQuery>(baseline)
+  const [gridDensity, setGridDensity] = useCoursesGridDensity()
 
   const apply = useMemo(
     () => debounce((next: CoursesQuery) => setAppliedFilters(next), FILTER_APPLY_DEBOUNCE_MS),
@@ -50,8 +52,10 @@ export default function CoursesList({ initialFilters }: Props = {}) {
         total={total}
         categories={categories}
         defaults={DEFAULT_FILTERS}
+        gridDensity={gridDensity}
+        onGridDensityChange={setGridDensity}
       />
-      <CoursesGrid courses={courses} loading={isLoading || isFetching} />
+      <CoursesGrid courses={courses} loading={isLoading || isFetching} density={gridDensity} />
     </div>
   )
 }

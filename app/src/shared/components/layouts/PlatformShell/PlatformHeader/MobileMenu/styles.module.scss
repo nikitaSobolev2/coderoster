@@ -1,5 +1,6 @@
 @use '~/shared/assets/styles/mixins' as *;
 @use '~/shared/assets/styles/breakpoints' as bp;
+@use '~/shared/assets/styles/platformNavDrawer' as nav;
 
 .burger {
   @include buttonReset;
@@ -33,49 +34,23 @@
 }
 
 .drawer {
-  @include liquidGlass(true);
-
-  border-left: var(--border-width-hair) solid var(--platform-glass-border);
-  border-radius: 0;
+  @include nav.platformNavDrawerContentSide(right);
 }
 
 .drawer__body {
+  flex: 1;
+  min-height: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
   height: 100%;
 }
 
-.drawer__head {
+.drawer__body > nav {
+  flex: 1;
+  min-height: 0;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1rem 1.25rem;
-  border-bottom: var(--border-width-hair) solid var(--platform-color-divider);
-}
-
-.drawer__title {
-  font-size: var(--font-size-h6);
-  letter-spacing: var(--letter-spacing-button);
-  text-transform: uppercase;
-  color: var(--color-text-secondary);
-}
-
-.drawer__close {
-  @include buttonReset;
-  @include clickable;
-  @include focusGlow;
-
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 999px;
-  background: transparent;
-  color: var(--color-text);
-  transition: background var(--transition-default);
-
-  &:hover {
-    background: var(--platform-color-surface-hover);
-  }
+  flex-direction: column;
 }
 
 .drawer__list {
@@ -203,10 +178,18 @@
   gap: 0.3rem;
 }
 
-.drawer__treeParent {
+.drawer__treeParentRow {
+  display: flex;
+  align-items: stretch;
+  gap: 0.2rem;
+}
+
+.drawer__treeParentLink {
   @include clickable;
   @include focusGlow;
 
+  flex: 1 1 auto;
+  min-width: 0;
   display: flex;
   align-items: flex-start;
   gap: 0.65rem;
@@ -221,11 +204,36 @@
   }
 }
 
-.drawer__treeGo {
-  margin-left: auto;
-  flex-shrink: 0;
-  font-size: 0.78rem;
-  opacity: 0.42;
+.drawer__treeExpand {
+  @include buttonReset;
+  @include clickable;
+  @include focusGlow;
+
+  flex: 0 0 auto;
+  align-self: stretch;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  min-height: 2.75rem;
+  border-radius: var(--platform-card-radius-sm);
+  color: var(--color-text-secondary);
+  transition: background var(--transition-default);
+
+  &:hover {
+    background: var(--platform-color-surface-hover);
+    color: var(--color-text);
+  }
+}
+
+.drawer__treeChevron {
+  font-size: 0.75em;
+  transition: transform var(--transition-default);
+  transform: rotate(-90deg);
+}
+
+.drawer__treeChevron_open {
+  transform: rotate(0deg);
 }
 
 .drawer__treeIcon {

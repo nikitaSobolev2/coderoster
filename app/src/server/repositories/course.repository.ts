@@ -138,7 +138,9 @@ export class PrismaCourseRepository implements CourseRepository {
     }
     for (const id of leafIds) addAncestors(id)
 
-    const roots = allCategories.filter(row => row.parentCategoryId === null && reachable.has(row.id))
+    const roots = allCategories.filter(
+      row => row.parentCategoryId === null && reachable.has(row.id)
+    )
 
     function toChildRef(row: PrismaCourseCategory): CategoryNavChildRef {
       return {
@@ -163,11 +165,50 @@ export class PrismaCourseRepository implements CourseRepository {
   }
 }
 
+/**
+ * Include each selected slug and every descendant category slug so parent nav
+ * (`/courses?category=parent`) matches courses attached to leaf categories.
+ */
+async function expandCategorySlugsForFilter(slugs: string[]): Promise<string[]> {
+  if (slugs.length === 0) return slugs
+
+  const rows = await db.courseCategory.findMany({
+    select: { id: true, slug: true, parentCategoryId: true }
+  })
+  const bySlug = new Map(rows.map(r => [r.slug, r]))
+  const byId = new Map(rows.map(r => [r.id, r]))
+  const childrenByParentId = new Map<string, typeof rows>()
+  for (const r of rows) {
+    if (!r.parentCategoryId) continue
+    const bucket = childrenByParentId.get(r.parentCategoryId)
+    if (bucket) bucket.push(r)
+    else childrenByParentId.set(r.parentCategoryId, [r])
+  }
+
+  const out = new Set<string>()
+  const walk = (id: string) => {
+    const row = byId.get(id)
+    if (!row) return
+    out.add(row.slug)
+    for (const c of childrenByParentId.get(id) ?? []) walk(c.id)
+  }
+
+  for (const slug of slugs) {
+    const row = bySlug.get(slug)
+    if (row) walk(row.id)
+    else out.add(slug)
+  }
+  return [...out]
+}
+
 async function buildWhere(query: CoursesQuery): Promise<Prisma.CourseWhereInput> {
   const where: Prisma.CourseWhereInput = { status: 'PUBLISHED' }
-  if (query.language) where.language = query.language
-  if (query.difficulty) where.difficulty = query.difficulty
-  if (query.categorySlug) where.category = { slug: query.categorySlug }
+  if (query.languages?.length) where.language = { in: query.languages }
+  if (query.difficulties?.length) where.difficulty = { in: query.difficulties }
+  if (query.categorySlugs?.length) {
+    const expanded = await expandCategorySlugsForFilter(query.categorySlugs)
+    where.category = { slug: { in: expanded } }
+  }
   if (query.durationMin !== undefined || query.durationMax !== undefined) {
     where.durationHours = {
       ...(query.durationMin !== undefined ? { gte: query.durationMin } : {}),
@@ -197,13 +238,18 @@ function buildOrderBy(sort: CoursesQuery['sort']): Prisma.CourseOrderByWithRelat
 }
 
 function matchesFakeQuery(course: CourseSummary, query: CoursesQuery): boolean {
-  if (query.language && course.language !== query.language) return false
-  if (query.difficulty && course.difficulty !== query.difficulty) return false
-  if (query.categorySlug && course.category?.slug !== query.categorySlug) return false
+  if (query.languages?.length && !query.languages.includes(course.language)) return false
+  if (query.difficulties?.length && !query.difficulties.includes(course.difficulty)) return false
+  if (
+    query.categorySlugs?.length &&
+    (!course.category || !query.categorySlugs.includes(course.category.slug))
+  )
+    return false
   if (query.durationMin !== undefined && course.durationHours < query.durationMin) return false
   if (query.durationMax !== undefined && course.durationHours > query.durationMax) return false
   if (query.q) {
-    const haystack = `${course.title} ${course.description} ${course.tags.join(' ')}`.toLowerCase()
+    const haystack =
+      `${course.title} ${course.description} ${course.shortSummary} ${course.tags.join(' ')}`.toLowerCase()
     if (!haystack.includes(query.q.toLowerCase())) return false
   }
   return true

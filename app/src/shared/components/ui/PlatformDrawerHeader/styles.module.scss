@@ -1,0 +1,24 @@
+@use '~/shared/assets/styles/platformNavDrawer' as nav;
+
+.root {
+  @include nav.platformNavDrawerHeaderRow;
+}
+
+.rootActionsOnly {
+  @include nav.platformNavDrawerHeaderRowActionsOnly;
+}
+
+.title {
+  @include nav.platformNavDrawerTitle;
+}
+
+.trailing {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-header-island);
+  flex-shrink: 0;
+}
+
+.close {
+  @include nav.platformNavDrawerClose;
+}

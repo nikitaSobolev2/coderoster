@@ -25,6 +25,7 @@ const PYTHON_BASICS: CourseDetail = {
   slug: 'python-basics',
   title: 'Python с нуля',
   description: 'Поставим первую программу, переменные, ветвления и циклы — на реальных задачах.',
+  shortSummary: 'С нуля до базовых циклов и функций.',
   longDescription:
     'Курс ведёт от установки интерпретатора до уверенного решения базовых задач. Каждый урок заканчивается интерактивной задачей с проверкой.',
   language: 'python',
@@ -80,6 +81,7 @@ const PHP_API: CourseDetail = {
   slug: 'php-api-fundamentals',
   title: 'PHP: серверный API',
   description: 'Маршрутизация, JSON, валидация, БД — без фреймворков.',
+  shortSummary: 'Минимальный API: HTTP, PDO, JSON.',
   longDescription:
     'Поднимем минимальный API на PHP с нуля: маршрутизация, валидация запросов, работа с PDO, аутентификация, тесты.',
   language: 'php',
@@ -124,6 +126,7 @@ const ALGORITHMS: CourseDetail = {
   slug: 'algorithms-introduction',
   title: 'Алгоритмы для собеседований',
   description: 'Сложность, массивы, строки, два указателя, хэш-таблицы.',
+  shortSummary: 'Big-O, два указателя, хэши — для интервью.',
   longDescription:
     'Базовый набор для разговора на интервью: оценим сложность, разберём типовые шаблоны на массивах и строках, потренируемся.',
   language: 'python',

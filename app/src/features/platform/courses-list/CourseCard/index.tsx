@@ -1,7 +1,7 @@
 import Link from 'next/link'
+import { Badge, Button } from '@mantine/core'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faClock, faStar, faUsers } from '@fortawesome/free-solid-svg-icons'
-import { Badge } from '@mantine/core'
 import CoursePreview from '~/shared/components/ui/CoursePreview'
 import type { CourseSummary } from '~/server/repositories/types'
 import styles from './styles.module.scss'
@@ -17,17 +17,154 @@ const LANGUAGE_LABELS: Record<CourseSummary['language'], string> = {
   php: 'PHP'
 }
 
+export type CourseCardVariant = 'compact' | 'comfortable' | 'list'
+
 export interface Props {
   course: CourseSummary
+  variant?: CourseCardVariant
 }
 
-/**
- * Course summary card. The whole tile is clickable via an overlay anchor on
- * the title (`::before`), while category + tag chips render as nested anchors
- * pointing at pre-filtered catalog routes — they sit above the overlay so a
- * tap on a chip drives a tag-filtered list rather than the course detail.
- */
-export default function CourseCard({ course }: Props) {
+export default function CourseCard({ course, variant = 'comfortable' }: Props) {
+  if (variant === 'compact') {
+    return (
+      <article className={`${styles.card} ${styles.card_compact}`}>
+        <div className={styles.cardCompact__preview}>
+          <CoursePreview
+            slug={course.slug}
+            title={course.title}
+            coverImage={course.thumbnail}
+            size="card"
+            decorative
+          />
+        </div>
+        <div className={styles.cardCompact__body}>
+          <h3 className={styles.cardCompact__title}>
+            <Link
+              href={`/courses/${course.slug}`}
+              className={styles.cardCompact__titleLink}
+              prefetch={false}
+            >
+              {course.title}
+            </Link>
+          </h3>
+          <Button
+            component={Link}
+            href={`/courses/${course.slug}`}
+            prefetch={false}
+            variant="light"
+            size="xs"
+            radius="xl"
+            fullWidth
+            className={styles.cardCompact__cta}
+          >
+            Узнать больше
+          </Button>
+        </div>
+      </article>
+    )
+  }
+
+  if (variant === 'list') {
+    return (
+      <article className={`${styles.card} ${styles.card_list}`}>
+        <div className={styles.cardList__media}>
+          <CoursePreview
+            slug={course.slug}
+            title={course.title}
+            coverImage={course.thumbnail}
+            size="card"
+            decorative
+          />
+        </div>
+        <div className={styles.cardList__content}>
+          <header className={styles.cardList__head}>
+            <div className={styles.card__badges}>
+              {course.category ? (
+                <Link
+                  href={`/courses?category=${course.category.slug}`}
+                  className={styles.card__chipLink}
+                  prefetch={false}
+                >
+                  <Badge variant="light" color="grape" radius="sm">
+                    {course.category.title}
+                  </Badge>
+                </Link>
+              ) : null}
+              <Link
+                href={`/courses?language=${course.language}`}
+                className={styles.card__chipLink}
+                prefetch={false}
+              >
+                <Badge variant="light" color="indigo" radius="sm">
+                  {LANGUAGE_LABELS[course.language]}
+                </Badge>
+              </Link>
+              <Link
+                href={`/courses?difficulty=${course.difficulty}`}
+                className={styles.card__chipLink}
+                prefetch={false}
+              >
+                <Badge variant="default" radius="sm">
+                  {DIFFICULTY_LABELS[course.difficulty]}
+                </Badge>
+              </Link>
+            </div>
+            <h3 className={styles.cardList__title}>{course.title}</h3>
+            {course.shortSummary.trim() ? (
+              <p className={styles.cardList__teaser}>{course.shortSummary}</p>
+            ) : null}
+            <p className={styles.cardList__summary}>{course.description}</p>
+          </header>
+          <ul className={styles.card__tags}>
+            {course.tags.slice(0, 6).map(tag => (
+              <li key={tag}>
+                <Link
+                  href={`/courses?q=${encodeURIComponent(tag)}`}
+                  className={styles.card__tag}
+                  prefetch={false}
+                >
+                  #{tag}
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <div className={styles.cardList__stats}>
+            <Stat icon={faClock} label={`${course.durationHours} ч`} />
+            <Stat icon={faStar} label={`+${course.xpReward} XP`} />
+            <Stat icon={faUsers} label={course.enrollmentCount.toLocaleString('ru-RU')} />
+            <Link
+              href={`/u/${course.author.username}`}
+              className={styles.cardList__authorLink}
+              prefetch={false}
+            >
+              {course.author.displayName}
+            </Link>
+          </div>
+          <div className={styles.cardList__actions}>
+            <Button
+              component={Link}
+              href={`/courses/${course.slug}`}
+              prefetch={false}
+              variant="default"
+              radius="xl"
+            >
+              Узнать больше
+            </Button>
+            <Button
+              component={Link}
+              href={`/courses/${course.slug}#course-enroll`}
+              prefetch={false}
+              variant="filled"
+              radius="xl"
+            >
+              Погрузиться в курс
+            </Button>
+          </div>
+        </div>
+      </article>
+    )
+  }
+
   return (
     <article className={styles.card}>
       <CoursePreview
@@ -100,6 +237,20 @@ export default function CourseCard({ course }: Props) {
         <Stat icon={faStar} label={`+${course.xpReward} XP`} />
         <Stat icon={faUsers} label={course.enrollmentCount.toLocaleString('ru-RU')} />
       </footer>
+      <div className={styles.cardComfortable__ctaWrap}>
+        <Button
+          component={Link}
+          href={`/courses/${course.slug}`}
+          prefetch={false}
+          variant="light"
+          size="sm"
+          radius="xl"
+          fullWidth
+          className={styles.cardComfortable__cta}
+        >
+          Узнать больше
+        </Button>
+      </div>
     </article>
   )
 }

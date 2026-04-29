@@ -122,6 +122,51 @@
   }
 }
 
+/**
+ * Icon-only / compact control in `PlatformHeader` actions row — matches
+ * mobile `SearchTrigger` (glass surface + pill radius, no lift on hover).
+ */
+@mixin platformHeaderGlassIconButton() {
+  @include buttonReset;
+  @include clickable;
+  @include focusGlow;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  border-radius: 999px;
+  background: var(--platform-color-surface);
+  border: var(--border-width-hair) solid var(--platform-glass-border);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-h5);
+  line-height: 1;
+  transition:
+    background var(--transition-default),
+    color var(--transition-default),
+    border-color var(--transition-default),
+    box-shadow var(--transition-default);
+
+  &:hover,
+  &:focus-visible {
+    color: var(--color-text);
+    background: var(--platform-color-surface-hover);
+    border-color: color-mix(
+      in srgb,
+      var(--platform-color-accent) 50%,
+      var(--platform-glass-border)
+    );
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--platform-color-accent) 12%, transparent);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
 /* ----- Ambient thin-grid background -----
  * Non-fixed (scrolls with page); subtle accent vignette on top.
  * Apply to a positioned ::before pseudo on the shell wrapper.

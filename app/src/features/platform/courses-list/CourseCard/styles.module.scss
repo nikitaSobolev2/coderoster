@@ -145,8 +145,173 @@
   opacity: 0.7;
 }
 
+.cardComfortable__ctaWrap {
+  position: relative;
+  z-index: 2;
+  margin-top: -0.25rem;
+}
+
+.cardComfortable__cta {
+  font-size: var(--font-size-h6);
+}
+
+.card_compact {
+  gap: 0.85rem;
+  padding-bottom: 1rem;
+  justify-content: flex-start;
+}
+
+.cardCompact__preview {
+  border-radius: var(--platform-card-radius-sm);
+  overflow: hidden;
+}
+
+.cardCompact__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.cardCompact__title {
+  margin: 0;
+  font-size: var(--font-size-h5);
+  line-height: 1.3;
+  color: var(--color-text);
+}
+
+.cardCompact__titleLink {
+  @include clickable;
+  @include focusGlow;
+
+  color: inherit;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+}
+
+.cardCompact__cta {
+  flex-shrink: 0;
+}
+
+.card_list {
+  flex-direction: row;
+  align-items: stretch;
+  gap: 1.25rem;
+}
+
+.cardList__media {
+  flex: 0 0 min(28%, 200px);
+  min-width: 120px;
+  border-radius: var(--platform-card-radius-sm);
+  overflow: hidden;
+  align-self: stretch;
+
+  /* CoursePreview fills */
+  & > div,
+  & > * {
+    height: 100%;
+    min-height: 140px;
+  }
+}
+
+.cardList__content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.cardList__head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.cardList__title {
+  margin: 0;
+  font-size: var(--font-size-h2);
+  color: var(--color-text);
+  line-height: 1.2;
+}
+
+.cardList__teaser {
+  margin: 0;
+  font-size: var(--font-size-h6);
+  color: var(--color-text-secondary);
+  letter-spacing: 0.03em;
+  line-height: 1.45;
+}
+
+.cardList__summary {
+  margin: 0;
+  font-size: var(--font-size-default);
+  color: var(--color-text-secondary);
+  line-height: 1.55;
+}
+
+.cardList__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 1.25rem;
+  align-items: center;
+  padding: 0.65rem 0;
+  border-top: var(--border-width-hair) solid var(--platform-color-divider);
+  border-bottom: var(--border-width-hair) solid var(--platform-color-divider);
+  font-size: var(--font-size-h6);
+  color: var(--color-text-secondary);
+}
+
+.cardList__authorLink {
+  @include clickable;
+  @include focusGlow;
+
+  font-size: var(--font-size-h6);
+  color: var(--color-text);
+  text-decoration: none;
+  margin-left: auto;
+
+  &:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+}
+
+.cardList__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
 @include bp.max-width(bp.$bp-sm) {
   .card__foot {
     gap: 0.85rem;
+  }
+
+  .card_list {
+    flex-direction: column;
+  }
+
+  .cardList__media {
+    flex: 0 0 auto;
+    width: 100%;
+
+    & > div,
+    & > * {
+      min-height: 180px;
+    }
+  }
+
+  .cardList__authorLink {
+    margin-left: 0;
+  }
+
+  .cardList__actions {
+    flex-direction: column;
+    align-items: stretch;
   }
 }

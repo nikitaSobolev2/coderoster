@@ -33,7 +33,7 @@ const TTL = {
 }
 
 const KEY = {
-  courseList: (q: CoursesQuery) => `course:list:v2:${stable(q)}`,
+  courseList: (q: CoursesQuery) => `course:list:v3:${stable(q)}`,
   courseDetail: (slug: string) => `course:slug:v2:${slug}`,
   courseCategories: 'course:categories:v1',
   courseCategoriesNav: 'course:categoriesNav:v1',

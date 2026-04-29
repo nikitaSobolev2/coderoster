@@ -7,7 +7,7 @@ import {
   useRef,
   useState,
   type PointerEvent as ReactPointerEvent,
-  type HTMLAttributes
+  type ComponentPropsWithoutRef
 } from 'react'
 
 import LiveChatPanel from '~/features/livechat/components/LiveChatPanel'
@@ -200,7 +200,7 @@ export default function LiveChatFloatingShell() {
     }
   }, [])
 
-  const headerInteractiveProps: HTMLAttributes<HTMLDivElement> = {
+  const headerInteractiveProps: ComponentPropsWithoutRef<'header'> = {
     className: styles.panelHeaderDrag,
     onPointerDown: onPointerDownHeader,
     onPointerMove: onPointerMoveHeader,

@@ -1,8 +1,7 @@
 @use '~/shared/assets/styles/mixins' as *;
 
-/* Matches `UserProfile` inline sign-out: icon-only round pill + cursor fill (no hover border shift). */
 .chatToggle {
-  @include buttonReset;
+  @include platformHeaderGlassIconButton;
   @include tapTarget;
   @include focusRing;
 
@@ -11,16 +10,6 @@
   align-items: center;
   justify-content: center;
   flex: 0 0 auto;
-  width: var(--height-header-island-action);
-  height: var(--height-header-island-action);
-  aspect-ratio: 1;
-  padding: 0;
-  color: var(--color-text);
-  background: transparent;
-  border: var(--border-width-hair) solid var(--color-bg-el-border);
-  border-radius: 50%;
-  font-size: var(--font-size-h5);
-  line-height: 1;
 
   &:disabled {
     opacity: 0.5;

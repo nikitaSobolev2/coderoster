@@ -48,7 +48,10 @@ export interface CourseSummary {
   id: string
   slug: string
   title: string
+  /** Catalog summary (maps to DB `Course.summary`). */
   description: string
+  /** Short blurb for dense card layouts (DB `Course.shortSummary`). */
+  shortSummary: string
   language: Language
   difficulty: Difficulty
   durationHours: number
@@ -262,10 +265,12 @@ export interface CoursesPage {
 
 export interface CoursesQuery {
   q?: string
-  language?: Language
-  difficulty?: Difficulty
-  /** CourseCategory slug. */
-  categorySlug?: string
+  /** Match any of these languages (OR). */
+  languages?: Language[]
+  /** Match any of these difficulties (OR). */
+  difficulties?: Difficulty[]
+  /** Match any of these category slugs (OR). */
+  categorySlugs?: string[]
   /** Inclusive lower bound for `durationHours`. */
   durationMin?: number
   /** Inclusive upper bound for `durationHours`. */

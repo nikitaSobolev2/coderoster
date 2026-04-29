@@ -1,6 +1,6 @@
 import { HydrateClient, api } from '~/trpc/server'
 import CoursesList from '~/features/platform/courses-list/CoursesList'
-import type { CoursesQuery } from '~/server/repositories/types'
+import type { CoursesQuery, Difficulty, Language } from '~/server/repositories/types'
 import { pageTitle } from '~/shared/constants/site'
 import styles from './styles.module.scss'
 
@@ -41,26 +41,48 @@ const LANGUAGES: ReadonlySet<string> = new Set(['python', 'php'])
 const DIFFICULTIES: ReadonlySet<string> = new Set(['beginner', 'intermediate', 'advanced'])
 const SORTS: ReadonlySet<string> = new Set(['popular', 'newest', 'shortest'])
 
+/**
+ * Facets: repeated keys (`?language=python&language=php`) or comma-separated (`?language=python,php`).
+ */
 function parseInitialFilters(params: Record<string, string | string[] | undefined>): CoursesQuery {
   const initial: CoursesQuery = { sort: 'popular' }
-  const category = pickFirst(params.category)
-  if (category && CATEGORY_SLUG_PATTERN.test(category)) initial.categorySlug = category
+
+  const categoryTokens = pickParamTokens(params.category)
+  const categorySlugs = unique(
+    categoryTokens.map(t => t.trim()).filter(t => CATEGORY_SLUG_PATTERN.test(t))
+  )
+  if (categorySlugs.length > 0) initial.categorySlugs = categorySlugs
 
   const query = pickFirst(params.q)
   if (query) initial.q = query.slice(0, 100)
 
-  const language = pickFirst(params.language)
-  if (language && LANGUAGES.has(language)) initial.language = language as CoursesQuery['language']
+  const languageTokens = pickParamTokens(params.language)
+  const languages = unique(languageTokens.filter((t): t is Language => LANGUAGES.has(t)))
+  if (languages.length > 0) initial.languages = languages
 
-  const difficulty = pickFirst(params.difficulty)
-  if (difficulty && DIFFICULTIES.has(difficulty)) {
-    initial.difficulty = difficulty as CoursesQuery['difficulty']
-  }
+  const difficultyTokens = pickParamTokens(params.difficulty)
+  const difficulties = unique(difficultyTokens.filter((t): t is Difficulty => DIFFICULTIES.has(t)))
+  if (difficulties.length > 0) initial.difficulties = difficulties
 
   const sort = pickFirst(params.sort)
   if (sort && SORTS.has(sort)) initial.sort = sort as CoursesQuery['sort']
 
   return initial
+}
+
+function pickParamTokens(value: string | string[] | undefined): string[] {
+  if (value === undefined) return []
+  const raw = Array.isArray(value) ? value : [value]
+  return raw.flatMap(part =>
+    part
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean)
+  )
+}
+
+function unique<T>(items: T[]): T[] {
+  return [...new Set(items)]
 }
 
 function pickFirst(value: string | string[] | undefined): string | undefined {

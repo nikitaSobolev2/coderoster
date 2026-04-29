@@ -1,4 +1,5 @@
 @use '~/shared/assets/styles/mixins' as *;
+@use '~/shared/assets/styles/breakpoints' as bp;
 
 .trigger {
   @include buttonReset;
@@ -60,4 +61,54 @@
 .dropdown__handle {
   color: var(--color-text-secondary);
   font-size: var(--font-size-h6);
+}
+
+@include bp.max-width(bp.$bp-nav) {
+  .trigger {
+    @include platformHeaderGlassIconButton;
+
+    padding: 0.125rem;
+
+    :global(.mantine-Avatar-root) {
+      width: 2rem !important;
+      height: 2rem !important;
+    }
+  }
+
+  .signInLink {
+    @include buttonReset;
+    @include clickable;
+    @include focusGlow;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.45rem 0.95rem;
+    min-height: 2.5rem;
+    border-radius: 999px;
+    background: var(--platform-color-surface);
+    border: var(--border-width-hair) solid var(--platform-glass-border);
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-default);
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-decoration: none;
+    transition:
+      background var(--transition-default),
+      color var(--transition-default),
+      border-color var(--transition-default),
+      box-shadow var(--transition-default);
+
+    &:hover,
+    &:focus-visible {
+      color: var(--color-text);
+      background: var(--platform-color-surface-hover);
+      border-color: color-mix(
+        in srgb,
+        var(--platform-color-accent) 50%,
+        var(--platform-glass-border)
+      );
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--platform-color-accent) 12%, transparent);
+    }
+  }
 }

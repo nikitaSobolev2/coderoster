@@ -3,9 +3,28 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(clamp(260px, 30vw, 320px), 1fr));
   gap: 1.25rem;
   transition: opacity var(--transition-default);
+}
+
+.grid_comfortable {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.grid_compact {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+@include bp.min-width(1100px) {
+  .grid_compact {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+.grid_list {
+  grid-template-columns: 1fr;
+  gap: 1rem;
 }
 
 .grid_loading {
@@ -39,6 +58,38 @@
   }
 }
 
+.skeletonList {
+  @include liquidGlass;
+
+  display: grid;
+  grid-template-columns: minmax(100px, 200px) 1fr;
+  gap: 1.25rem;
+  padding: 1rem;
+  border-radius: var(--platform-card-radius);
+  position: relative;
+  overflow: hidden;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      110deg,
+      transparent 30%,
+      color-mix(in srgb, var(--color-text) 6%, transparent) 50%,
+      transparent 70%
+    );
+    transform: translateX(-100%);
+    animation: shimmer 1.6s ease-in-out infinite;
+    pointer-events: none;
+  }
+}
+
+.skeletonList__body {
+  display: flex;
+  flex-direction: column;
+}
+
 @keyframes shimmer {
   to {
     transform: translateX(100%);
@@ -46,7 +97,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .skeleton::after {
+  .skeleton::after,
+  .skeletonList::after {
     animation: none;
   }
 }
@@ -61,8 +113,23 @@
   border-radius: var(--platform-card-radius);
 }
 
+@include bp.max-width(bp.$bp-md) {
+  .grid_comfortable {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .grid_compact {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @include bp.max-width(bp.$bp-sm) {
-  .grid {
+  .grid_comfortable,
+  .grid_compact {
+    grid-template-columns: 1fr;
+  }
+
+  .skeletonList {
     grid-template-columns: 1fr;
   }
 }

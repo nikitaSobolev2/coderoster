@@ -50,7 +50,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
           />
           <CourseSyllabus course={course} enrollment={enrollment} />
         </div>
-        <div className={styles.page__rail}>
+        <div id="course-enroll" className={styles.page__rail}>
           <CourseEnrollPanel course={course} isAuthenticated={isAuthenticated} />
         </div>
       </article>

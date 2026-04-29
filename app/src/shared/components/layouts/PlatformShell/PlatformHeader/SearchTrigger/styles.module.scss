@@ -48,7 +48,7 @@
   margin-left: auto;
 }
 
-@include bp.max-width(bp.$bp-search) {
+@include bp.max-width(bp.$bp-nav) {
   .trigger {
     min-width: 0;
     width: 2.5rem;

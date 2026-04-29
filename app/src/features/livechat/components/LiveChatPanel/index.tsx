@@ -1,6 +1,13 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState, type HTMLAttributes } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ComponentPropsWithoutRef
+} from 'react'
 import clsx from 'clsx'
 import {
   ActionIcon,
@@ -20,7 +27,7 @@ import {
 } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faGear, faPaperPlane, faRotateRight, faXmark } from '@fortawesome/free-solid-svg-icons'
+import { faGear, faPaperPlane, faRotateRight } from '@fortawesome/free-solid-svg-icons'
 import Link from 'next/link'
 
 import { api } from '~/trpc/react'
@@ -35,6 +42,7 @@ import {
   nearestLivechatUsernameToken
 } from '~/features/livechat/lib/mantineTokenColor'
 import HomeTooltip from '~/shared/components/ui/HomeTooltip'
+import PlatformDrawerHeader from '~/shared/components/ui/PlatformDrawerHeader'
 
 import {
   LIVECHAT_COLOR_INPUT_POPOVER_Z_INDEX,
@@ -57,7 +65,7 @@ export interface LiveChatPanelProps {
   /** Home mobile Drawer: close control in same row as title + refresh (matches desktop chrome). */
   onDrawerClose?: () => void
   /** Drag handles / cursor on floating shell header row */
-  headerInteractiveProps?: HTMLAttributes<HTMLDivElement>
+  headerInteractiveProps?: ComponentPropsWithoutRef<'header'>
 }
 
 interface LivechatStreamPayload {
@@ -290,16 +298,13 @@ export default function LiveChatPanel({
 
   return (
     <Paper radius={0} className={panelClasses}>
-      <div
-        className={clsx(
-          styles.header,
-          suppressChromeTitle && styles.headerActionsOnly,
-          headerInteractiveClassName
-        )}
-        {...headerInteractiveRest}
-      >
-        {suppressChromeTitle ? null : <span>Живой чат</span>}
-        <div className={styles.headerTrailing}>
+      <PlatformDrawerHeader
+        title={suppressChromeTitle ? undefined : 'Живой чат'}
+        actionsOnly={suppressChromeTitle}
+        onClose={onDrawerClose}
+        closeAriaLabel="Закрыть чат"
+        className={clsx(styles.panelHeader, headerInteractiveClassName)}
+        trailing={
           <HomeTooltip label="Обновить ленту">
             <ActionIcon
               className={styles.headerRefresh}
@@ -313,22 +318,9 @@ export default function LiveChatPanel({
               <FontAwesomeIcon icon={faRotateRight} />
             </ActionIcon>
           </HomeTooltip>
-          {onDrawerClose ? (
-            <HomeTooltip label="Закрыть">
-              <ActionIcon
-                className={styles.headerClose}
-                size="sm"
-                variant="subtle"
-                color="gray"
-                onClick={onDrawerClose}
-                aria-label="Закрыть чат"
-              >
-                <FontAwesomeIcon icon={faXmark} />
-              </ActionIcon>
-            </HomeTooltip>
-          ) : null}
-        </div>
-      </div>
+        }
+        {...headerInteractiveRest}
+      />
 
       <ScrollArea
         className={styles.feed}

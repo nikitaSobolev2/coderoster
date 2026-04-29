@@ -49,6 +49,7 @@ export default function LiveChatHomeRoot({ children }: Props) {
         >
           <div
             className={styles.homeChatCursorSuspendWrap}
+            data-livechat-mobile-sheet=""
             data-livechat-cursor-isolate=""
           >
             <LiveChatPanel variant="floating" onDrawerClose={() => setOpen(false)} />

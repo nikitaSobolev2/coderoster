@@ -81,6 +81,7 @@ export function toCourseSummary(course: CourseWithRelations): CourseSummary {
     slug: course.slug,
     title: course.title,
     description: course.summary,
+    shortSummary: course.shortSummary,
     language: course.language as Language,
     difficulty: course.difficulty as Difficulty,
     durationHours: course.durationHours,

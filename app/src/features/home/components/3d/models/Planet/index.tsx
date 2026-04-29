@@ -1,17 +1,79 @@
 'use client'
 
-import { useRef } from 'react'
+import { useLayoutEffect, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { useTexture } from '@react-three/drei'
-import type { Mesh } from 'three'
-import { FrontSide, AdditiveBlending, NormalBlending } from 'three'
+import type { MeshStandardMaterial } from 'three'
+import {
+  FrontSide,
+  AdditiveBlending,
+  NormalBlending,
+  Color as ThreeColor,
+  MathUtils as ThreeMathUtils
+} from 'three'
+
+import {
+  PLANET_DANGER_OMEGA_RAD_PER_S,
+  DANGER_RED_EMISSIVE_HEX,
+  PLANET_ATMOSPHERE_OPACITY_IDLE,
+  PLANET_ATMOSPHERE_DANGER_OPACITY_MAX
+} from './planetRotation.constants'
+import { angularVelocityDangerFactor } from './planetRotationPhysics'
+
 import { planetDimensions, usePlanetStore } from './planet.store'
+import { useGlobePointerStore } from './globePointer.store'
+import { usePlanetPointerPhysics } from './usePlanetPointerSpin'
+import { disableMeshRaycast } from './disableMeshRaycast'
+import { setPlanetOrbitGlowFromHeat } from './planetOrbitGlow.dom'
 
-export default function Planet() {
-  const mesh = useRef<Mesh>(null)
+const SCRATCH_DEST = new ThreeColor(DANGER_RED_EMISSIVE_HEX)
+
+interface Props {
+  /** Fine-pointer desktop: globe hover sets custom cursor glyph. Physics active on all pointers. */
+  interactionDesktop: boolean
+}
+
+export default function Planet(props: Readonly<Props>) {
+  const { interactionDesktop } = props
   const settings = usePlanetStore(state => state.settings)
+  const setPointerOverGlobe = useGlobePointerStore(state => state.setPointerOverGlobe)
 
-  // Load textures
+  const urbanMatRef = useRef<MeshStandardMaterial>(null!)
+  const ruralMatRef = useRef<MeshStandardMaterial>(null!)
+  const atmMatRef = useRef<MeshStandardMaterial>(null!)
+
+  const baseUrban = useRef(new ThreeColor())
+  const baseUrbanIntensity = useRef(0)
+  const baseRural = useRef(new ThreeColor())
+  const baseAtmosphere = useRef(new ThreeColor())
+  const baseAtmosphereIntensity = useRef(0)
+
+  useLayoutEffect(() => {
+    baseUrban.current.copy(settings.emissiveColor)
+    baseUrbanIntensity.current = settings.emissiveIntensity
+    baseRural.current.copy(settings.emissiveColor)
+    baseAtmosphere.current.copy(settings.atmosphereColor)
+    baseAtmosphereIntensity.current = settings.atmosphereIntensity
+
+    urbanMatRef.current?.emissive.copy(baseUrban.current)
+    ruralMatRef.current?.emissive.copy(baseRural.current)
+    atmMatRef.current?.color.copy(baseAtmosphere.current)
+    atmMatRef.current?.emissive.copy(baseAtmosphere.current)
+  }, [settings])
+
+  const {
+    spinGroupRef,
+    applyIdleAndUserSpinStep,
+    onGlobeSurfacePointerDown,
+    onPointerCancel,
+    onPointerLeave,
+    onPointerOver,
+    onPointerOut
+  } = usePlanetPointerPhysics({
+    interactionDesktop,
+    setPointerOverGlobe
+  })
+
   const [
     colorMap,
     normalMapTexture,
@@ -32,19 +94,66 @@ export default function Planet() {
     '/assets/textures/planet/Oceanic 05 (Elevation 4k).png'
   ])
 
-  // Animate rotation
-  useFrame(() => {
-    if (mesh.current) {
-      mesh.current.rotation.y += settings.rotationSpeed
-    }
+  useFrame((_state, deltaSeconds) => {
+    const idleTick = settings.rotationSpeed
+
+    const step = applyIdleAndUserSpinStep(deltaSeconds, idleTick)
+
+    const severity = ThreeMathUtils.clamp(
+      angularVelocityDangerFactor(step.userOmegaMagnitude, PLANET_DANGER_OMEGA_RAD_PER_S),
+      0,
+      1
+    )
+    const tintStrength = ThreeMathUtils.clamp(severity * 1.2, 0, 1)
+
+    setPlanetOrbitGlowFromHeat(tintStrength)
+
+    const urban = urbanMatRef.current
+    const rural = ruralMatRef.current
+    const atm = atmMatRef.current
+    if (!urban || !rural || !atm) return
+
+    SCRATCH_DEST.setHex(DANGER_RED_EMISSIVE_HEX)
+    urban.emissive.copy(baseUrban.current).lerp(SCRATCH_DEST, tintStrength)
+    rural.emissive.copy(baseRural.current).lerp(SCRATCH_DEST, tintStrength)
+
+    urban.emissiveIntensity = ThreeMathUtils.lerp(
+      baseUrbanIntensity.current,
+      baseUrbanIntensity.current * (1 + tintStrength * 1.45),
+      tintStrength
+    )
+
+    rural.emissiveIntensity = ThreeMathUtils.lerp(1, 1 + tintStrength * 2.25, tintStrength)
+
+    atm.emissive.copy(baseAtmosphere.current).lerp(SCRATCH_DEST, tintStrength)
+    atm.color.copy(atm.emissive)
+
+    atm.emissiveIntensity = ThreeMathUtils.lerp(
+      baseAtmosphereIntensity.current,
+      baseAtmosphereIntensity.current * (1 + tintStrength * 1.75),
+      tintStrength
+    )
+
+    atm.opacity = ThreeMathUtils.lerp(
+      PLANET_ATMOSPHERE_OPACITY_IDLE,
+      PLANET_ATMOSPHERE_DANGER_OPACITY_MAX,
+      tintStrength
+    )
   })
 
+  const pointerPresence = interactionDesktop ? { onPointerOver, onPointerOut } : {}
+
   return (
-    <group ref={mesh}>
-      {/* Main Planet Opaque Layer */}
-      <mesh>
+    <group ref={spinGroupRef}>
+      <mesh
+        onPointerCancel={onPointerCancel}
+        onPointerLeave={onPointerLeave}
+        onPointerDown={onGlobeSurfacePointerDown}
+        {...pointerPresence}
+      >
         <sphereGeometry args={[planetDimensions.planetRadius, 64, 64]} />
         <meshStandardMaterial
+          ref={urbanMatRef}
           map={colorMap}
           normalMap={normalMapTexture}
           normalScale={settings.normalScale}
@@ -52,7 +161,7 @@ export default function Planet() {
           bumpScale={settings.bumpScale}
           roughnessMap={roughnessMap}
           emissiveMap={lightsUrbanMap}
-          emissive={settings.emissiveColor}
+          emissive={settings.emissiveColor.clone()}
           emissiveIntensity={settings.emissiveIntensity}
           transparent={false}
           depthWrite={true}
@@ -60,8 +169,8 @@ export default function Planet() {
         />
       </mesh>
 
-      {/* Islands & Reefs Layer */}
-      <mesh>
+      {/* Islands & Reefs Layer — no raycast */}
+      <mesh ref={element => disableMeshRaycast(element)}>
         <sphereGeometry args={[planetDimensions.islandReefRadius, 64, 64]} />
         <meshStandardMaterial
           map={islandsReefsMap}
@@ -73,12 +182,13 @@ export default function Planet() {
         />
       </mesh>
 
-      {/* Rural Lights Layer */}
-      <mesh>
+      {/* Rural Lights Layer — no raycast */}
+      <mesh ref={element => disableMeshRaycast(element)}>
         <sphereGeometry args={[planetDimensions.ruralLightsRadius, 64, 64]} />
         <meshStandardMaterial
+          ref={ruralMatRef}
           emissiveMap={lightsRuralMap}
-          emissive={settings.emissiveColor}
+          emissive={settings.emissiveColor.clone()}
           emissiveIntensity={1}
           transparent={true}
           depthWrite={false}
@@ -88,8 +198,8 @@ export default function Planet() {
         />
       </mesh>
 
-      {/* Clouds Layer */}
-      <mesh>
+      {/* Clouds Layer — no raycast */}
+      <mesh ref={element => disableMeshRaycast(element)}>
         <sphereGeometry args={[planetDimensions.cloudRadius, 64, 64]} />
         <meshStandardMaterial
           map={cloudsMap}
@@ -101,14 +211,15 @@ export default function Planet() {
         />
       </mesh>
 
-      {/* Atmospheric Glow Layer */}
-      <mesh>
+      {/* Atmospheric Glow Layer — no raycast */}
+      <mesh ref={element => disableMeshRaycast(element)}>
         <sphereGeometry args={[planetDimensions.atmosphereRadius, 64, 64]} />
         <meshStandardMaterial
+          ref={atmMatRef}
           transparent={true}
-          opacity={0.05}
+          opacity={PLANET_ATMOSPHERE_OPACITY_IDLE}
           color={settings.atmosphereColor}
-          emissive={settings.atmosphereColor}
+          emissive={settings.atmosphereColor.clone()}
           emissiveIntensity={settings.atmosphereIntensity}
           side={FrontSide}
           depthWrite={false}

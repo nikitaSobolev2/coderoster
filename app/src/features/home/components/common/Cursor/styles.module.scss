@@ -32,6 +32,10 @@
     border-color var(--transition-cursor) var(--easing-cursor),
     rotate var(--transition-cursor) var(--easing-cursor);
 
+  &[data-cursor-type='globeHorizontal'] {
+    mix-blend-mode: normal;
+  }
+
   &[data-cursor-type='image'],
   &[data-cursor-type='video'] {
     mix-blend-mode: normal;
@@ -42,6 +46,12 @@
 .cursor__arrow {
   width: var(--size-cursor-arrow-glyph);
   height: var(--size-cursor-arrow-glyph);
+  color: var(--color-cursor-arrow-glyph);
+}
+
+.cursor__globeHorizontal {
+  width: calc(var(--size-cursor-arrow-glyph) * 0.78);
+  height: calc(var(--size-cursor-arrow-glyph) * 0.78);
   color: var(--color-cursor-arrow-glyph);
 }
 

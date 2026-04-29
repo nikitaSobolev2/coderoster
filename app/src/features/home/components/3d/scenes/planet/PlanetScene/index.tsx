@@ -8,8 +8,11 @@ import { usePlanetScaleStore } from '~/features/home/components/3d/scenes/planet
 import { getPlanetPresetForIndex } from '~/features/home/components/3d/scenes/planet/planetSectionPresets'
 import { usePlanetGroupRefStore } from '~/features/home/components/3d/scenes/planet/planet-group-ref.store'
 import { usePlanetStore } from '~/features/home/components/3d/models/Planet/planet.store'
+import { registerPlanetOrbitGlowHost } from '~/features/home/components/3d/models/Planet/planetOrbitGlow.dom'
 import { useSectionScrollerStore } from '~/features/home/components/common/SectionScroller/section-scroller.store'
 import { useMobilePlanetScrollTimeline } from '~/features/home/hooks/planetScroll/useMobilePlanetScrollTimeline'
+import GlobeCursorSync from '~/features/home/components/3d/scenes/planet/GlobeCursorSync'
+import { HOME_DESKTOP_INTERACTION_MQ } from '~/shared/constants/homeDesktopInteractionMediaQuery'
 import { useMatchMedia } from '~/shared/hooks/useMatchMedia'
 import { readRootCssColorVar } from '~/shared/utils/cssCustomProperties'
 import { CameraSetup } from '../CameraSetup'
@@ -86,6 +89,7 @@ export default function PlanetScene() {
   const prevIndexRef = useRef(activeIndex)
   const didInitRef = useRef(false)
   const isMobile = useMatchMedia(MOBILE_MQ)
+  const interactionDesktop = useMatchMedia(HOME_DESKTOP_INTERACTION_MQ)
 
   useMobilePlanetScrollTimeline({
     enabled: isMobile && canvasSize !== null,
@@ -105,6 +109,11 @@ export default function PlanetScene() {
     const onResize = () => setLayoutTick(t => t + 1)
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
+  }, [])
+
+  useLayoutEffect(() => {
+    registerPlanetOrbitGlowHost(animatedContainerRef.current)
+    return () => registerPlanetOrbitGlowHost(null)
   }, [])
 
   useLayoutEffect(() => {
@@ -204,28 +213,31 @@ export default function PlanetScene() {
   }, [activeIndex, canvasSize, setPlanetScale, layoutTick, isMobile])
 
   return (
-    <div ref={animatedContainerRef} className={styles.container}>
-      <div ref={canvasHolderRef} className={styles.canvasHolder}>
-        {canvasSize && (
-          <Canvas>
-            <CameraSetup fixedSize={canvasSize} />
-            <PlanetR3FLights
-              warmBase={r3fLightColors.warm}
-              directionalBase={r3fLightColors.directional}
-            />
-            <React.Suspense
-              fallback={
-                <mesh>
-                  <boxGeometry args={[1, 1, 1]} />
-                  <meshBasicMaterial color="orange" wireframe />
-                </mesh>
-              }
-            >
-              <ScalablePlanet />
-            </React.Suspense>
-          </Canvas>
-        )}
+    <>
+      <GlobeCursorSync />
+      <div ref={animatedContainerRef} className={styles.container}>
+        <div ref={canvasHolderRef} className={styles.canvasHolder}>
+          {canvasSize && (
+            <Canvas>
+              <CameraSetup fixedSize={canvasSize} />
+              <PlanetR3FLights
+                warmBase={r3fLightColors.warm}
+                directionalBase={r3fLightColors.directional}
+              />
+              <React.Suspense
+                fallback={
+                  <mesh>
+                    <boxGeometry args={[1, 1, 1]} />
+                    <meshBasicMaterial color="orange" wireframe />
+                  </mesh>
+                }
+              >
+                <ScalablePlanet interactionDesktop={interactionDesktop} />
+              </React.Suspense>
+            </Canvas>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   )
 }

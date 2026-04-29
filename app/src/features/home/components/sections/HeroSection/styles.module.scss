@@ -10,6 +10,8 @@
   justify-content: center;
   padding: calc(var(--header-height) + var(--spacing-hero-top-extra)) var(--padding-main)
     var(--padding-section-bottom-xl);
+  /* Let clicks reach planet in side margins; content stays interactive */
+  pointer-events: none;
 }
 
 @include bp.max-width(bp.$bp-nav) {
@@ -24,6 +26,7 @@
   align-items: center;
   gap: 2em;
   width: 100%;
+  pointer-events: auto;
   @include bp.min-width(bp.$bp-nav-up) {
     width: var(--width-content);
   }

@@ -1,5 +1,3 @@
-@use '~/shared/assets/styles/mixins' as *;
-
 .container {
   --planet-scale: 1;
 
@@ -13,8 +11,6 @@
   transform: translateZ(0);
 
   &::before {
-    @include mainShadow;
-
     content: '';
     width: 50%;
     aspect-ratio: 1/1;
@@ -22,8 +18,10 @@
     position: absolute;
     left: 50%;
     top: 50%;
-    will-change: transform;
+    will-change: transform, box-shadow;
     transform: translate(-50%, -50%) scale(var(--planet-scale));
+    /* Default: matches previous mainShadow — cool blue wash; scripts set --planet-orbit-glow when spinning hot */
+    box-shadow: 0px 0px 73.6px 51px var(--planet-orbit-glow, var(--color-primary));
   }
 }
 
@@ -33,4 +31,8 @@
   position: relative;
   will-change: contents;
   transform: translateZ(0);
+
+  :global(canvas) {
+    touch-action: none;
+  }
 }

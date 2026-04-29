@@ -61,6 +61,7 @@ function CursorRuntime() {
   return (
     <div ref={cursorRef} className={styles.cursor} data-cursor-type={type}>
       {type === 'arrow' && <ArrowGlyph />}
+      {type === 'globeHorizontal' && <GlobeHorizontalGlyphs />}
       {media?.type === 'image' && (
         // eslint-disable-next-line @next/next/no-img-element -- cursor image src is dynamic, next/image overhead unwanted
         <img className={styles.cursor__media} src={media.src} alt="" draggable={false} />
@@ -86,7 +87,7 @@ function applyStyleProps(node: HTMLDivElement | null, styleProps: CursorStore['s
   setOrClear(node, '--cursor-border-radius', styleProps.borderRadius)
   setOrClear(node, '--cursor-bg-color', styleProps.backgroundColor)
   setOrClear(node, '--cursor-border-color', styleProps.borderColor)
-  setOrClear(node, '--cursor-rotate', styleProps.rotate != null ? `${styleProps.rotate}deg` : null)
+  setOrClear(node, '--cursor-rotate', styleProps.rotate == null ? null : `${styleProps.rotate}deg`)
 }
 
 function setOrClear(node: HTMLDivElement, propertyName: string, value: string | null | undefined) {
@@ -95,6 +96,25 @@ function setOrClear(node: HTMLDivElement, propertyName: string, value: string | 
   } else {
     node.style.removeProperty(propertyName)
   }
+}
+
+/** Center of circle: symmetrical ◄► hint (horizontal drag). */
+function GlobeHorizontalGlyphs() {
+  return (
+    <svg
+      className={styles.cursor__globeHorizontal}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="m13 16-4.5-4 4.5-4" />
+      <path d="m11 16 4.5-4-4.5-4" />
+    </svg>
+  )
 }
 
 function ArrowGlyph() {

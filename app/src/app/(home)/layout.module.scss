@@ -8,6 +8,11 @@
   color: var(--color-text);
   min-height: 100svh;
   cursor: none;
+  user-select: none;
+
+  :where(input, textarea, select, [contenteditable='true']) {
+    user-select: text;
+  }
 
   @include bp.min-width(bp.$bp-nav-up) {
     @include gridBackdrop;

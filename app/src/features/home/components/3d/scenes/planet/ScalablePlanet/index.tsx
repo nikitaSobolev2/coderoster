@@ -6,7 +6,7 @@ import Planet from '~/features/home/components/3d/models/Planet'
 import { usePlanetGroupRefStore } from '~/features/home/components/3d/scenes/planet/planet-group-ref.store'
 import { usePlanetScaleStore } from '~/features/home/components/3d/scenes/planet/PlanetScene/planet-scale.store'
 
-export function ScalablePlanet() {
+export function ScalablePlanet({ interactionDesktop }: { interactionDesktop: boolean }) {
   const planetScale = usePlanetScaleStore(state => state.planetScale)
   const setGroup = usePlanetGroupRefStore(s => s.setGroup)
   const groupRef = useRef<Group>(null)
@@ -20,7 +20,7 @@ export function ScalablePlanet() {
 
   return (
     <group ref={groupRef} scale={planetScale}>
-      <Planet />
+      <Planet interactionDesktop={interactionDesktop} />
     </group>
   )
 }

@@ -7,6 +7,28 @@
   min-height: 100svh;
   overflow-x: hidden;
   background: linear-gradient(180deg, transparent, var(--color-footer-section-fade));
+  /* Planet canvas is under this stacking context; clicks must pass through to R3F */
+  pointer-events: none;
+
+  :where(
+    a,
+    button,
+    input,
+    textarea,
+    select,
+    summary,
+    label[for],
+    [role='button'],
+    [role='link'],
+    [role='tab'],
+    [role='menuitem'],
+    [role='switch'],
+    [role='checkbox'],
+    [role='radio'],
+    [contenteditable='true']
+  ) {
+    pointer-events: auto;
+  }
 }
 
 @include bp.max-width(bp.$bp-nav) {

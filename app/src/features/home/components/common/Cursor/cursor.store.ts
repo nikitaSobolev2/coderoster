@@ -16,7 +16,7 @@ export interface CursorMedia {
   src: string
 }
 
-export type CursorType = 'default' | 'arrow' | 'image' | 'video'
+export type CursorType = 'default' | 'arrow' | 'globeHorizontal' | 'image' | 'video'
 
 export interface CursorStore {
   isLocked: boolean

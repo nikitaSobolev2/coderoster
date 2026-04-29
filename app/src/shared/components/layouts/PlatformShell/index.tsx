@@ -1,6 +1,7 @@
 import PlatformHeader from './PlatformHeader'
 import PlatformFooter from './PlatformFooter'
 import PlatformBodyAttribute from './PlatformBodyAttribute'
+import PlatformLiveChatChrome from './PlatformLiveChatChrome'
 import SearchSpotlight from '~/shared/components/ui/search/SearchSpotlight'
 import LiveChatPlacementLazy from '~/features/livechat/LiveChatPlacementLazy'
 import styles from './styles.module.scss'
@@ -20,15 +21,17 @@ export interface Props {
  */
 export default function PlatformShell({ children, hideFooter = false, fluid = false }: Props) {
   return (
-    <div className={styles.shell}>
-      <PlatformBodyAttribute />
-      <SearchSpotlight />
-      <PlatformHeader />
-      <main className={`${styles.shell__main} ${fluid ? styles.shell__main_fluid : ''}`}>
-        {children}
-      </main>
-      {hideFooter ? null : <PlatformFooter />}
-      <LiveChatPlacementLazy />
-    </div>
+    <PlatformLiveChatChrome>
+      <div className={styles.shell}>
+        <PlatformBodyAttribute />
+        <SearchSpotlight />
+        <PlatformHeader />
+        <main className={`${styles.shell__main} ${fluid ? styles.shell__main_fluid : ''}`}>
+          {children}
+        </main>
+        {hideFooter ? null : <PlatformFooter />}
+        <LiveChatPlacementLazy />
+      </div>
+    </PlatformLiveChatChrome>
   )
 }

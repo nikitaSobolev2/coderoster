@@ -3,6 +3,7 @@ import { Avatar } from '@mantine/core'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons'
 import AdminMobileMenu from '../AdminMobileMenu'
+import { SITE_NAME } from '~/shared/constants/site'
 import styles from './styles.module.scss'
 
 export interface AdminViewer {
@@ -25,7 +26,7 @@ export default function AdminTopbar({ viewer }: Props) {
     <header className={styles.topbar}>
       <div className={styles.topbar__left}>
         <AdminMobileMenu />
-        <span className={styles.topbar__label}>CodeRoster · Admin</span>
+        <span className={styles.topbar__label}>{SITE_NAME} · Admin</span>
       </div>
       <div className={styles.topbar__right}>
         <Link href={`/u/${viewer.username}`} className={styles.topbar__viewAs}>

@@ -6,6 +6,7 @@ import InteractiveButton from '~/features/home/components/ui/InteractiveButton'
 import InteractiveHeading from '~/features/home/components/ui/InteractiveHeading'
 import RotatingWord from '~/features/home/components/ui/RotatingWord'
 import { HERO_SECTION_ID } from '~/features/home/components/sections/section-ids'
+import { SITE_NAME } from '~/shared/constants/site'
 import styles from './styles.module.scss'
 
 const ROTATING_OUTCOMES = [
@@ -31,7 +32,7 @@ export default function HeroSection() {
           освой программирование быстрее
         </InteractiveHeading>
         <p className={styles.hero__description}>
-          CodeRoster — увлекательный способ прокачать
+          {SITE_NAME} — увлекательный способ прокачать
           <br />
           <RotatingWord className={styles.hero__rotator} words={ROTATING_OUTCOMES} />
         </p>

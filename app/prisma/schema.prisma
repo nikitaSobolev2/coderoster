@@ -1,4 +1,4 @@
-// CodeRoster domain schema. Repository implementations live in
+// Кодиум domain schema. Repository implementations live in
 // `app/src/server/repositories/*.repository.ts` and depend on this generated client.
 // Migrations live in `app/prisma/migrations/`.
 

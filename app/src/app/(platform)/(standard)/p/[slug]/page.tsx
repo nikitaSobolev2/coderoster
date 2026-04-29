@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { db } from '~/server/db'
 import Markdown from '~/shared/components/ui/Markdown'
 import styles from './styles.module.scss'
+import { SITE_NAME } from '~/shared/constants/site'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -16,7 +17,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   })
   if (!page) return { title: 'Не найдено' }
   return {
-    title: `${page.title} · CodeRoster`,
+    title: `${page.title} · ${SITE_NAME}`,
     description: page.excerpt
   }
 }

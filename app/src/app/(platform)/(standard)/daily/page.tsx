@@ -1,9 +1,10 @@
 import { withAuth } from '@workos-inc/authkit-nextjs'
 import { HydrateClient, api } from '~/trpc/server'
 import DailyShell, { type DailyAttemptView } from '~/features/platform/daily/DailyShell'
+import { pageTitle } from '~/shared/constants/site'
 import styles from './styles.module.scss'
 
-export const metadata = { title: 'Дейлики — CodeRoster' }
+export const metadata = { title: pageTitle('Дейлики') }
 export const dynamic = 'force-dynamic'
 
 export default async function DailyPage() {

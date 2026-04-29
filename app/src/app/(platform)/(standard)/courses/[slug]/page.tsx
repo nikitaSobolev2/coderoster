@@ -6,6 +6,7 @@ import CourseOutcomes from '~/features/platform/course-detail/CourseOutcomes'
 import CourseSyllabus from '~/features/platform/course-detail/CourseSyllabus'
 import CourseEnrollPanel from '~/features/platform/course-detail/CourseEnrollPanel'
 import styles from './styles.module.scss'
+import { pageTitle, SITE_NAME } from '~/shared/constants/site'
 
 interface PageProps {
   params: Promise<{ slug: string }>
@@ -14,9 +15,9 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps) {
   const { slug } = await params
   const course = await api.course.getBySlug({ slug })
-  if (!course) return { title: 'Курс не найден — CodeRoster' }
+  if (!course) return { title: pageTitle('Курс не найден') }
   return {
-    title: `${course.title} — CodeRoster`,
+    title: `${course.title} — ${SITE_NAME}`,
     description: course.description
   }
 }

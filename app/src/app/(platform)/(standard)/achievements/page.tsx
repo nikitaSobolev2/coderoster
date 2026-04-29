@@ -3,9 +3,10 @@ import { HydrateClient, api } from '~/trpc/server'
 import AchievementsPanel from '~/features/platform/achievements/AchievementsPanel'
 import type { AchievementProgress } from '~/server/api/routers/achievement'
 import type { EarnedAchievement } from '~/server/repositories/types'
+import { pageTitle } from '~/shared/constants/site'
 import styles from './styles.module.scss'
 
-export const metadata = { title: 'Достижения — CodeRoster' }
+export const metadata = { title: pageTitle('Достижения') }
 export const dynamic = 'force-dynamic'
 
 export default async function AchievementsPage() {

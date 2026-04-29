@@ -8,6 +8,7 @@ import { faCircleCheck, faPlay } from '@fortawesome/free-solid-svg-icons'
 import CodeEditor from '~/features/platform/in-course/CodeEditor'
 import ExecutionPanel, { type ExecutionState } from '~/features/platform/in-course/ExecutionPanel'
 import EmptyState from '~/shared/components/ui/EmptyState'
+import Markdown from '~/shared/components/ui/Markdown'
 import { mapTerminalExecutionRecordToView } from '~/shared/lib/executionTerminalView'
 import { api } from '~/trpc/react'
 import type { ExecutionRecord, Language, RunResult } from '~/server/repositories/types'
@@ -186,7 +187,9 @@ function WeeklyTaskPanel({
     <div className={styles.panel}>
       <article className={styles.panel__brief}>
         <h3 className={styles.panel__title}>{task.title}</h3>
-        <p className={styles.panel__copy}>{task.description}</p>
+        <div className={styles.panel__markdown}>
+          <Markdown source={task.description} />
+        </div>
         {isCleared ? (
           <Badge color="green" variant="light">
             Зачтено

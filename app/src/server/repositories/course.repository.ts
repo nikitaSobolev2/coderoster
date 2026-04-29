@@ -1,14 +1,24 @@
 import 'server-only'
-import type { Prisma } from '@prisma/client'
+import type { CourseCategory as PrismaCourseCategory, Prisma } from '@prisma/client'
 import { db } from '~/server/db'
 import { toCategoryRef, toCourseDetail, toCourseSummary } from './mappers'
-import type { CategoryRef, CourseDetail, CoursesPage, CoursesQuery, CourseSummary } from './types'
+import type {
+  CategoryNavChildRef,
+  CategoryNavParentRef,
+  CategoryRef,
+  CourseDetail,
+  CoursesPage,
+  CoursesQuery,
+  CourseSummary
+} from './types'
 import { findFakeCourseBySlug, getFakeCourseSummaries } from './fixtures'
 
 export interface CourseRepository {
   list(query: CoursesQuery): Promise<CoursesPage>
   getBySlug(slug: string): Promise<CourseDetail | null>
   listCategories(): Promise<CategoryRef[]>
+  /** Roots + children with ≥1 published course in subtree — header mega-menu. */
+  listCategoriesNavTree(): Promise<CategoryNavParentRef[]>
 }
 
 export class FakeCourseRepository implements CourseRepository {
@@ -31,6 +41,18 @@ export class FakeCourseRepository implements CourseRepository {
       }
     }
     return Array.from(seen.values())
+  }
+
+  async listCategoriesNavTree(): Promise<CategoryNavParentRef[]> {
+    const flat = await this.listCategories()
+    return flat.map(c => ({
+      id: c.id,
+      slug: c.slug,
+      title: c.title,
+      summary: '',
+      iconKey: c.iconKey,
+      children: [] as CategoryNavChildRef[]
+    }))
   }
 }
 
@@ -89,6 +111,55 @@ export class PrismaCourseRepository implements CourseRepository {
       orderBy: [{ order: 'asc' }, { title: 'asc' }]
     })
     return rows.map(row => toCategoryRef(row)).filter((ref): ref is CategoryRef => ref !== null)
+  }
+
+  async listCategoriesNavTree(): Promise<CategoryNavParentRef[]> {
+    const leafRows = await db.course.findMany({
+      where: { status: 'PUBLISHED', categoryId: { not: null } },
+      select: { categoryId: true }
+    })
+    const leafIds = [
+      ...new Set(leafRows.map(r => r.categoryId).filter((id): id is string => Boolean(id)))
+    ]
+    if (leafIds.length === 0) return []
+
+    const allCategories = await db.courseCategory.findMany({
+      orderBy: [{ order: 'asc' }, { title: 'asc' }]
+    })
+    const byId = new Map(allCategories.map(row => [row.id, row]))
+    const reachable = new Set<string>()
+
+    const addAncestors = (id: string) => {
+      let current: PrismaCourseCategory | undefined = byId.get(id)
+      while (current) {
+        reachable.add(current.id)
+        current = current.parentCategoryId ? byId.get(current.parentCategoryId) : undefined
+      }
+    }
+    for (const id of leafIds) addAncestors(id)
+
+    const roots = allCategories.filter(row => row.parentCategoryId === null && reachable.has(row.id))
+
+    function toChildRef(row: PrismaCourseCategory): CategoryNavChildRef {
+      return {
+        id: row.id,
+        slug: row.slug,
+        title: row.title,
+        summary: row.summary,
+        iconKey: row.iconKey
+      }
+    }
+
+    return roots.map(root => ({
+      id: root.id,
+      slug: root.slug,
+      title: root.title,
+      summary: root.summary,
+      iconKey: root.iconKey,
+      children: allCategories
+        .filter(row => row.parentCategoryId === root.id && reachable.has(row.id))
+        .map(toChildRef)
+    }))
   }
 }
 

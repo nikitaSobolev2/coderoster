@@ -8,6 +8,13 @@
   background: var(--color-bg);
 }
 
+/** Clears fixed livechat rail strip (`railCollapsed` width); drawer chat on ≤768px needs no inset. */
+@include bp.min-width(bp.$bp-nav-up) {
+  .shell {
+    margin-right: var(--height-header-island-action);
+  }
+}
+
 .shell__nav {
   min-height: 0;
   display: contents;

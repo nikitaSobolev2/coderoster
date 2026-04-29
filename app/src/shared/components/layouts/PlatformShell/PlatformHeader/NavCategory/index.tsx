@@ -5,6 +5,7 @@ import { HoverCard } from '@mantine/core'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faChevronDown } from '@fortawesome/free-solid-svg-icons'
 import type { NavCategoryConfig, NavLeaf } from '../categories'
+import CategoriesMegaMenu from './CategoriesMegaMenu'
 import styles from './styles.module.scss'
 
 export interface Props {
@@ -12,8 +13,7 @@ export interface Props {
 }
 
 /**
- * Single header dropdown. Standalone link if the category has a `href`,
- * otherwise renders a hover-revealed mega-menu with up to N feature cards.
+ * Header dropdown: CMS categories use {@link CategoriesMegaMenu}; static sections use leaf cards.
  */
 export default function NavCategory({ category }: Props) {
   if (category.href) {
@@ -22,6 +22,10 @@ export default function NavCategory({ category }: Props) {
         {category.label}
       </Link>
     )
+  }
+
+  if (category.categoryTree?.length) {
+    return <CategoriesMegaMenu label={category.label} parents={category.categoryTree} />
   }
 
   return (

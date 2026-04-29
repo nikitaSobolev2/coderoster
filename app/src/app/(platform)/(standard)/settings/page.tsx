@@ -2,9 +2,10 @@ import { redirect } from 'next/navigation'
 import { withAuth } from '@workos-inc/authkit-nextjs'
 import { HydrateClient, api } from '~/trpc/server'
 import SettingsLayout from '~/features/platform/settings/SettingsLayout'
+import { pageTitle } from '~/shared/constants/site'
 import styles from './styles.module.scss'
 
-export const metadata = { title: 'Настройки — CodeRoster' }
+export const metadata = { title: pageTitle('Настройки') }
 
 export default async function SettingsPage() {
   const session = await withAuth()

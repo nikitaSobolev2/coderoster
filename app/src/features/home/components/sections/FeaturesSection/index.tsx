@@ -9,6 +9,7 @@ import SectionHeader from '~/features/home/components/ui/SectionHeader'
 import FeatureCard from '~/features/home/components/ui/FeatureCard'
 import featureCardStyles from '~/features/home/components/ui/FeatureCard/styles.module.scss'
 import { FEATURES_SECTION_ID } from '~/features/home/components/sections/section-ids'
+import { SITE_NAME } from '~/shared/constants/site'
 import styles from './styles.module.scss'
 
 interface Feature {
@@ -67,7 +68,7 @@ export default function FeaturesSection() {
           number="05"
           eyebrow="Платформа"
           title="всё что нужно для роста"
-          subtitle="CodeRoster объединяет инструменты, мотивацию и структуру в одной платформе."
+          subtitle={`${SITE_NAME} объединяет инструменты, мотивацию и структуру в одной платформе.`}
         />
         <ul className={styles.features__grid}>
           {FEATURES.map(feature => (

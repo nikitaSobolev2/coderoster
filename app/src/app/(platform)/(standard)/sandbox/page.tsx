@@ -1,8 +1,9 @@
 import { withAuth } from '@workos-inc/authkit-nextjs'
 import SandboxShell from '~/features/platform/sandbox/SandboxShell'
+import { pageTitle } from '~/shared/constants/site'
 import styles from './styles.module.scss'
 
-export const metadata = { title: 'Песочница — CodeRoster' }
+export const metadata = { title: pageTitle('Песочница') }
 export const dynamic = 'force-dynamic'
 
 export default async function SandboxPage() {

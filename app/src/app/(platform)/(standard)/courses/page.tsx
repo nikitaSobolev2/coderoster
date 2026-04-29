@@ -1,9 +1,10 @@
 import { HydrateClient, api } from '~/trpc/server'
 import CoursesList from '~/features/platform/courses-list/CoursesList'
 import type { CoursesQuery } from '~/server/repositories/types'
+import { pageTitle } from '~/shared/constants/site'
 import styles from './styles.module.scss'
 
-export const metadata = { title: 'Каталог курсов — CodeRoster' }
+export const metadata = { title: pageTitle('Каталог курсов') }
 
 interface PageProps {
   searchParams?: Promise<Record<string, string | string[] | undefined>>

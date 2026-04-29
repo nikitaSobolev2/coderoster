@@ -7,6 +7,7 @@ import type { CommentRepository } from './comment.repository'
 import type { SearchRepository } from './search.repository'
 import type {
   ActivityCell,
+  CategoryNavParentRef,
   CategoryRef,
   CourseDetail,
   CoursesPage,
@@ -35,6 +36,7 @@ const KEY = {
   courseList: (q: CoursesQuery) => `course:list:v2:${stable(q)}`,
   courseDetail: (slug: string) => `course:slug:v2:${slug}`,
   courseCategories: 'course:categories:v1',
+  courseCategoriesNav: 'course:categoriesNav:v1',
   lessonDetail: (courseSlug: string, lessonId: string) => `lesson:${courseSlug}:${lessonId}`,
   profile: (username: string, viewerId: string | null) =>
     `profile:${username.toLowerCase()}:${viewerId ?? 'guest'}`,
@@ -59,6 +61,12 @@ export class CachedCourseRepository implements CourseRepository {
 
   async listCategories(): Promise<CategoryRef[]> {
     return cache.wrap(KEY.courseCategories, TTL.courseCategories, () => this.inner.listCategories())
+  }
+
+  async listCategoriesNavTree(): Promise<CategoryNavParentRef[]> {
+    return cache.wrap(KEY.courseCategoriesNav, TTL.courseCategories, () =>
+      this.inner.listCategoriesNavTree()
+    )
   }
 }
 

@@ -10,6 +10,7 @@ import SectionHeader from '~/features/home/components/ui/SectionHeader'
 import InteractiveLink from '~/features/home/components/ui/InteractiveLink'
 import ContactForm from './ContactForm'
 import { FOOTER_SECTION_ID } from '~/features/home/components/sections/section-ids'
+import { SITE_NAME } from '~/shared/constants/site'
 import styles from './styles.module.scss'
 
 interface SocialLink {
@@ -50,7 +51,7 @@ export default function FooterSection() {
       data-section="footer"
     >
       <span className={styles.footer__bgWordmark} aria-hidden="true">
-        CodeRoster
+        {SITE_NAME}
       </span>
       <div className={styles.footer__inner}>
         <div className={styles.footer__intro}>
@@ -99,7 +100,9 @@ export default function FooterSection() {
           </div>
         </div>
         <div className={styles.footer__bottom}>
-          <span>© {new Date().getFullYear()} CodeRoster</span>
+          <span>
+            © {new Date().getFullYear()} {SITE_NAME}
+          </span>
           <span>Build, ship, repeat.</span>
         </div>
       </div>

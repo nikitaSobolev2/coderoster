@@ -1,4 +1,4 @@
-# CodeRoster monorepo
+# Кодиум monorepo
 
 Educational platform for learning programming through hands-on practice. The repository
 ships every service needed to run the platform end-to-end via a single

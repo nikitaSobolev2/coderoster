@@ -1,4 +1,4 @@
-# CodeRoster
+# Кодиум
 
 An educational platform for learning programming through hands-on practice, not passive consumption. Built with a modern dark aesthetic, interactive 3D visuals, and a gamification system to keep learners engaged.
 
@@ -20,7 +20,7 @@ An educational platform for learning programming through hands-on practice, not 
 
 ## Project Vision
 
-CodeRoster is built on a simple observation: you cannot learn to code by watching videos. Real skill comes from writing real code, getting feedback on it, and repeating until patterns click.
+Кодиум is built on a simple observation: you cannot learn to code by watching videos. Real skill comes from writing real code, getting feedback on it, and repeating until patterns click.
 
 **Core philosophy:**
 

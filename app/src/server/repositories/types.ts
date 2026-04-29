@@ -25,6 +25,25 @@ export interface CategoryRef {
   iconKey: string | null
 }
 
+/** CMS category row — leaf link in mega-menu column 2. */
+export interface CategoryNavChildRef {
+  id: string
+  slug: string
+  title: string
+  summary: string
+  iconKey: string | null
+}
+
+/** Root taxonomy branch — column 1 lists parents; column 2 lists selected parent’s children. */
+export interface CategoryNavParentRef {
+  id: string
+  slug: string
+  title: string
+  summary: string
+  iconKey: string | null
+  children: CategoryNavChildRef[]
+}
+
 export interface CourseSummary {
   id: string
   slug: string

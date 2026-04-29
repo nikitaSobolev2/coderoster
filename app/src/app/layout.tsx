@@ -10,13 +10,14 @@ import '~/shared/assets/styles/globals.scss'
 
 import { type Metadata } from 'next'
 
+import { SITE_NAME } from '~/shared/constants/site'
 import { TRPCReactProvider } from '~/trpc/react'
 import { ColorSchemeScript, MantineProvider, mantineHtmlProps } from '@mantine/core'
 import { Notifications } from '@mantine/notifications'
 import { AuthKitProvider } from '@workos-inc/authkit-nextjs/components'
 
 export const metadata: Metadata = {
-  title: 'CodeRoster — учись писать код через практику',
+  title: `${SITE_NAME} — учись писать код через практику`,
   description:
     'Курсы по программированию с интерактивными задачами, проверкой кода и геймификацией прогресса.',
   icons: [{ rel: 'icon', url: '/favicon.ico' }]

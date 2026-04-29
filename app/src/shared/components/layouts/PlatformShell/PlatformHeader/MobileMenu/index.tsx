@@ -5,11 +5,93 @@ import Link from 'next/link'
 import { Drawer } from '@mantine/core'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faAngleRight, faBars, faChevronDown, faXmark } from '@fortawesome/free-solid-svg-icons'
+
+import { courseCategoryHref } from '~/shared/lib/courseCategoryHref'
+import { resolveIcon } from '~/shared/components/ui/IconOrImageField/iconMap'
 import type { NavCategoryConfig } from '../categories'
 import styles from './styles.module.scss'
 
 export interface Props {
   categories: NavCategoryConfig[]
+}
+
+function MobileExpandedSection({
+  category,
+  onNavigate
+}: {
+  category: NavCategoryConfig
+  onNavigate: () => void
+}) {
+  if (category.categoryTree?.length) {
+    return (
+      <ul className={styles.drawer__tree}>
+        {category.categoryTree.map(parent => (
+          <li key={parent.id} className={styles.drawer__treeBlock}>
+            <Link
+              href={courseCategoryHref(parent.slug)}
+              className={styles.drawer__treeParent}
+              onClick={onNavigate}
+              prefetch={false}
+            >
+              <span className={styles.drawer__treeIcon} aria-hidden>
+                <FontAwesomeIcon icon={resolveIcon(parent.iconKey)} />
+              </span>
+              <span className={styles.drawer__treeParentText}>
+                <span className={styles.drawer__treeTitle}>{parent.title}</span>
+                {parent.summary ? (
+                  <span className={styles.drawer__treeSummary}>{parent.summary}</span>
+                ) : null}
+              </span>
+              <FontAwesomeIcon icon={faAngleRight} className={styles.drawer__treeGo} />
+            </Link>
+            <ul className={styles.drawer__treeSubs}>
+              {parent.children.map(child => (
+                <li key={child.id}>
+                  <Link
+                    href={courseCategoryHref(child.slug)}
+                    className={styles.drawer__treeChild}
+                    onClick={onNavigate}
+                    prefetch={false}
+                  >
+                    <span className={styles.drawer__treeIcon} aria-hidden>
+                      <FontAwesomeIcon icon={resolveIcon(child.iconKey)} />
+                    </span>
+                    <span className={styles.drawer__treeChildBody}>
+                      <span className={styles.drawer__treeChildTitle}>{child.title}</span>
+                      <span className={styles.drawer__treeChildDesc}>{child.summary}</span>
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </li>
+        ))}
+      </ul>
+    )
+  }
+
+  return (
+    <ul className={styles.drawer__sublist}>
+      {(category.items ?? []).map(item => (
+        <li key={item.id}>
+          <Link
+            href={item.href}
+            className={styles.drawer__sublink}
+            onClick={onNavigate}
+            prefetch={false}
+          >
+            {item.icon ? (
+              <FontAwesomeIcon icon={item.icon} className={styles.drawer__subicon} />
+            ) : null}
+            <span className={styles.drawer__subbody}>
+              <span className={styles.drawer__subtitle}>{item.title}</span>
+              <span className={styles.drawer__subdesc}>{item.description}</span>
+            </span>
+          </Link>
+        </li>
+      ))}
+    </ul>
+  )
 }
 
 /**
@@ -90,26 +172,7 @@ export default function MobileMenu({ categories }: Props) {
                   </button>
                 )}
                 {!category.href && expanded[category.id] ? (
-                  <ul className={styles.drawer__sublist}>
-                    {(category.items ?? []).map(item => (
-                      <li key={item.id}>
-                        <Link
-                          href={item.href}
-                          className={styles.drawer__sublink}
-                          onClick={close}
-                          prefetch={false}
-                        >
-                          {item.icon ? (
-                            <FontAwesomeIcon icon={item.icon} className={styles.drawer__subicon} />
-                          ) : null}
-                          <span className={styles.drawer__subbody}>
-                            <span className={styles.drawer__subtitle}>{item.title}</span>
-                            <span className={styles.drawer__subdesc}>{item.description}</span>
-                          </span>
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
+                  <MobileExpandedSection category={category} onNavigate={close} />
                 ) : null}
               </li>
             ))}

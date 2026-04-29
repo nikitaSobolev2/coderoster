@@ -1,5 +1,10 @@
 @use '~/shared/assets/styles/mixins' as *;
 
+/** Max category links stacked in one column before horizontal wrap (grid-auto-flow: column). */
+$nav-category-dropdown-max-rows: 4;
+/** Fixed column width — equal card width; titles wrap inside. */
+$nav-category-column-width: 14rem;
+
 .navCategory__trigger,
 .navCategory__link {
   @include buttonReset;
@@ -46,21 +51,35 @@
   box-shadow: var(--platform-shadow-popover);
   padding: 0.75rem;
   border-radius: var(--platform-card-radius);
-  min-width: 360px;
+  max-width: min(96vw, 72rem);
+  overflow-x: auto;
 }
 
 .navCategory__panel {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 0.25rem;
+  grid-auto-flow: column;
+  grid-auto-columns: $nav-category-column-width;
+  grid-template-rows: repeat($nav-category-dropdown-max-rows, auto);
+  align-items: stretch;
+  gap: 0.35rem 1rem;
+
+  > li {
+    display: flex;
+    min-width: 0;
+  }
 }
 
 .leaf {
   @include bluredBg;
 
+  box-sizing: border-box;
   display: flex;
+  flex: 1 1 auto;
   align-items: flex-start;
   gap: 0.85rem;
+  width: 100%;
+  min-width: 0;
+  min-height: 100%;
   padding: 0.75rem;
   border-radius: var(--platform-card-radius-sm);
   text-decoration: none;
@@ -88,18 +107,24 @@
 
 .leaf__body {
   display: flex;
+  flex: 1 1 auto;
   flex-direction: column;
   gap: 0.15rem;
+  min-width: 0;
 }
 
 .leaf__title {
   font-size: var(--font-size-h5);
   color: var(--color-text);
   font-weight: 500;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .leaf__description {
   font-size: var(--font-size-h6);
   color: var(--color-text-secondary);
   line-height: 1.35;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }

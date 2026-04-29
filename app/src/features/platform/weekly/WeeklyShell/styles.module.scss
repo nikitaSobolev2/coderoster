@@ -78,12 +78,8 @@
     color: var(--color-text);
   }
 
-  &__copy {
-    margin: 0;
-    color: var(--color-text-secondary);
-    font-size: var(--font-size-default);
-    line-height: 1.5;
-    white-space: pre-wrap;
+  &__markdown {
+    min-width: 0;
   }
 
   &__editorWrap {

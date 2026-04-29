@@ -1,8 +1,9 @@
 import { HydrateClient, api } from '~/trpc/server'
 import LeaderboardTable from '~/features/platform/leaderboard/LeaderboardTable'
+import { pageTitle } from '~/shared/constants/site'
 import styles from './styles.module.scss'
 
-export const metadata = { title: 'Лидерборд — CodeRoster' }
+export const metadata = { title: pageTitle('Лидерборд') }
 export const dynamic = 'force-dynamic'
 
 export default async function LeaderboardPage() {

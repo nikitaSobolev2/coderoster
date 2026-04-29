@@ -185,10 +185,10 @@ const LESSON_BODIES: Record<string, Pick<LessonDetail, 'body' | 'starterCode' | 
   'l-py-1-2': {
     language: 'python',
     starterCode:
-      '# Создай переменную name со значением "CodeRoster" и выведи её через print\nname = ""\n',
+      '# Создай переменную name со значением "Кодиум" и выведи её через print\nname = ""\n',
     body:
       '## Переменные\n\nПеременная — это имя для значения. В Python тип определяется по присваиванию.\n\n' +
-      '**Задача:** присвой переменной `name` строку `"CodeRoster"` и выведи её.'
+      '**Задача:** присвой переменной `name` строку `"Кодиум"` и выведи её.'
   },
   'l-py-1-3': {
     language: 'python',
@@ -212,7 +212,7 @@ const LESSON_BODIES: Record<string, Pick<LessonDetail, 'body' | 'starterCode' | 
   },
   'l-py-3-1': {
     language: 'python',
-    starterCode: 'def greet(name):\n    pass\n\nprint(greet("CodeRoster"))\n',
+    starterCode: 'def greet(name):\n    pass\n\nprint(greet("Кодиум"))\n',
     body: '## Объявление функции\n\nВерни строку `Hello, <name>`.'
   },
   'l-py-3-2': {

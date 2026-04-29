@@ -7,6 +7,9 @@ import {
   faTrophy
 } from '@fortawesome/free-solid-svg-icons'
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core'
+import type { CategoryNavParentRef } from '~/server/repositories/types'
+
+export type { CategoryNavParentRef }
 
 export interface NavLeaf {
   id: string
@@ -20,7 +23,10 @@ export interface NavCategoryConfig {
   id: string
   label: string
   href?: string
+  /** Static mega-links (Учиться / Практика / …). */
   items?: NavLeaf[]
+  /** CMS course taxonomy — parents + children; renders two-column mega-menu when set. */
+  categoryTree?: CategoryNavParentRef[]
 }
 
 /**

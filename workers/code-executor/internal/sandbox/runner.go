@@ -122,7 +122,12 @@ func (r *Runner) runOnce(
 	runCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
-	stdout, stderr, runtimeMs, status, runErr := r.execute(runCtx, image, cmd, request.Code)
+	code := request.Code
+	if preview := stdinForRunPreview(request); preview != nil {
+		code = buildStdin(request.Code, preview, request.Language)
+	}
+
+	stdout, stderr, runtimeMs, status, runErr := r.execute(runCtx, image, cmd, code)
 
 	completed := contracts.ExecutionCompleted{
 		ExecutionID: request.ExecutionID,
@@ -208,6 +213,36 @@ func (r *Runner) runSubmit(
 		Passed:      allPassed && overallStatus == "success",
 		TestResults: results,
 	}
+}
+
+// stdinForRunPreview picks stdin text for non-graded runs so Python/PHP wrappers
+// mirror submit tests — interpreter consumes script via stdin (`python3 -`), so
+// without replacing sys.stdin / bootstrap, input()/fgets hit EOF after source loads.
+func stdinForRunPreview(req contracts.ExecutionRequested) *string {
+	if req.Mode != contracts.ModeRun || len(req.Tests) == 0 {
+		return nil
+	}
+	pick := func(skipHidden bool) *string {
+		for _, t := range req.Tests {
+			if skipHidden && t.Hidden {
+				continue
+			}
+			if t.Input == nil {
+				continue
+			}
+			v := strings.TrimRight(strings.TrimSpace(*t.Input), "\r\n")
+			if v == "" {
+				continue
+			}
+			out := v
+			return &out
+		}
+		return nil
+	}
+	if s := pick(true); s != nil {
+		return s
+	}
+	return pick(false)
 }
 
 func buildStdin(code string, testInput *string, language string) string {

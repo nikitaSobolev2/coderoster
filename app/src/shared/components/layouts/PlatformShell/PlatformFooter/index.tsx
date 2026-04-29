@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core'
 import { db } from '~/server/db'
 import Logo from '~/shared/components/common/Logo'
+import { SITE_NAME } from '~/shared/constants/site'
 import NewsletterForm from './NewsletterForm'
 import styles from './styles.module.scss'
 
@@ -43,7 +44,7 @@ export default async function PlatformFooter() {
   return (
     <footer className={styles.footer}>
       <span className={styles.footer__wordmark} aria-hidden="true">
-        CodeRoster
+        {SITE_NAME}
       </span>
       <div className={styles.footer__inner}>
         <div className={styles.footer__top}>
@@ -93,7 +94,9 @@ export default async function PlatformFooter() {
           </div>
         </div>
         <div className={styles.footer__bottom}>
-          <span>© {new Date().getFullYear()} CodeRoster</span>
+          <span>
+            © {new Date().getFullYear()} {SITE_NAME}
+          </span>
           <span>Build, ship, repeat.</span>
         </div>
       </div>

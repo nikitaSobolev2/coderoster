@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import { withAuth } from '@workos-inc/authkit-nextjs'
-import { faLayerGroup } from '@fortawesome/free-solid-svg-icons'
 import { env } from '~/env'
 import { isTruthyFlag } from '~/server/lib/featureFlags'
 import { getAppRepositories } from '~/server/repositories'
@@ -10,6 +9,7 @@ import NavCategory from './NavCategory'
 import SearchTrigger from './SearchTrigger'
 import UserMenu, { type ViewerUser } from './UserMenu'
 import MobileMenu from './MobileMenu'
+import PlatformHeaderLiveChatButton from './PlatformHeaderLiveChatButton'
 import { NAV_CATEGORIES, type NavCategoryConfig } from './categories'
 import styles from './styles.module.scss'
 
@@ -33,6 +33,7 @@ export default async function PlatformHeader() {
           ))}
         </nav>
         <div className={styles.header__actions}>
+          <PlatformHeaderLiveChatButton />
           <SearchTrigger />
           <UserMenu user={viewer} />
           <MobileMenu categories={navCategories} />
@@ -55,18 +56,12 @@ async function resolveNavCategories(): Promise<NavCategoryConfig[]> {
 
 async function buildCategoriesNavEntry(): Promise<NavCategoryConfig | null> {
   try {
-    const categories = await getAppRepositories().course.listCategories()
-    if (categories.length === 0) return null
+    const categoryTree = await getAppRepositories().course.listCategoriesNavTree()
+    if (categoryTree.length === 0) return null
     return {
       id: 'categories',
       label: 'Категории',
-      items: categories.map(category => ({
-        id: `category-${category.slug}`,
-        title: category.title,
-        description: 'Курсы по категории',
-        href: `/courses?category=${category.slug}`,
-        icon: faLayerGroup
-      }))
+      categoryTree
     }
   } catch (error) {
     console.error('[header] resolveNavCategories failed', error)

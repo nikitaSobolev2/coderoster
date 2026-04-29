@@ -1,5 +1,7 @@
 import styles from './styles.module.scss'
 
+import { SITE_NAME } from '~/shared/constants/site'
+
 export interface Props {
   className?: string
   wordmarkClassName?: string
@@ -12,10 +14,10 @@ export default function Logo({
   withWordmark = true
 }: Props) {
   return (
-    <span className={`${styles.logo} ${className}`} aria-label="CodeRoster">
+    <span className={`${styles.logo} ${className}`} aria-label={SITE_NAME}>
       <LogoMark className={styles.logo__mark} />
       {withWordmark && (
-        <span className={`${styles.logo__wordmark} ${wordmarkClassName}`}>CodeRoster</span>
+        <span className={`${styles.logo__wordmark} ${wordmarkClassName}`}>{SITE_NAME}</span>
       )}
     </span>
   )

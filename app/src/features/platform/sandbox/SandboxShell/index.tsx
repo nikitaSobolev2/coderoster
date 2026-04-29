@@ -10,18 +10,24 @@ import ExecutionPanel, { type ExecutionState } from '~/features/platform/in-cour
 import type { ExecutionRecord, Language, RunResult } from '~/server/repositories/types'
 import { mapTerminalExecutionRecordToView } from '~/shared/lib/executionTerminalView'
 import { api } from '~/trpc/react'
+import { SITE_NAME } from '~/shared/constants/site'
 import styles from './styles.module.scss'
+
+const starters: Record<Language, string> = {
+  python: `# Напиши код и нажми Запустить\nprint("Hello, ${SITE_NAME}")\n`,
+  php: `<?php\necho "Hello, ${SITE_NAME}";\n`
+}
 
 const LANGUAGE_OPTIONS: { value: Language; label: string; starter: string }[] = [
   {
     value: 'python',
     label: 'Python',
-    starter: '# Напиши код и нажми Запустить\nprint("Hello, CodeRoster")\n'
+    starter: starters.python
   },
   {
     value: 'php',
     label: 'PHP',
-    starter: '<?php\necho "Hello, CodeRoster";\n'
+    starter: starters.php
   }
 ]
 

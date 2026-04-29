@@ -8,6 +8,7 @@ import AchievementsGrid from '~/features/platform/profile/AchievementsGrid'
 import CoursesShowcase from '~/features/platform/profile/CoursesShowcase'
 import ProfileComments from '~/features/platform/profile/ProfileComments'
 import styles from './styles.module.scss'
+import { pageTitle, SITE_NAME } from '~/shared/constants/site'
 
 interface PageProps {
   params: Promise<{ username: string }>
@@ -16,9 +17,9 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps) {
   const { username } = await params
   const profile = await api.profile.getByUsername({ username })
-  if (!profile) return { title: 'Профиль не найден — CodeRoster' }
+  if (!profile) return { title: pageTitle('Профиль не найден') }
   return {
-    title: `${profile.displayName} (@${profile.username}) — CodeRoster`,
+    title: `${profile.displayName} (@${profile.username}) — ${SITE_NAME}`,
     description: profile.bio
   }
 }

@@ -176,8 +176,13 @@ export class PrismaExecutionRepository implements ExecutionRepository {
     })
   }
 
+  /**
+   * Loads DB autotests whenever a task is targeted — needed for submit grading and
+   * for **run** preview so the worker can inject stdin (same mechanism as submit’s
+   * `wrapPython`), avoiding EOF on `input()` when code is fed via `python3 -`.
+   */
   private async collectAutotests(input: ExecutionEnqueueInput): Promise<AutotestPayload[]> {
-    if (input.mode !== 'submit' || !input.taskId) return []
+    if (!input.taskId) return []
     const rows = await db.courseTaskAutotest.findMany({
       where: { courseTaskId: input.taskId },
       orderBy: { order: 'asc' }

@@ -1,8 +1,9 @@
 import Link from 'next/link'
 import { FakerOnly, RealOnly } from '~/shared/components/system/FakerGate'
+import { pageTitle } from '~/shared/constants/site'
 import styles from './styles.module.scss'
 
-export const metadata = { title: 'Скоро будет — CodeRoster' }
+export const metadata = { title: pageTitle('Скоро будет') }
 
 export default function ComingSoonPage() {
   return (

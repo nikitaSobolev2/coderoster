@@ -19,6 +19,12 @@ export interface CursorMedia {
 export type CursorType = 'default' | 'arrow' | 'globeHorizontal' | 'image' | 'video'
 
 export interface CursorStore {
+  /**
+   * While true (e.g. pointer over livechat on HOME): hide custom cursor and tear down its listeners/rAF.
+   * Globe hover glyph sync reads this too.
+   */
+  homeCursorSuspended: boolean
+
   isLocked: boolean
   /** Viewport X/Y for the custom cursor lerp target (may stay fixed while locked). */
   x: number
@@ -31,6 +37,7 @@ export interface CursorStore {
   media: CursorMedia | null
 
   setLocked: (locked: boolean) => void
+  setHomeCursorSuspended: (next: boolean) => void
   setPosition: (pos: { x: number; y: number }) => void
   setStyle: (style: Partial<CursorStyleProps>) => void
   resetStyle: () => void
@@ -52,6 +59,8 @@ export const defaultCursorStyle: CursorStyleProps = {
 }
 
 export const useCursorStore = create<CursorStore>((set, get) => ({
+  homeCursorSuspended: false,
+
   isLocked: false,
   x: 0,
   y: 0,
@@ -63,8 +72,11 @@ export const useCursorStore = create<CursorStore>((set, get) => ({
 
   setLocked: locked => set({ isLocked: locked }),
 
+  setHomeCursorSuspended: next => set({ homeCursorSuspended: next }),
+
   setPosition: ({ x, y }) => {
     set({ pointerX: x, pointerY: y })
+    if (get().homeCursorSuspended) return
     if (!get().isLocked) {
       set({ x, y })
     }

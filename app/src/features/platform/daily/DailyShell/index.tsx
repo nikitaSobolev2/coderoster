@@ -80,7 +80,7 @@ export default function DailyShell({
       >
         <Tabs.List>
           {tasks.map((task, index) => {
-            const attempt = attempts.find(a => a.taskIndex === index)
+            const attempt = attempts.find((a: DailyAttemptView) => a.taskIndex === index)
             return (
               <Tabs.Tab key={task.id} value={String(index)}>
                 <span className={styles.tabs__tabLabel}>
@@ -100,7 +100,7 @@ export default function DailyShell({
           <Tabs.Panel key={task.id} value={String(index)}>
             <DailyTaskPanel
               task={task}
-              attempt={attempts.find(a => a.taskIndex === index) ?? null}
+              attempt={attempts.find((a: DailyAttemptView) => a.taskIndex === index) ?? null}
               taskIndex={index}
               isAuthenticated={isAuthenticated}
             />

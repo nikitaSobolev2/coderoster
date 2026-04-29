@@ -2,6 +2,7 @@ import { withAuth } from '@workos-inc/authkit-nextjs'
 import { HydrateClient, api } from '~/trpc/server'
 import AchievementsPanel from '~/features/platform/achievements/AchievementsPanel'
 import type { AchievementProgress } from '~/server/api/routers/achievement'
+import type { EarnedAchievement } from '~/server/repositories/types'
 import styles from './styles.module.scss'
 
 export const metadata = { title: 'Достижения — CodeRoster' }
@@ -15,7 +16,7 @@ export default async function AchievementsPage() {
     initial = await api.achievement.listMine()
   } else {
     const all = await api.achievement.listAll()
-    initial = all.map(item => ({
+    initial = all.map((item: EarnedAchievement) => ({
       ...item,
       currentN: 0,
       goal: 1,

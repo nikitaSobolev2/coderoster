@@ -42,6 +42,8 @@ export const env = createEnv({
     REDIS_URL: z.string().default('redis://localhost:6379'),
     RABBITMQ_URL: z.string().default('amqp://guest:guest@localhost:5672'),
     RATE_LIMIT_REDIS_PREFIX: z.string().default('rl:'),
+    /** Prefer explicit secret in prod; else derived from WORKOS_COOKIE_PASSWORD in livechat guest signing. */
+    LIVECHAT_GUEST_SECRET: z.string().min(16).optional(),
     SANITIZE_MARKDOWN: z
       .string()
       .optional()
@@ -115,6 +117,7 @@ export const env = createEnv({
     REDIS_URL: process.env.REDIS_URL,
     RABBITMQ_URL: process.env.RABBITMQ_URL,
     RATE_LIMIT_REDIS_PREFIX: process.env.RATE_LIMIT_REDIS_PREFIX,
+    LIVECHAT_GUEST_SECRET: process.env.LIVECHAT_GUEST_SECRET,
     SANITIZE_MARKDOWN: process.env.SANITIZE_MARKDOWN,
     EXECUTION_TIMEOUT_MS: process.env.EXECUTION_TIMEOUT_MS,
     EXECUTION_MEMORY_MB: process.env.EXECUTION_MEMORY_MB,

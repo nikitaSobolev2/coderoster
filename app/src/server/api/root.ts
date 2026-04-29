@@ -15,6 +15,7 @@ import { dailyRouter } from '~/server/api/routers/daily'
 import { weeklyRouter } from '~/server/api/routers/weekly'
 import { adminRouter } from '~/server/api/routers/admin'
 import { uploadRouter } from '~/server/api/routers/upload'
+import { livechatRouter } from '~/server/api/routers/livechat'
 import { createCallerFactory, createTRPCRouter } from '~/server/api/trpc'
 
 /**
@@ -37,7 +38,8 @@ export const appRouter = createTRPCRouter({
   daily: dailyRouter,
   weekly: weeklyRouter,
   admin: adminRouter,
-  upload: uploadRouter
+  upload: uploadRouter,
+  livechat: livechatRouter
 })
 
 export type AppRouter = typeof appRouter

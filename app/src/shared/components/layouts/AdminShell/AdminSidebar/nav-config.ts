@@ -3,6 +3,7 @@ import {
   faCalendarDay,
   faClipboardList,
   faCommentSlash,
+  faComments,
   faFileLines,
   faGaugeHigh,
   faGraduationCap,
@@ -69,6 +70,7 @@ export const ADMIN_NAV: AdminNavGroup[] = [
     label: 'Система',
     items: [
       { label: 'Языки', href: '/admin/languages', icon: faLanguage },
+      { label: 'Чат', href: '/admin/livechat', icon: faComments },
       { label: 'Аудит', href: '/admin/audit', icon: faClipboardList }
     ]
   }

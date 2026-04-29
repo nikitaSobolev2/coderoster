@@ -41,6 +41,8 @@ export interface AdminUserDetail extends AdminUserSummary {
   firstName: string | null
   lastName: string | null
   deletionRequestedAt: Date | null
+  chatBannedUntil: Date | null
+  chatBanReason: string | null
   counts: {
     enrollments: number
     executions: number
@@ -130,6 +132,8 @@ export class AdminUsersRepository {
       firstName: user.firstName,
       lastName: user.lastName,
       deletionRequestedAt: user.deletionRequestedAt,
+      chatBannedUntil: user.chatBannedUntil,
+      chatBanReason: user.chatBanReason,
       counts: {
         enrollments: user._count.enrollments,
         executions: user._count.executions,
@@ -175,6 +179,29 @@ export class AdminUsersRepository {
     await db.user.update({
       where: { id },
       data: { bannedUntil: null, banReason: null }
+    })
+    return this.get(id)
+  }
+
+  async chatMute(id: string, input: AdminUserBanInput): Promise<AdminUserDetail> {
+    const until = input.until === 'permanent' ? PERMANENT_BAN_DATE : new Date(input.until)
+    if (Number.isNaN(until.getTime())) {
+      throw new Error('Invalid ban date')
+    }
+    await db.user.update({
+      where: { id },
+      data: {
+        chatBannedUntil: until,
+        chatBanReason: sanitizePlainText(input.reason).slice(0, 500)
+      }
+    })
+    return this.get(id)
+  }
+
+  async chatUnmute(id: string): Promise<AdminUserDetail> {
+    await db.user.update({
+      where: { id },
+      data: { chatBannedUntil: null, chatBanReason: null }
     })
     return this.get(id)
   }

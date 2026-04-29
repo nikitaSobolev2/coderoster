@@ -1,6 +1,6 @@
 'use client'
 
-import { useLayoutEffect, useRef } from 'react'
+import { useEffect, useLayoutEffect, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { useTexture } from '@react-three/drei'
 import type { MeshStandardMaterial } from 'three'
@@ -28,6 +28,7 @@ import { usePlanetPointerPhysics } from './usePlanetPointerSpin'
 import { disableMeshRaycast } from './disableMeshRaycast'
 import { useGlobeDangerDisplayStore } from './globeDanger.store'
 import { setPlanetOrbitGlowFromHeat, syncHomeThreatGlobe01 } from './homeDangerTheme.dom'
+import { useCursorStore } from '~/features/home/components/common/Cursor/cursor.store'
 
 const SCRATCH_DEST = new ThreeColor(DANGER_RED_EMISSIVE_HEX)
 
@@ -40,6 +41,7 @@ export default function Planet(props: Readonly<Props>) {
   const { interactionDesktop } = props
   const settings = usePlanetStore(state => state.settings)
   const setPointerOverGlobe = useGlobePointerStore(state => state.setPointerOverGlobe)
+  const homeCursorSuspended = useCursorStore(state => state.homeCursorSuspended)
 
   const urbanMatRef = useRef<MeshStandardMaterial>(null!)
   const ruralMatRef = useRef<MeshStandardMaterial>(null!)
@@ -66,6 +68,10 @@ export default function Planet(props: Readonly<Props>) {
     atmMatRef.current?.color.copy(baseAtmosphere.current)
     atmMatRef.current?.emissive.copy(baseAtmosphere.current)
   }, [settings])
+
+  useEffect(() => {
+    if (homeCursorSuspended) setPointerOverGlobe(false)
+  }, [homeCursorSuspended, setPointerOverGlobe])
 
   const {
     spinGroupRef,

@@ -14,13 +14,14 @@ import { useMatchMedia } from '~/shared/hooks/useMatchMedia'
 export default function GlobeCursorSync() {
   const desktopFine = useMatchMedia(HOME_DESKTOP_INTERACTION_MQ)
   const pointerOverGlobe = useGlobePointerStore(s => s.pointerOverGlobe)
+  const homeCursorSuspended = useCursorStore(s => s.homeCursorSuspended)
 
   /** Avoid clobbering other cursor modes (arrow/link/hover-fill). Only clear our mode. */
   const previousWasGlobe = useRef(false)
 
   useEffect(() => {
     const store = useCursorStore.getState()
-    if (!desktopFine || !pointerOverGlobe) {
+    if (!desktopFine || !pointerOverGlobe || homeCursorSuspended) {
       if (previousWasGlobe.current && store.type === 'globeHorizontal') {
         store.resetType()
       }
@@ -29,7 +30,7 @@ export default function GlobeCursorSync() {
     }
     store.setType('globeHorizontal')
     previousWasGlobe.current = true
-  }, [desktopFine, pointerOverGlobe])
+  }, [desktopFine, pointerOverGlobe, homeCursorSuspended])
 
   return null
 }

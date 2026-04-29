@@ -18,6 +18,12 @@ export const PLANET_DRAG_OMEGA_SMOOTH = 0.38
 /** Touch: snappier ω tracking toward latch. */
 export const PLANET_DRAG_OMEGA_SMOOTH_COARSE = 0.52
 
+/**
+ * Coarse pointers: min travel (px) before classifying swipe as vertical-scroll vs horizontal globe spin.
+ * Avoids capturing the pointer until intent is clear; vertical scroll stays on the document.
+ */
+export const PLANET_MOBILE_GESTURE_COMMIT_PX = 14
+
 /** Rad/s; viscous damping: omega *= exp(-DAMPING * dt) while coasting after release. */
 export const PLANET_ANGULAR_DAMPING = 2.05
 

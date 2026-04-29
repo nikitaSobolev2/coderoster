@@ -66,6 +66,9 @@
 .loader__skip {
   @include buttonReset;
 
+  cursor: pointer;
+  touch-action: manipulation;
+
   background: transparent;
   color: var(--color-text-secondary);
   font-size: var(--font-size-h6);

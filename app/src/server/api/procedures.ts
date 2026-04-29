@@ -20,6 +20,12 @@ export const heavyProcedure = idempotentProcedure.use(withRateLimit('exec', 10, 
  */
 export const commentProcedure = idempotentProcedure.use(withRateLimit('comment', 5, 60))
 
+export const livechatReadProcedure = publicProcedure.use(withRateLimit('livechat_read', 180, 60))
+export const livechatSendProcedure = publicProcedure.use(withRateLimit('livechat_send', 15, 60))
+export const livechatConsentProcedure = publicProcedure.use(
+  withRateLimit('livechat_consent', 30, 60)
+)
+
 /** Public procedure with a generic 60 / minute / IP rate limit. */
 export const publicLimitedProcedure = publicProcedure.use(withRateLimit('public', 60, 60))
 

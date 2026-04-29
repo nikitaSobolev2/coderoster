@@ -8,6 +8,7 @@ import { adminChallengesRouter } from './challenges'
 import { adminCommentsRouter, adminLeaderboardRouter } from './moderation'
 import { adminLanguagesRouter } from './languages'
 import { adminAuditRouter } from './audit'
+import { adminLivechatRouter } from './livechat'
 
 /**
  * `admin.*` namespace. Every procedure inside is `adminProcedure`-gated and
@@ -23,5 +24,6 @@ export const adminRouter = createTRPCRouter({
   leaderboard: adminLeaderboardRouter,
   comments: adminCommentsRouter,
   languages: adminLanguagesRouter,
-  audit: adminAuditRouter
+  audit: adminAuditRouter,
+  livechat: adminLivechatRouter
 })

@@ -1,6 +1,6 @@
 import { withAuth } from '@workos-inc/authkit-nextjs'
 import { HydrateClient, api } from '~/trpc/server'
-import DailyShell from '~/features/platform/daily/DailyShell'
+import DailyShell, { type DailyAttemptView } from '~/features/platform/daily/DailyShell'
 import styles from './styles.module.scss'
 
 export const metadata = { title: 'Дейлики — CodeRoster' }
@@ -23,7 +23,7 @@ export default async function DailyPage() {
         <DailyShell
           initialDate={today.date}
           initialTasks={today.tasks}
-          initialAttempts={today.attempts.map(attempt => ({
+          initialAttempts={today.attempts.map((attempt: DailyAttemptView) => ({
             taskIndex: attempt.taskIndex,
             status: attempt.status,
             solvedAt: attempt.solvedAt

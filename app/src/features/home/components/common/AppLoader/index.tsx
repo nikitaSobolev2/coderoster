@@ -19,6 +19,12 @@ export default function AppLoader() {
   const [hasUnmounted, setHasUnmounted] = useState(false)
   const fillRef = useRef<HTMLDivElement>(null)
 
+  /** Instant dismiss — `markReady` alone relied on fade timer (fragile); ordering avoids orphan fade schedule. */
+  const dismissImmediately = () => {
+    setHasUnmounted(true)
+    markReady()
+  }
+
   useLayoutEffect(() => {
     fillRef.current?.style.setProperty('--loader-progress', String(progress))
   }, [progress])
@@ -40,15 +46,20 @@ export default function AppLoader() {
   }, [setProgress, markReady])
 
   useEffect(() => {
-    if (!isReady) return
+    if (!isReady || hasUnmounted) return
     const fadeTimer = window.setTimeout(() => setHasUnmounted(true), FADE_OUT_MS)
     return () => window.clearTimeout(fadeTimer)
-  }, [isReady])
+  }, [isReady, hasUnmounted])
 
   if (hasUnmounted) return null
 
   return (
-    <div className={`${styles.loader} ${isReady ? styles.loader_fading : ''}`}>
+    <div
+      className={`${styles.loader} ${isReady ? styles.loader_fading : ''}`}
+      onPointerDown={event => {
+        if (event.target === event.currentTarget) dismissImmediately()
+      }}
+    >
       <div className={styles.loader__inner}>
         <Logo className={styles.loader__logo} />
         <div className={styles.loader__bar}>
@@ -56,7 +67,7 @@ export default function AppLoader() {
         </div>
         <div className={styles.loader__meta}>
           <span className={styles.loader__percent}>{Math.round(progress * 100)}%</span>
-          <button className={styles.loader__skip} type="button" onClick={markReady}>
+          <button className={styles.loader__skip} type="button" onClick={dismissImmediately}>
             Пропустить
           </button>
         </div>

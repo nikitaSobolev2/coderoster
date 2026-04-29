@@ -1,7 +1,8 @@
 FROM node:22-alpine AS deps
 WORKDIR /app
 COPY app/package.json app/package-lock.json* ./
-RUN npm install --legacy-peer-deps --ignore-scripts
+# Lockfile is source of truth; matches CI. postinstall prisma is skipped here (DATABASE_URL absent at build).
+RUN npm ci --legacy-peer-deps --ignore-scripts
 RUN cp node_modules/server-only/empty.js node_modules/server-only/index.js
 
 FROM deps AS dev

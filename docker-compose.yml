@@ -5,6 +5,8 @@ x-app-build: &app_build
   dockerfile: infra/docker/app.Dockerfile
   target: ${APP_ENV:-prod}
 
+# `./app:/app` bind-mounts sources; `/app/node_modules` is an anonymous volume that shadows host node_modules (avoids Windows bind-mount perf issues).
+# After adding/updating deps in package.json or package-lock.json, refresh that volume once: docker compose exec app npm install --legacy-peer-deps --ignore-scripts
 x-app-volumes: &app_volumes
   - ./app:/app
   - /app/node_modules

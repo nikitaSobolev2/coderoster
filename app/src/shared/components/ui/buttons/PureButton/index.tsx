@@ -1,7 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { Tooltip } from '@mantine/core'
+
+import HomeTooltip from '~/shared/components/ui/HomeTooltip'
 import type { Url } from 'next/dist/shared/lib/router/router'
 import { scrollToSectionById } from '~/features/home/components/common/SectionScroller/section-scroll-api'
 import styles from './styles.module.scss'
@@ -64,11 +65,5 @@ export default function PureButton({
       />
     )
 
-  return label ? (
-    <Tooltip className={styles.pure_button__tip} zIndex={999999} offset={16} label={label}>
-      {content}
-    </Tooltip>
-  ) : (
-    content
-  )
+  return label ? <HomeTooltip label={label}>{content}</HomeTooltip> : content
 }

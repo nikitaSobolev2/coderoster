@@ -82,7 +82,7 @@ export default function WeeklyShell({
       >
         <Tabs.List>
           {tasks.map((task, index) => {
-            const attempt = attempts.find(a => a.taskIndex === index)
+            const attempt = attempts.find((a: WeeklyAttemptView) => a.taskIndex === index)
             return (
               <Tabs.Tab key={task.id} value={String(index)}>
                 <span className={styles.tabs__tabLabel}>
@@ -103,7 +103,7 @@ export default function WeeklyShell({
             <WeeklyTaskPanel
               task={task}
               taskIndex={index}
-              attempt={attempts.find(a => a.taskIndex === index) ?? null}
+              attempt={attempts.find((a: WeeklyAttemptView) => a.taskIndex === index) ?? null}
               isAuthenticated={isAuthenticated}
             />
           </Tabs.Panel>

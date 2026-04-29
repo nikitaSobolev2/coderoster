@@ -87,6 +87,20 @@ export const adminUsersRouter = createTRPCRouter({
     .input(userIdInput)
     .mutation(({ ctx, input }) => ctx.repositories.admin.users.unban(input.id)),
 
+  chatMute: adminProcedure.input(banInput).mutation(async ({ ctx, input }) => {
+    if (input.id === ctx.user.id) {
+      throw new TRPCError({ code: 'BAD_REQUEST', message: 'Нельзя заблокировать себя в чате.' })
+    }
+    return ctx.repositories.admin.users.chatMute(input.id, {
+      until: input.until,
+      reason: input.reason
+    })
+  }),
+
+  chatUnmute: adminProcedure
+    .input(userIdInput)
+    .mutation(({ ctx, input }) => ctx.repositories.admin.users.chatUnmute(input.id)),
+
   grantAchievement: adminProcedure.input(grantInput).mutation(async ({ ctx, input }) => {
     await ctx.repositories.admin.users.grantAchievement(input.id, input.achievementId)
     await invalidateProfileCachesForUserId(input.id)

@@ -274,6 +274,10 @@ export interface AuthenticatedUser {
   role: UserRole
   bannedUntil: Date | null
   banReason: string | null
+  chatBannedUntil: Date | null
+  chatBanReason: string | null
+  livechatConsentAt: Date | null
+  livechatUsernameColor: string | null
 }
 
 export type ExecutionStatus = 'queued' | 'running' | 'success' | 'failed' | 'timeout' | 'cancelled'

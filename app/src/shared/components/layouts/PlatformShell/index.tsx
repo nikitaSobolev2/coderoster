@@ -2,6 +2,7 @@ import PlatformHeader from './PlatformHeader'
 import PlatformFooter from './PlatformFooter'
 import PlatformBodyAttribute from './PlatformBodyAttribute'
 import SearchSpotlight from '~/shared/components/ui/search/SearchSpotlight'
+import LiveChatPlacementLazy from '~/features/livechat/LiveChatPlacementLazy'
 import styles from './styles.module.scss'
 
 export interface Props {
@@ -27,6 +28,7 @@ export default function PlatformShell({ children, hideFooter = false, fluid = fa
         {children}
       </main>
       {hideFooter ? null : <PlatformFooter />}
+      <LiveChatPlacementLazy />
     </div>
   )
 }

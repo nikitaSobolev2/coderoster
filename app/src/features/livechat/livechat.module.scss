@@ -1,0 +1,457 @@
+@use '~/shared/assets/styles/mixins' as *;
+@use '~/shared/assets/styles/breakpoints' as bp;
+
+@mixin livechatSurface() {
+  @include bluredBg;
+
+  // background: var(--platform-glass-bg-strong);
+  color: var(--color-text);
+  box-shadow: var(--platform-glass-shadow);
+}
+
+@mixin livechatHairline($edge: bottom) {
+  @if $edge == bottom {
+    border-bottom: var(--border-width-hair) solid var(--platform-glass-border);
+  } @else if $edge == top {
+    border-top: var(--border-width-hair) solid var(--platform-glass-border);
+  } @else {
+    border-left: var(--border-width-hair) solid var(--platform-glass-border);
+  }
+}
+
+/** Mantine ScrollArea applies `background-color: var(--mantine-color-body)` on root/viewport — opaque strip inside frosted `.panel`. Kill so `bluredBg` parent shows through. */
+@mixin livechatScrollAreaTransparent() {
+  &:global(.mantine-ScrollArea-root) {
+    background-color: transparent !important;
+  }
+
+  :global(.mantine-ScrollArea-viewport),
+  :global(.mantine-ScrollArea-content) {
+    background-color: transparent !important;
+  }
+}
+
+.panel {
+  @include livechatSurface;
+
+  border-left: var(--border-width-hair) solid var(--platform-glass-border);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.panelFloating {
+  border-left: none;
+  border: var(--border-width-hair) solid var(--platform-glass-border);
+  border-radius: var(--platform-card-radius-sm);
+  overflow: hidden;
+}
+
+.panelOverlay {
+  border-left: none;
+  border: var(--border-width-hair) solid var(--platform-glass-border);
+  border-radius: var(--platform-card-radius-sm) 0 0 var(--platform-card-radius-sm);
+}
+
+.header {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap-header-island);
+  padding: 0.625rem 0.75rem;
+  @include livechatHairline(bottom);
+  @include fontYandexDisplay;
+
+  font-size: var(--font-size-h6);
+  font-weight: 700;
+  letter-spacing: var(--letter-spacing-title);
+  text-transform: uppercase;
+  opacity: 0.92;
+}
+
+.headerTrailing {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-header-island);
+  flex-shrink: 0;
+}
+
+.headerActionsOnly {
+  justify-content: flex-end;
+}
+
+.panelHeaderDrag {
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+.feed {
+  flex: 1;
+  min-height: 0;
+  /** Isolate scroll chaining from parent (dock / page). Avoid `contain` here — it breaks scroll/sizing for Mantine ScrollArea + virtual list on desktop. */
+  overscroll-behavior: contain;
+  @include livechatScrollAreaTransparent;
+
+  :global(.mantine-ScrollArea-root) {
+    overscroll-behavior: contain;
+  }
+
+  :global(.mantine-ScrollArea-viewport) {
+    overscroll-behavior: contain;
+  }
+}
+
+/** ScrollArea viewport establishes containing box for bootstrap overlay (`inset:0`); avoids centering spinner in tall virtual list height — user saw it stuck at top. */
+.feedViewport {
+  position: relative;
+}
+
+.feedInner {
+  padding: 0.5rem 0.625rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.virtualFeedRail {
+  position: relative;
+  width: 100%;
+}
+
+.olderFetching {
+  padding: 0 0.625rem;
+  margin-bottom: 0.25rem;
+  font-size: var(--font-size-caption);
+  letter-spacing: 0.06em;
+  color: color-mix(in srgb, var(--color-text-secondary) 88%, transparent);
+}
+
+.feedBootstrapWrap {
+  position: relative;
+  min-height: 100%;
+}
+
+.feedOverlayLoader {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.line {
+  font-size: var(--font-size-default);
+  line-height: 1.35;
+  word-break: break-word;
+  padding-bottom: var(--gap-header-island);
+}
+
+.author {
+  font-weight: 700;
+  margin-right: 0.25em;
+}
+
+.authorInteractive {
+  cursor: pointer;
+  vertical-align: baseline;
+}
+
+.bodyText {
+  color: color-mix(in srgb, var(--color-text) 94%, transparent);
+}
+
+.composer {
+  flex: 0 0 auto;
+  padding: 0.625rem 0.75rem;
+  @include livechatHairline(top);
+  /* Let `.panel` glass read through; desktop + mobile align. */
+  background: transparent;
+}
+
+.composerStack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-header-island);
+  width: 100%;
+}
+
+.composerInputFull {
+  width: 100%;
+
+  :global(.mantine-TextInput-root) {
+    width: 100%;
+  }
+}
+
+.composerCounterWrap {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.125rem;
+}
+
+.composerActionsRow {
+  display: flex;
+  align-items: stretch;
+  gap: var(--gap-header-island);
+  width: 100%;
+}
+
+.composerGearWrap {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: stretch;
+
+  :global(.mantine-Popover-target) {
+    display: flex;
+    align-items: stretch;
+    height: 100%;
+  }
+}
+
+.composerGearBtn {
+  flex: 0 0 auto;
+  align-self: stretch;
+  aspect-ratio: 1;
+  height: 100% !important;
+  width: auto !important;
+}
+
+.composerSendBtn {
+  flex: 0 1 auto;
+  min-width: 0;
+  margin-left: auto;
+
+  @include bp.max-width(bp.$bp-nav) {
+    flex: 1 1 auto;
+  }
+}
+
+.footerActions {
+  margin-top: var(--gap-header-island);
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--gap-header-island);
+}
+
+.railCollapsed {
+  width: var(--height-header-island-action);
+}
+
+.railOpen {
+  width: min(380px, 100vw);
+}
+
+.overlayWrap {
+  position: fixed;
+  top: var(--platform-header-height);
+  right: 0;
+  bottom: 0;
+  z-index: 120;
+  width: min(400px, 100vw);
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.overlayToolbar {
+  display: flex;
+  justify-content: flex-end;
+  padding: var(--gap-header-island) var(--gap-header-island) 0;
+  flex: 0 0 auto;
+}
+
+.overlayBody {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.railWrap {
+  position: fixed;
+  top: var(--platform-header-height);
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+  pointer-events: none;
+}
+
+.railWrapInner {
+  pointer-events: auto;
+  height: 100%;
+}
+
+.railExpand {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.railToolbar {
+  display: flex;
+  justify-content: flex-end;
+  padding: var(--gap-header-island);
+  flex: 0 0 auto;
+}
+
+.railBody {
+  flex: 1;
+  min-height: 0;
+}
+
+.floatingShell {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  z-index: 140;
+  resize: both;
+  overflow: hidden;
+  max-height: 100vh;
+  overscroll-behavior: contain;
+}
+
+.floatingShell .panel {
+  flex: 1;
+  min-height: 0;
+}
+
+.homeChatDrawerInner {
+  display: flex;
+  flex-direction: column;
+  background: transparent !important;
+}
+
+.homeChatCursorSuspendWrap {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.homeChatDrawerContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: transparent !important;
+  box-shadow: none !important;
+
+  @include bp.max-width(bp.$bp-nav) {
+    width: 100%;
+  }
+}
+
+.homeChatDrawerHeaderHidden {
+  display: none !important;
+}
+
+.homeChatDrawerBody {
+  flex: 1 10 auto;
+  min-height: 0;
+  padding: 0 !important;
+  display: flex;
+  flex-direction: column;
+  background: transparent !important;
+}
+
+.fabLearn {
+  position: fixed;
+  right: var(--gap-header-island);
+  bottom: calc(var(--platform-header-height) + var(--gap-header-island));
+  z-index: 119;
+}
+
+/*
+ * Mobile-only touch ergonomics (`bp.$bp-nav` = 768px): `--min-tap-target` (44px) per design tokens.
+ * Desktop layouts unchanged at wider viewports.
+ */
+@include bp.max-width(bp.$bp-nav) {
+  .header {
+    gap: 0.75rem;
+    padding: var(--padding-block-mobile-drawer-control) var(--padding-inline-mobile-drawer-control);
+    align-items: center;
+    min-height: calc(var(--min-tap-target) + 0.5rem);
+  }
+
+  .headerRefresh:global(.mantine-ActionIcon-root),
+  .headerClose:global(.mantine-ActionIcon-root) {
+    flex-shrink: 0;
+    width: var(--min-tap-target);
+    height: var(--min-tap-target);
+  }
+
+  .composer {
+    padding: 0.875rem var(--padding-inline-mobile-drawer-control)
+      var(--padding-block-mobile-drawer-control);
+  }
+
+  .composerStack {
+    gap: 0.75rem;
+  }
+
+  .composerInputFull :global(.mantine-TextInput-input) {
+    min-height: var(--min-tap-target);
+    font-size: var(--font-size-default);
+  }
+
+  .composerActionsRow {
+    align-items: center;
+    gap: 0.625rem;
+    min-height: var(--min-tap-target);
+  }
+
+  .composerGearWrap {
+    align-self: center;
+  }
+
+  .composerGearBtn:global(.mantine-ActionIcon-root) {
+    flex: 0 0 var(--min-tap-target);
+    width: var(--min-tap-target);
+    height: var(--min-tap-target);
+    min-width: var(--min-tap-target);
+    min-height: var(--min-tap-target);
+  }
+
+  .composerSendBtn:global(.mantine-Button-root) {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: var(--min-tap-target);
+    margin-left: 0;
+    padding-inline: 1rem;
+  }
+
+  .composerLoginBtn:global(.mantine-Button-root),
+  .consentRulesBtn:global(.mantine-Button-root) {
+    min-height: var(--min-tap-target);
+  }
+
+  .footerActions {
+    align-items: center;
+    margin-top: 0.75rem;
+    min-height: var(--min-tap-target);
+  }
+
+  .footerPlatformLink {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--min-tap-target);
+    padding-inline: 0.35rem;
+    font-size: var(--font-size-default);
+  }
+
+  .rulesModalBtn:global(.mantine-Button-root) {
+    min-height: var(--min-tap-target);
+    padding-inline: 1rem;
+  }
+}

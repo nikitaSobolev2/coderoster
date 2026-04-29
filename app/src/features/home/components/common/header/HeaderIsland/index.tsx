@@ -12,6 +12,8 @@ import HeaderLogo from '../HeaderLogo'
 import IslandCta from '../IslandCta'
 import IslandMenuButton from '../IslandMenuButton'
 import styles from './styles.module.scss'
+import HomeLiveChatHeaderButton from '~/features/livechat/home/HomeLiveChatHeaderButton'
+import { useLiveChatHome } from '~/features/livechat/home/livechatHome.context'
 
 export interface Props {
   className?: string
@@ -22,6 +24,7 @@ export default function HeaderIsland({ className = '' }: Readonly<Props>) {
   const menuOpen = useMobileMenuStore(s => s.isOpen)
   const toggleMenu = useMobileMenuStore(s => s.toggle)
   const { user, loading } = useAuth()
+  const liveChatHome = useLiveChatHome()
 
   let cta: ReactNode
   if (loading) {
@@ -44,6 +47,7 @@ export default function HeaderIsland({ className = '' }: Readonly<Props>) {
         <HeaderLogo layout="island" />
         <div className={styles.island__actions}>
           {cta}
+          {liveChatHome ? <HomeLiveChatHeaderButton onClick={() => liveChatHome.toggle()} /> : null}
           <IslandMenuButton
             open={menuOpen}
             controlsId={MOBILE_HOME_MENU_PANEL_ID}

@@ -109,6 +109,7 @@ at the API level. Every admin mutation is recorded in `AuditLog`.
 - **Лидерборд** — sortable list with per-user toggle "Исключить из рейтинга" → `User.excludedFromLeaderboard`
 - **Комментарии** — global moderation table; one-click delete on any thread (profile, course, etc.)
 - **Языки** — global allowed languages stored in `AppSetting('allowed_languages')`. Used by `CourseTask.allowedLanguages` per-task overrides
+- **Живой чат** — toggle «гости могут писать» (`AppSetting('livechat_guest_policy')`); модерация чата на вкладке пользователя «Роль и бан»
 - **Аудит** — append-only `AuditLog` viewer with filters by actor / target
 
 Admin entry: header `UserMenu` shows "Админ-панель" only when `role === 'ADMIN'`.

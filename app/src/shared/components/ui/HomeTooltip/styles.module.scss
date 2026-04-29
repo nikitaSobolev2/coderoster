@@ -1,0 +1,11 @@
+@use '~/shared/assets/styles/mixins' as *;
+
+/* Matches PureButton / logo chrome: frosted pill, design tokens only */
+.tooltip {
+  @include bluredBg;
+
+  border-radius: var(--border-radius-button);
+  color: var(--color-text);
+  font-size: var(--font-size-h5);
+  background: var(--color-bg-el);
+}

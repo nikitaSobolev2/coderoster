@@ -24,6 +24,7 @@ import {
   PLANET_DRAG_OMEGA_SMOOTH_COARSE,
   PLANET_DRAG_RADIANS_PER_PIXEL,
   PLANET_MAX_USER_ANGULAR_VELOCITY_RAD_PER_S,
+  PLANET_MOBILE_GESTURE_COMMIT_PX,
   PLANET_RECOVERY_ANGULAR_DAMPING
 } from '~/features/home/components/3d/models/Planet/planetRotation.constants'
 
@@ -78,6 +79,8 @@ export function usePlanetPointerPhysics(options: PlanetPointerPhysicsOptions): {
   const lastEventTimeSeconds = useRef<number | null>(null)
   const activeDragPointerId = useRef<number | null>(null)
   const teardownWindowDragRef = useRef<(() => void) | null>(null)
+  /** Coarse-pointer axis probe: listeners before `setPointerCapture` so vertical scroll can win. */
+  const pendingGestureTeardownRef = useRef<(() => void) | null>(null)
 
   /** No angular decay while true (coasting at “red” speed bucket). */
   const dangerLatchedRef = useRef(false)
@@ -128,12 +131,18 @@ export function usePlanetPointerPhysics(options: PlanetPointerPhysicsOptions): {
     }
   }, [gl.domElement])
 
+  const clearPendingGestureListeners = useCallback(() => {
+    pendingGestureTeardownRef.current?.()
+    pendingGestureTeardownRef.current = null
+  }, [])
+
   const endGlobeDrag = useCallback(() => {
+    clearPendingGestureListeners()
     teardownWindowDragRef.current?.()
     teardownWindowDragRef.current = null
     releaseCapturedPointerIfAny()
     finalizeDragPhysics()
-  }, [finalizeDragPhysics, releaseCapturedPointerIfAny])
+  }, [clearPendingGestureListeners, finalizeDragPhysics, releaseCapturedPointerIfAny])
 
   const onGlobeSurfacePointerDown = useCallback(
     (event: PointerSynthetic) => {
@@ -147,92 +156,147 @@ export function usePlanetPointerPhysics(options: PlanetPointerPhysicsOptions): {
         PLANET_MAX_USER_ANGULAR_VELOCITY_RAD_PER_S
       )
 
-      try {
-        gl.domElement.setPointerCapture(pointerId)
-      } catch {
-        /* ignore */
-      }
-
-      draggingRef.current = true
-      activeDragPointerId.current = pointerId
-      lastClientX.current = event.clientX
-      lastEventTimeSeconds.current = event.nativeEvent.timeStamp / 1000
-
       const canvas = gl.domElement
 
-      const onWindowPointerMove = (ev: PointerEvent) => {
-        if (
-          ev.pointerId !== pointerId ||
-          !draggingRef.current ||
-          lastClientX.current === null ||
-          lastEventTimeSeconds.current === null
-        ) {
+      const setupCommittedGlobeDrag = (initial: PointerEvent) => {
+        try {
+          gl.domElement.setPointerCapture(pointerId)
+        } catch {
+          /* ignore */
+        }
+
+        draggingRef.current = true
+        activeDragPointerId.current = pointerId
+        lastClientX.current = initial.clientX
+        lastEventTimeSeconds.current = initial.timeStamp / 1000
+
+        const onWindowPointerMove = (ev: PointerEvent) => {
+          if (
+            ev.pointerId !== pointerId ||
+            !draggingRef.current ||
+            lastClientX.current === null ||
+            lastEventTimeSeconds.current === null
+          ) {
+            return
+          }
+
+          const seconds = ev.timeStamp / 1000
+          let deltaSeconds = seconds - lastEventTimeSeconds.current
+          if (deltaSeconds < TIME_EPSILON_S) deltaSeconds = TIME_EPSILON_S
+
+          const deltaX = ev.clientX - lastClientX.current
+          lastClientX.current = ev.clientX
+          lastEventTimeSeconds.current = seconds
+
+          const deltaThetaRad = dragRadiansPerPx * deltaX
+          const instantaneousOmega = deltaThetaRad / deltaSeconds
+
+          dragSmoothedOmega.current = expoSmooth(
+            dragSmoothedOmega.current,
+            instantaneousOmega,
+            dragOmegaSmooth
+          )
+
+          omegaUserRadPerSec.current = clampMagnitudeRadPerSec(
+            dragSmoothedOmega.current,
+            PLANET_MAX_USER_ANGULAR_VELOCITY_RAD_PER_S
+          )
+
+          updateDangerLatchForOmegaMagnitude(Math.abs(omegaUserRadPerSec.current))
+
+          const group = spinGroupRef.current
+          if (group) {
+            group.rotation.y += deltaThetaRad
+          }
+        }
+
+        const onWindowPointerEnd = (ev: PointerEvent) => {
+          if (ev.pointerId !== pointerId) return
+          if (!draggingRef.current) return
+          teardownWindowDragRef.current?.()
+          teardownWindowDragRef.current = null
+          try {
+            if (
+              typeof canvas.releasePointerCapture === 'function' &&
+              canvas.hasPointerCapture?.(pointerId)
+            ) {
+              canvas.releasePointerCapture(pointerId)
+            }
+          } catch {
+            /* */
+          }
+
+          finalizeDragPhysics()
+        }
+
+        teardownWindowDragRef.current = () => {
+          window.removeEventListener('pointermove', onWindowPointerMove, true)
+          window.removeEventListener('pointerup', onWindowPointerEnd, true)
+          window.removeEventListener('pointercancel', onWindowPointerEnd, true)
+        }
+
+        window.addEventListener('pointermove', onWindowPointerMove, {
+          capture: true,
+          passive: true
+        })
+        window.addEventListener('pointerup', onWindowPointerEnd, { capture: true, passive: true })
+        window.addEventListener('pointercancel', onWindowPointerEnd, {
+          capture: true,
+          passive: true
+        })
+      }
+
+      if (interactionDesktop) {
+        setupCommittedGlobeDrag(event.nativeEvent)
+        return
+      }
+
+      const startX = event.clientX
+      const startY = event.clientY
+
+      const onPendingPointerMove = (ev: PointerEvent) => {
+        if (ev.pointerId !== pointerId) return
+
+        const dx = ev.clientX - startX
+        const dy = ev.clientY - startY
+
+        if (Math.max(Math.abs(dx), Math.abs(dy)) < PLANET_MOBILE_GESTURE_COMMIT_PX) {
           return
         }
 
-        const seconds = ev.timeStamp / 1000
-        let deltaSeconds = seconds - lastEventTimeSeconds.current
-        if (deltaSeconds < TIME_EPSILON_S) deltaSeconds = TIME_EPSILON_S
+        clearPendingGestureListeners()
 
-        const deltaX = ev.clientX - lastClientX.current
-        lastClientX.current = ev.clientX
-        lastEventTimeSeconds.current = seconds
-
-        const deltaThetaRad = dragRadiansPerPx * deltaX
-        const instantaneousOmega = deltaThetaRad / deltaSeconds
-
-        dragSmoothedOmega.current = expoSmooth(
-          dragSmoothedOmega.current,
-          instantaneousOmega,
-          dragOmegaSmooth
-        )
-
-        omegaUserRadPerSec.current = clampMagnitudeRadPerSec(
-          dragSmoothedOmega.current,
-          PLANET_MAX_USER_ANGULAR_VELOCITY_RAD_PER_S
-        )
-
-        updateDangerLatchForOmegaMagnitude(Math.abs(omegaUserRadPerSec.current))
-
-        const group = spinGroupRef.current
-        if (group) {
-          group.rotation.y += deltaThetaRad
+        if (Math.abs(dy) >= Math.abs(dx)) {
+          return
         }
+
+        setupCommittedGlobeDrag(ev)
       }
 
-      const onWindowPointerEnd = (ev: PointerEvent) => {
+      const onPendingPointerEnd = (ev: PointerEvent) => {
         if (ev.pointerId !== pointerId) return
-        if (!draggingRef.current) return
-        teardownWindowDragRef.current?.()
-        teardownWindowDragRef.current = null
-        try {
-          if (
-            typeof canvas.releasePointerCapture === 'function' &&
-            canvas.hasPointerCapture?.(pointerId)
-          ) {
-            canvas.releasePointerCapture(pointerId)
-          }
-        } catch {
-          /* */
-        }
-
-        finalizeDragPhysics()
+        clearPendingGestureListeners()
       }
 
-      teardownWindowDragRef.current = () => {
-        window.removeEventListener('pointermove', onWindowPointerMove, true)
-        window.removeEventListener('pointerup', onWindowPointerEnd, true)
-        window.removeEventListener('pointercancel', onWindowPointerEnd, true)
+      pendingGestureTeardownRef.current = () => {
+        window.removeEventListener('pointermove', onPendingPointerMove, true)
+        window.removeEventListener('pointerup', onPendingPointerEnd, true)
+        window.removeEventListener('pointercancel', onPendingPointerEnd, true)
       }
 
-      window.addEventListener('pointermove', onWindowPointerMove, { capture: true, passive: true })
-      window.addEventListener('pointerup', onWindowPointerEnd, { capture: true, passive: true })
-      window.addEventListener('pointercancel', onWindowPointerEnd, { capture: true, passive: true })
+      window.addEventListener('pointermove', onPendingPointerMove, { capture: true, passive: true })
+      window.addEventListener('pointerup', onPendingPointerEnd, { capture: true, passive: true })
+      window.addEventListener('pointercancel', onPendingPointerEnd, {
+        capture: true,
+        passive: true
+      })
     },
     [
+      clearPendingGestureListeners,
       endGlobeDrag,
       finalizeDragPhysics,
       gl.domElement,
+      interactionDesktop,
       updateDangerLatchForOmegaMagnitude,
       dragRadiansPerPx,
       dragOmegaSmooth

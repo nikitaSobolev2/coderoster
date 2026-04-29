@@ -49,3 +49,11 @@ export function sanitizeMarkdown(value: string): string {
   if (!env.SANITIZE_MARKDOWN) return value
   return sanitizeHtml(value, MARKDOWN_OPTIONS)
 }
+
+/** Chat bodies are plain text only — always strip HTML regardless of SANITIZE_MARKDOWN. */
+export function sanitizeLivechatBody(value: string): string {
+  const stripped = sanitizeHtml(value, PLAIN_TEXT_OPTIONS)
+    .trim()
+    .replace(/\u0000/g, '')
+  return stripped.replace(/\r\n/g, '\n')
+}

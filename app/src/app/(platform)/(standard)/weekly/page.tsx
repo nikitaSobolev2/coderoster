@@ -1,6 +1,6 @@
 import { withAuth } from '@workos-inc/authkit-nextjs'
 import { HydrateClient, api } from '~/trpc/server'
-import WeeklyShell from '~/features/platform/weekly/WeeklyShell'
+import WeeklyShell, { type WeeklyAttemptView } from '~/features/platform/weekly/WeeklyShell'
 import styles from './styles.module.scss'
 
 export const metadata = { title: 'Спидраны — CodeRoster' }
@@ -24,7 +24,7 @@ export default async function WeeklyPage() {
         <WeeklyShell
           initialIsoWeek={week.isoWeek}
           initialTasks={week.tasks}
-          initialAttempts={week.attempts.map(attempt => ({
+          initialAttempts={week.attempts.map((attempt: WeeklyAttemptView) => ({
             taskIndex: attempt.taskIndex,
             status: attempt.status,
             solvedAt: attempt.solvedAt

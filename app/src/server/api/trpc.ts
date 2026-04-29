@@ -56,7 +56,11 @@ async function resolveCurrentUser(): Promise<AuthenticatedUser | null> {
         displayName: fallbackName ?? session.user.email,
         role: 'learner',
         bannedUntil: null,
-        banReason: null
+        banReason: null,
+        chatBannedUntil: null,
+        chatBanReason: null,
+        livechatConsentAt: null,
+        livechatUsernameColor: null
       }
     }
 
@@ -77,7 +81,11 @@ async function resolveCurrentUser(): Promise<AuthenticatedUser | null> {
       displayName: local.displayName,
       role: local.role.toLowerCase() as AuthenticatedUser['role'],
       bannedUntil: local.bannedUntil,
-      banReason: local.banReason
+      banReason: local.banReason,
+      chatBannedUntil: local.chatBannedUntil,
+      chatBanReason: local.chatBanReason,
+      livechatConsentAt: local.livechatConsentAt,
+      livechatUsernameColor: local.livechatUsernameColor
     }
   } catch (error) {
     console.error('[trpc] resolveCurrentUser failed', error)

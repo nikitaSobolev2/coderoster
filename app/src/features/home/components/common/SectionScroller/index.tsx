@@ -10,6 +10,7 @@ import { registerSectionScrollToIdHandler } from '~/features/home/components/com
 import { useMatchMedia } from '~/shared/hooks/useMatchMedia'
 import { getSectionIndexFromScroll } from './getSectionIndexFromScroll'
 import { getDocumentScrollTopPx, getScrollableRoot } from './getDocumentScrollTopPx'
+import { LIVECHAT_DOM_ISOLATE_SELECTOR } from '~/shared/constants/livechatDom'
 import { getSectionScrollObserverType } from './getSectionScrollObserverType'
 import { useSectionScrollerStore, type SectionDescriptor } from './section-scroller.store'
 import styles from './styles.module.scss'
@@ -20,6 +21,13 @@ const SCROLL_DURATION_S = 1
 const OBSERVER_TOLERANCE = 12
 const MOBILE_MQ = '(max-width: 768px)'
 const REDUCED_MOTION_MQ = '(prefers-reduced-motion: reduce)'
+
+/** GSAP resolves `ignore` once at Observer.create via `utils.toArray` — matches zero nodes if chat is closed → ignore never updates when chat opens; use `closest` at event time. */
+function wheelShouldSkipSectionSnapForLivechatTarget(event: Event): boolean {
+  const { target } = event
+  if (!(target instanceof Element)) return false
+  return target.closest(LIVECHAT_DOM_ISOLATE_SELECTOR) != null
+}
 
 export interface Props {
   sections: readonly SectionDescriptor[]
@@ -93,6 +101,8 @@ export default function SectionScroller({ sections, children }: Readonly<Props>)
         wheelSpeed: -1,
         tolerance: OBSERVER_TOLERANCE,
         preventDefault: true,
+        /** Let livechat ScrollArea / inputs keep native wheel; `data-livechat-cursor-isolate` marks floating shell & drawer. */
+        ignoreCheck: wheelShouldSkipSectionSnapForLivechatTarget,
         onUp: () => {
           if (useSectionScrollerStore.getState().isAnimating) return
           navigateToIndex(sectionIndexRef.current + 1)

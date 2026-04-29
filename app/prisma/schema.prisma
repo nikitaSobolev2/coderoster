@@ -40,6 +40,10 @@ model User {
   deletionRequestedAt     DateTime?
   bannedUntil             DateTime?
   banReason               String?
+  chatBannedUntil         DateTime?
+  chatBanReason           String?
+  livechatConsentAt       DateTime?
+  livechatUsernameColor   String?
   excludedFromLeaderboard Boolean   @default(false)
   commentsThreadId        String?   @unique
   joinedAt                DateTime  @default(now())
@@ -59,6 +63,7 @@ model User {
   weeklyAttempts     WeeklyChallengeAttempt[]
   snippets           SandboxSnippet[]
   auditLogs          AuditLog[]               @relation("AuditActor")
+  livechatMessages   LivechatMessage[]
 
   @@index([username])
   @@index([totalXp])
@@ -333,6 +338,32 @@ model Comment {
   thread Thread @relation(fields: [threadId], references: [id], onDelete: Cascade)
 
   @@index([threadId, createdAt])
+}
+
+enum LivechatAuthorKind {
+  AUTH
+  GUEST
+}
+
+model LivechatMessage {
+  id             String             @id @default(cuid())
+  createdAt      DateTime           @default(now())
+  body           String             @db.VarChar(800)
+  authorKind     LivechatAuthorKind
+  userId         String?
+  guestSessionId String?
+  authorLabel    String             @db.VarChar(120)
+  usernameColor  String             @db.VarChar(32)
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt(sort: Desc)])
+  @@index([guestSessionId])
+}
+
+model LivechatGuestConsent {
+  guestSessionId String   @id @db.VarChar(48)
+  acceptedAt     DateTime @default(now())
 }
 
 // ---------- Outbox + idempotency + executions ----------

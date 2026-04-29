@@ -32,7 +32,8 @@
   will-change: contents;
   transform: translateZ(0);
 
+  /* pan-y: vertical scroll passes to the page; horizontal still goes to globe spin handlers. */
   :global(canvas) {
-    touch-action: none;
+    touch-action: pan-y;
   }
 }

@@ -2,12 +2,22 @@
 
 import { useEffect, useRef } from 'react'
 import { useMatchMedia } from '~/shared/hooks/useMatchMedia'
+import { LIVECHAT_DOM_ISOLATE_SELECTOR } from '~/shared/constants/livechatDom'
 import { HOME_DESKTOP_INTERACTION_MQ } from '~/shared/constants/homeDesktopInteractionMediaQuery'
 import { useGlobePointerStore } from '~/features/home/components/3d/models/Planet/globePointer.store'
 import styles from './styles.module.scss'
 import { useCursorStore, type CursorStore } from './cursor.store'
 
 const FOLLOW_LERP = 0.18
+
+function syncHomeCursorSuspendedFromPointer(clientX: number, clientY: number): void {
+  const el = document.elementFromPoint(clientX, clientY)
+  const isolated = Boolean(el?.closest(LIVECHAT_DOM_ISOLATE_SELECTOR))
+  const state = useCursorStore.getState()
+  if (isolated !== state.homeCursorSuspended) {
+    state.setHomeCursorSuspended(isolated)
+  }
+}
 
 export default function Cursor() {
   const isDesktopPointer = useMatchMedia(HOME_DESKTOP_INTERACTION_MQ)
@@ -16,6 +26,7 @@ export default function Cursor() {
 }
 
 function CursorRuntime() {
+  const suspended = useCursorStore((state: CursorStore) => state.homeCursorSuspended)
   const cursorRef = useRef<HTMLDivElement>(null)
   const localAnimatedPos = useRef({ x: 0, y: 0 })
 
@@ -27,6 +38,25 @@ function CursorRuntime() {
   const pointerOverGlobe = useGlobePointerStore(state => state.pointerOverGlobe)
 
   useEffect(() => {
+    const sync = (event: Event) => {
+      const pe = event as PointerEvent
+      syncHomeCursorSuspendedFromPointer(pe.clientX, pe.clientY)
+    }
+    const { pointerX, pointerY } = useCursorStore.getState()
+    syncHomeCursorSuspendedFromPointer(pointerX, pointerY)
+
+    document.addEventListener('pointermove', sync, { capture: true })
+    document.addEventListener('pointerdown', sync, { capture: true })
+
+    return () => {
+      document.removeEventListener('pointermove', sync, { capture: true })
+      document.removeEventListener('pointerdown', sync, { capture: true })
+    }
+  }, [])
+
+  useEffect(() => {
+    if (suspended) return undefined
+
     const initialX = useCursorStore.getState().x
     const initialY = useCursorStore.getState().y
     localAnimatedPos.current = { x: initialX, y: initialY }
@@ -38,7 +68,7 @@ function CursorRuntime() {
     }
     document.addEventListener('mousemove', handleMouseMove)
 
-    let animationFrameId: number
+    let animationFrameId = 0
     const animate = () => {
       const targetX = useCursorStore.getState().x
       const targetY = useCursorStore.getState().y
@@ -55,11 +85,14 @@ function CursorRuntime() {
       document.removeEventListener('mousemove', handleMouseMove)
       cancelAnimationFrame(animationFrameId)
     }
-  }, [setPosition])
+  }, [suspended, setPosition])
 
   useEffect(() => {
+    if (suspended) return
     applyStyleProps(cursorRef.current, styleProps)
-  }, [styleProps])
+  }, [styleProps, suspended])
+
+  if (suspended) return null
 
   return (
     <div

@@ -730,6 +730,11 @@ async function seedAppSettings() {
     update: { value: ['python', 'php'] },
     create: { key: 'allowed_languages', value: ['python', 'php'] }
   })
+  await prisma.appSetting.upsert({
+    where: { key: 'livechat_guest_policy' },
+    update: { value: { allowGuests: true } },
+    create: { key: 'livechat_guest_policy', value: { allowGuests: true } }
+  })
 }
 
 async function promoteBootstrapAdmin() {

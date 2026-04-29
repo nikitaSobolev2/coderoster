@@ -26,7 +26,12 @@
   align-items: center;
   gap: 2em;
   width: 100%;
-  pointer-events: auto;
+  pointer-events: none;
+
+  * {
+    pointer-events: auto;
+  }
+
   @include bp.min-width(bp.$bp-nav-up) {
     width: var(--width-content);
   }

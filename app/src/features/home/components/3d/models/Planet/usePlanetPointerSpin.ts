@@ -14,9 +14,17 @@ import {
 
 import {
   PLANET_ANGULAR_DAMPING,
+  PLANET_COOLDOWN_OMEGA_COMPLETE_RAD_PER_S,
+  PLANET_DANGER_ENTER_COARSE_RAD_PER_S,
+  PLANET_DANGER_ENTER_RAD_PER_S,
+  PLANET_DANGER_EXIT_COARSE_RAD_PER_S,
+  PLANET_DANGER_EXIT_RAD_PER_S,
+  PLANET_DRAG_COARSE_SENSITIVITY_MULTIPLIER,
   PLANET_DRAG_OMEGA_SMOOTH,
+  PLANET_DRAG_OMEGA_SMOOTH_COARSE,
   PLANET_DRAG_RADIANS_PER_PIXEL,
-  PLANET_MAX_USER_ANGULAR_VELOCITY_RAD_PER_S
+  PLANET_MAX_USER_ANGULAR_VELOCITY_RAD_PER_S,
+  PLANET_RECOVERY_ANGULAR_DAMPING
 } from '~/features/home/components/3d/models/Planet/planetRotation.constants'
 
 interface PlanetPointerPhysicsOptions {
@@ -38,6 +46,7 @@ export function usePlanetPointerPhysics(options: PlanetPointerPhysicsOptions): {
     legacyRotationTickRate: number
   ) => {
     userOmegaMagnitude: number
+    dangerLatched: boolean
   }
   onGlobeSurfacePointerDown: (event: PointerSynthetic) => void
   onPointerLeave: (event: PointerSynthetic) => void
@@ -47,6 +56,19 @@ export function usePlanetPointerPhysics(options: PlanetPointerPhysicsOptions): {
 } {
   const { interactionDesktop, setPointerOverGlobe } = options
 
+  const dangerEnterRadPerS = interactionDesktop
+    ? PLANET_DANGER_ENTER_RAD_PER_S
+    : PLANET_DANGER_ENTER_COARSE_RAD_PER_S
+  const dangerExitRadPerS = interactionDesktop
+    ? PLANET_DANGER_EXIT_RAD_PER_S
+    : PLANET_DANGER_EXIT_COARSE_RAD_PER_S
+  const dragRadiansPerPx =
+    PLANET_DRAG_RADIANS_PER_PIXEL *
+    (interactionDesktop ? 1 : PLANET_DRAG_COARSE_SENSITIVITY_MULTIPLIER)
+  const dragOmegaSmooth = interactionDesktop
+    ? PLANET_DRAG_OMEGA_SMOOTH
+    : PLANET_DRAG_OMEGA_SMOOTH_COARSE
+
   const { gl } = useThree()
   const spinGroupRef = useRef<Group | null>(null)
   const omegaUserRadPerSec = useRef(0)
@@ -55,8 +77,25 @@ export function usePlanetPointerPhysics(options: PlanetPointerPhysicsOptions): {
   const lastClientX = useRef<number | null>(null)
   const lastEventTimeSeconds = useRef<number | null>(null)
   const activeDragPointerId = useRef<number | null>(null)
-  /** Teardown window listeners for current globe drag */
   const teardownWindowDragRef = useRef<(() => void) | null>(null)
+
+  /** No angular decay while true (coasting at “red” speed bucket). */
+  const dangerLatchedRef = useRef(false)
+  /** Post-unlatch: stronger damping until user ω ≈ 0. */
+  const cooldownRecoveryRef = useRef(false)
+
+  const updateDangerLatchForOmegaMagnitude = useCallback(
+    (omegaMag: number) => {
+      if (omegaMag >= dangerEnterRadPerS) {
+        dangerLatchedRef.current = true
+      }
+      if (dangerLatchedRef.current && omegaMag <= dangerExitRadPerS) {
+        dangerLatchedRef.current = false
+        cooldownRecoveryRef.current = true
+      }
+    },
+    [dangerEnterRadPerS, dangerExitRadPerS]
+  )
 
   const finalizeDragPhysics = useCallback(() => {
     draggingRef.current = false
@@ -67,7 +106,8 @@ export function usePlanetPointerPhysics(options: PlanetPointerPhysicsOptions): {
       dragSmoothedOmega.current,
       PLANET_MAX_USER_ANGULAR_VELOCITY_RAD_PER_S
     )
-  }, [])
+    updateDangerLatchForOmegaMagnitude(Math.abs(omegaUserRadPerSec.current))
+  }, [updateDangerLatchForOmegaMagnitude])
 
   const releaseCapturedPointerIfAny = useCallback(() => {
     const prevId = activeDragPointerId.current
@@ -98,7 +138,6 @@ export function usePlanetPointerPhysics(options: PlanetPointerPhysicsOptions): {
   const onGlobeSurfacePointerDown = useCallback(
     (event: PointerSynthetic) => {
       event.stopPropagation()
-      /** Replaces stray session — fixes fast clicks / reorder. Must not pass new event to releasePrev. */
       endGlobeDrag()
 
       const pointerId = event.pointerId
@@ -139,19 +178,21 @@ export function usePlanetPointerPhysics(options: PlanetPointerPhysicsOptions): {
         lastClientX.current = ev.clientX
         lastEventTimeSeconds.current = seconds
 
-        const deltaThetaRad = PLANET_DRAG_RADIANS_PER_PIXEL * deltaX
+        const deltaThetaRad = dragRadiansPerPx * deltaX
         const instantaneousOmega = deltaThetaRad / deltaSeconds
 
         dragSmoothedOmega.current = expoSmooth(
           dragSmoothedOmega.current,
           instantaneousOmega,
-          PLANET_DRAG_OMEGA_SMOOTH
+          dragOmegaSmooth
         )
 
         omegaUserRadPerSec.current = clampMagnitudeRadPerSec(
           dragSmoothedOmega.current,
           PLANET_MAX_USER_ANGULAR_VELOCITY_RAD_PER_S
         )
+
+        updateDangerLatchForOmegaMagnitude(Math.abs(omegaUserRadPerSec.current))
 
         const group = spinGroupRef.current
         if (group) {
@@ -188,7 +229,14 @@ export function usePlanetPointerPhysics(options: PlanetPointerPhysicsOptions): {
       window.addEventListener('pointerup', onWindowPointerEnd, { capture: true, passive: true })
       window.addEventListener('pointercancel', onWindowPointerEnd, { capture: true, passive: true })
     },
-    [endGlobeDrag, finalizeDragPhysics, gl.domElement]
+    [
+      endGlobeDrag,
+      finalizeDragPhysics,
+      gl.domElement,
+      updateDangerLatchForOmegaMagnitude,
+      dragRadiansPerPx,
+      dragOmegaSmooth
+    ]
   )
 
   const onPointerOver = useCallback(() => {
@@ -233,27 +281,49 @@ export function usePlanetPointerPhysics(options: PlanetPointerPhysicsOptions): {
   const applyIdleAndUserSpinStep = useCallback(
     (deltaSeconds: number, legacyRotationTickRate: number) => {
       const group = spinGroupRef.current
+      const omegaMag = Math.abs(omegaUserRadPerSec.current)
+      updateDangerLatchForOmegaMagnitude(omegaMag)
+
       if (!group) {
         return {
-          userOmegaMagnitude: Math.abs(omegaUserRadPerSec.current)
+          userOmegaMagnitude: omegaMag,
+          dangerLatched: dangerLatchedRef.current
         }
       }
 
       if (!draggingRef.current) {
-        omegaUserRadPerSec.current = applyAngularDrag(
-          omegaUserRadPerSec.current,
-          PLANET_ANGULAR_DAMPING,
-          deltaSeconds
-        )
-        group.rotation.y += omegaUserRadPerSec.current * deltaSeconds
+        const latched = dangerLatchedRef.current
+
+        if (latched) {
+          group.rotation.y += omegaUserRadPerSec.current * deltaSeconds
+        } else {
+          const recovery = cooldownRecoveryRef.current
+          const damping = recovery ? PLANET_RECOVERY_ANGULAR_DAMPING : PLANET_ANGULAR_DAMPING
+          omegaUserRadPerSec.current = applyAngularDrag(
+            omegaUserRadPerSec.current,
+            damping,
+            deltaSeconds
+          )
+          group.rotation.y += omegaUserRadPerSec.current * deltaSeconds
+
+          const mag = Math.abs(omegaUserRadPerSec.current)
+          if (recovery && mag < PLANET_COOLDOWN_OMEGA_COMPLETE_RAD_PER_S) {
+            cooldownRecoveryRef.current = false
+            omegaUserRadPerSec.current = 0
+          }
+          updateDangerLatchForOmegaMagnitude(Math.abs(omegaUserRadPerSec.current))
+        }
       }
 
       const idleRadPerSec = planetIdleRotationRadiansPerSecond(legacyRotationTickRate)
       group.rotation.y += idleRadPerSec * deltaSeconds
 
-      return { userOmegaMagnitude: Math.abs(omegaUserRadPerSec.current) }
+      return {
+        userOmegaMagnitude: Math.abs(omegaUserRadPerSec.current),
+        dangerLatched: dangerLatchedRef.current
+      }
     },
-    []
+    [updateDangerLatchForOmegaMagnitude]
   )
 
   return {

@@ -24,7 +24,7 @@ const FEATURES: Feature[] = [
     title: 'Онлайн редактор',
     description:
       'Пиши и запускай код прямо в браузере. Несколько языков, тесты, вывод результатов.',
-    comingSoon: true
+    comingSoon: false
   },
   {
     icon: faTrophy,
@@ -37,7 +37,7 @@ const FEATURES: Feature[] = [
     title: 'Курсы',
     description:
       'Структурированные треки от нуля до реального проекта. Видео, теория, практика в одном месте.',
-    comingSoon: true
+    comingSoon: false
   },
   {
     icon: faStar,

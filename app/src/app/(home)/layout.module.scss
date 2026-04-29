@@ -3,6 +3,50 @@
 
 /* Same ambient thin-grid + vignette as platform shell (scrolls with page, non-fixed). */
 .homeShell {
+  --globe-threat: 0;
+  /* Snapshots for threat color-mix (keep platform :root tokens unchanged — home-only override below) */
+  --home-color-primary-base: color-mix(in srgb, #1b1ec8 25%, transparent);
+  --home-color-r3f-directional-base: #1b1ec8;
+  --danger-tint-anchor: #ff584d;
+
+  --color-primary: color-mix(
+    in srgb,
+    var(--danger-tint-anchor) calc(var(--globe-threat, 0) * 72%),
+    var(--home-color-primary-base) calc((1 - var(--globe-threat, 0)) * 100%)
+  );
+  --color-r3f-directional: color-mix(
+    in srgb,
+    var(--danger-tint-anchor) calc(var(--globe-threat, 0) * 88%),
+    var(--home-color-r3f-directional-base) calc((1 - var(--globe-threat, 0)) * 100%)
+  );
+
+  --shadow-header-island-active:
+    0 0 0 1px color-mix(in srgb, var(--color-r3f-directional) 35%, transparent),
+    0 16px 36px -8px color-mix(in srgb, var(--color-r3f-directional) 25%, transparent),
+    0 1px 0 color-mix(in srgb, var(--color-text) 8%, transparent) inset;
+
+  /* Same geometry as `:root` `--platform-grid-vignette`; top stop shifts indigo accent → coral with threat */
+  --home-platform-vignette-stop-cool: color-mix(
+    in srgb,
+    var(--platform-color-accent) 12%,
+    transparent
+  );
+  --home-platform-vignette-stop-threat: color-mix(
+    in srgb,
+    var(--danger-tint-anchor) 14%,
+    transparent
+  );
+  --platform-grid-vignette: radial-gradient(
+    ellipse 80% 60% at 50% 0%,
+    color-mix(
+        in srgb,
+        var(--home-platform-vignette-stop-threat) calc(var(--globe-threat, 0) * 100%),
+        var(--home-platform-vignette-stop-cool) calc((1 - var(--globe-threat, 0)) * 100%)
+      )
+      0%,
+    transparent 60%
+  );
+
   position: relative;
   isolation: isolate;
   color: var(--color-text);

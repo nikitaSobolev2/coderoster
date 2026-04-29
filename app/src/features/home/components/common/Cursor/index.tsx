@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react'
 import { useMatchMedia } from '~/shared/hooks/useMatchMedia'
 import { HOME_DESKTOP_INTERACTION_MQ } from '~/shared/constants/homeDesktopInteractionMediaQuery'
+import { useGlobePointerStore } from '~/features/home/components/3d/models/Planet/globePointer.store'
 import styles from './styles.module.scss'
 import { useCursorStore, type CursorStore } from './cursor.store'
 
@@ -22,6 +23,8 @@ function CursorRuntime() {
   const styleProps = useCursorStore((state: CursorStore) => state.styleProps)
   const media = useCursorStore((state: CursorStore) => state.media)
   const type = useCursorStore((state: CursorStore) => state.type)
+
+  const pointerOverGlobe = useGlobePointerStore(state => state.pointerOverGlobe)
 
   useEffect(() => {
     const initialX = useCursorStore.getState().x
@@ -59,7 +62,14 @@ function CursorRuntime() {
   }, [styleProps])
 
   return (
-    <div ref={cursorRef} className={styles.cursor} data-cursor-type={type}>
+    <div
+      ref={cursorRef}
+      className={styles.cursor}
+      data-cursor-type={type}
+      {...(type === 'globeHorizontal'
+        ? { 'data-globe-hit': pointerOverGlobe ? 'true' : 'false' }
+        : {})}
+    >
       {type === 'arrow' && <ArrowGlyph />}
       {type === 'globeHorizontal' && <GlobeHorizontalGlyphs />}
       {media?.type === 'image' && (
@@ -98,21 +108,19 @@ function setOrClear(node: HTMLDivElement, propertyName: string, value: string | 
   }
 }
 
-/** Center of circle: symmetrical ◄► hint (horizontal drag). */
+/** move-horizontal (arrows + center line); motion via `[data-globe-hit]` CSS */
 function GlobeHorizontalGlyphs() {
   return (
     <svg
       className={styles.cursor__globeHorizontal}
       viewBox="0 0 24 24"
       fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      xmlns="http://www.w3.org/2000/svg"
       aria-hidden
     >
-      <path d="m13 16-4.5-4 4.5-4" />
-      <path d="m11 16 4.5-4-4.5-4" />
+      <path d="m18 8 4 4-4 4" />
+      <path d="M2 12h20" />
+      <path d="m6 8-4 4 4 4" />
     </svg>
   )
 }

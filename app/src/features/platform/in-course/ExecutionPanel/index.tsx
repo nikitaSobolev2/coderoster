@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { Tabs } from '@mantine/core'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCircleCheck, faCircleXmark, faSpinner } from '@fortawesome/free-solid-svg-icons'
@@ -8,25 +9,48 @@ import TestResultsList from './TestResultsList'
 import styles from './styles.module.scss'
 
 export type ExecutionState = 'idle' | 'running' | 'done'
-export type ExecutionPanelMode = 'run' | 'submit'
+
+/** Sandbox: single блок «Результат». Courses / дейлики / спидраны: вкладки. */
+export type ExecutionVariant = 'sandbox' | 'full'
+
+export type ExecutionGradingMode = 'run' | 'submit'
 
 export interface Props {
   state: ExecutionState
   result: RunResult | null
   errorMessage: string | null
   /**
-   * `run`    — playground / preview view: single Output tab, no verdict, no
-   *            tests panel. Stderr is folded into the output.
-   * `submit` — graded view: Output / Tests / Errors tabs + pass/fail verdict.
+   * `sandbox` — один блок вывода, stderr рядом (как сейчас в песочнице).
+   * `full` — Вывод / Тесты / Ошибки (`full` для курсов, дейликов, спидранов).
    */
-  mode?: ExecutionPanelMode
+  variant?: ExecutionVariant
+  /**
+   * Как трактовать вердикт при `variant="full"` (последняя отправка —
+   * «Запустить» vs «Проверить» / сдача задачи).
+   */
+  gradingMode?: ExecutionGradingMode
 }
 
-export default function ExecutionPanel({ state, result, errorMessage, mode = 'submit' }: Props) {
-  if (mode === 'run') {
+type PanelTab = 'output' | 'tests' | 'errors'
+
+export default function ExecutionPanel({
+  state,
+  result,
+  errorMessage,
+  variant = 'full',
+  gradingMode = 'submit'
+}: Props) {
+  if (variant === 'sandbox') {
     return <RunOnlyPanel state={state} result={result} errorMessage={errorMessage} />
   }
-  return <SubmitPanel state={state} result={result} errorMessage={errorMessage} />
+  return (
+    <SubmitPanel
+      state={state}
+      result={result}
+      errorMessage={errorMessage}
+      gradingMode={gradingMode}
+    />
+  )
 }
 
 function RunOnlyPanel({
@@ -81,21 +105,60 @@ function RunOutput({ result }: { result: RunResult }) {
 function SubmitPanel({
   state,
   result,
-  errorMessage
+  errorMessage,
+  gradingMode
 }: {
   state: ExecutionState
   result: RunResult | null
   errorMessage: string | null
+  gradingMode: ExecutionGradingMode
 }) {
+  const [panelTab, setPanelTab] = useState<PanelTab>('output')
+
+  useEffect(() => {
+    if (state === 'running') {
+      setPanelTab('output')
+    }
+  }, [state])
+
+  useEffect(() => {
+    if (state !== 'done') return
+
+    const infraErr = Boolean(errorMessage?.trim())
+    const progErr = Boolean(result?.stderr?.trim())
+    const hasAnyErr = infraErr || progErr
+
+    const testsFailedSubmit =
+      gradingMode === 'submit' &&
+      result &&
+      (result.testResults?.length ?? 0) > 0 &&
+      result.passed === false &&
+      !hasAnyErr
+
+    if (hasAnyErr) setPanelTab('errors')
+    else if (testsFailedSubmit) setPanelTab('tests')
+    else setPanelTab('output')
+  }, [state, errorMessage, result, gradingMode])
+
+  const infraFlag = Boolean(errorMessage?.trim())
+  const progErrFlag = Boolean(result?.stderr?.trim())
+
   return (
     <section className={styles.panel}>
       <header className={styles.panel__head}>
         <h3 className={styles.panel__title}>Результаты</h3>
-        <Verdict state={state} result={result} hasError={Boolean(errorMessage)} />
+        <Verdict
+          state={state}
+          result={result}
+          gradingMode={gradingMode}
+          infraError={infraFlag}
+          progStderr={progErrFlag}
+        />
       </header>
 
       <Tabs
-        defaultValue="output"
+        value={panelTab}
+        onChange={v => setPanelTab((v ?? 'output') as PanelTab)}
         keepMounted={false}
         classNames={{ list: styles.tabs__list, tab: styles.tabs__tab, panel: styles.tabs__panel }}
       >
@@ -108,10 +171,10 @@ function SubmitPanel({
         <Tabs.Panel value="output">
           {state === 'running' ? (
             <Loading />
-          ) : result?.stdout ? (
+          ) : result?.stdout?.trim() ? (
             <pre className={styles.output}>{result.stdout}</pre>
           ) : (
-            <Empty hint="Запусти код, чтобы увидеть вывод." />
+            <Empty hint="Пока пустой вывод. Проверь вкладку «Ошибки» при сбое." />
           )}
           {result ? <span className={styles.output__time}>{result.runtimeMs} мс</span> : null}
         </Tabs.Panel>
@@ -120,16 +183,16 @@ function SubmitPanel({
           {state === 'running' ? (
             <Loading />
           ) : !result ? (
-            <Empty hint="Тесты прогонятся при проверке (режим с автотестами)." />
+            <Empty hint="Тесты появятся после проверки кода или сдачи." />
           ) : (
             <TestResultsList testResults={result.testResults} />
           )}
         </Tabs.Panel>
 
         <Tabs.Panel value="errors">
-          {errorMessage ? (
+          {infraFlag ? (
             <pre className={styles.errors}>{errorMessage}</pre>
-          ) : result?.stderr ? (
+          ) : progErrFlag && result?.stderr ? (
             <pre className={styles.errors}>{result.stderr}</pre>
           ) : (
             <Empty hint="Ошибок нет." />
@@ -143,11 +206,15 @@ function SubmitPanel({
 function Verdict({
   state,
   result,
-  hasError
+  gradingMode,
+  infraError,
+  progStderr
 }: {
   state: ExecutionState
   result: RunResult | null
-  hasError: boolean
+  gradingMode: ExecutionGradingMode
+  infraError: boolean
+  progStderr: boolean
 }) {
   if (state === 'running') {
     return (
@@ -156,7 +223,9 @@ function Verdict({
       </span>
     )
   }
-  if (hasError) {
+  const fatal = infraError || progStderr
+
+  if (fatal) {
     return (
       <span className={`${styles.verdict} ${styles.verdict_failed}`}>
         <FontAwesomeIcon icon={faCircleXmark} /> ошибка
@@ -165,6 +234,13 @@ function Verdict({
   }
   if (!result) {
     return <span className={styles.verdict}>—</span>
+  }
+  if (gradingMode === 'run') {
+    return (
+      <span className={`${styles.verdict} ${styles.verdict_passed}`}>
+        <FontAwesomeIcon icon={faCircleCheck} /> готово
+      </span>
+    )
   }
   return result.passed ? (
     <span className={`${styles.verdict} ${styles.verdict_passed}`}>

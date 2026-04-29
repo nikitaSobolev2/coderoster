@@ -27,7 +27,12 @@
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
   gap: var(--gap-howto-row);
   align-items: start;
-  pointer-events: auto;
+  pointer-events: none;
+
+  * {
+    pointer-events: auto;
+  }
+
   @include bp.min-width(bp.$bp-nav-up) {
     width: var(--width-content);
   }

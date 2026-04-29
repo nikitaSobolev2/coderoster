@@ -139,7 +139,7 @@ export default function SandboxShell({ isAuthenticated }: Props) {
           state={executionState}
           result={executionResult}
           errorMessage={executionError}
-          mode="run"
+          variant="sandbox"
         />
       </div>
     </div>

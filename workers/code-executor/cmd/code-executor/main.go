@@ -17,7 +17,12 @@ import (
 
 func main() {
 	cfg := loadConfig()
-	log.Printf("code-executor starting (timeout=%dms, memory=%dMB)", cfg.TimeoutMs, cfg.MemoryMB)
+	log.Printf(
+		"code-executor starting (exec-timeout=%dms image-pull-timeout=%dms memory=%dMB)",
+		cfg.TimeoutMs,
+		cfg.ImagePullTimeoutMs,
+		cfg.MemoryMB,
+	)
 
 	runner, err := sandbox.New(cfg)
 	if err != nil {
@@ -54,13 +59,14 @@ func main() {
 
 func loadConfig() sandbox.Config {
 	return sandbox.Config{
-		PythonImage: envOr("WORKER_PYTHON_IMAGE", "python:3.12-slim"),
-		PHPImage:    envOr("WORKER_PHP_IMAGE", "php:8.3-cli-alpine"),
-		TimeoutMs:   intEnv("EXECUTION_TIMEOUT_MS", 5000),
-		MemoryMB:    int64(intEnv("EXECUTION_MEMORY_MB", 128)),
-		CPUs:        floatEnv("EXECUTION_CPUS", 0.5),
-		PidsLimit:   int64(intEnv("EXECUTION_PIDS_LIMIT", 64)),
-		TmpfsBytes:  64 * 1024 * 1024,
+		PythonImage:        envOr("WORKER_PYTHON_IMAGE", "python:3.12-slim"),
+		PHPImage:           envOr("WORKER_PHP_IMAGE", "php:8.3-cli-alpine"),
+		TimeoutMs:          intEnv("EXECUTION_TIMEOUT_MS", 5000),
+		ImagePullTimeoutMs: intEnv("IMAGE_PULL_TIMEOUT_MS", 900000),
+		MemoryMB:           int64(intEnv("EXECUTION_MEMORY_MB", 128)),
+		CPUs:               floatEnv("EXECUTION_CPUS", 0.5),
+		PidsLimit:          int64(intEnv("EXECUTION_PIDS_LIMIT", 64)),
+		TmpfsBytes:         64 * 1024 * 1024,
 	}
 }
 

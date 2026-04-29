@@ -34,12 +34,12 @@ export function clampMagnitudeRadPerSec(omega: number, maxAbsolute: number): num
   return omega
 }
 
-/** Perceptual severity 0–1 from user angular velocity for emissive lerping. */
+/** Perceptual severity 0–1 from user angular velocity for emissive / threat ramp. */
 export function angularVelocityDangerFactor(
   omegaMagnitudeRadPerS: number,
   criticalRadPerS: number
 ): number {
   const ratio = criticalRadPerS > 1e-6 ? omegaMagnitudeRadPerS / criticalRadPerS : 0
-  /** Ramp up sooner and reach near-full tint before ω hits ω_crit (readable red). */
-  return smoothstep(0.26, 0.92, saturate(ratio))
+  /** Later onset (higher ratio band) so red appears at faster spin only. */
+  return smoothstep(0.42, 0.96, saturate(ratio))
 }

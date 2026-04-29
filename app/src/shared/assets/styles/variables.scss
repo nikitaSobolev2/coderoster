@@ -22,6 +22,8 @@
 
   /* Cursor arrow on difference blend (matches previous “black”) */
   --color-cursor-arrow-glyph: #000000;
+  /* Globe drag hint: `mix-blend-mode: normal` — must read on dark bg */
+  --color-cursor-globe-glyph: var(--color-text);
 
   /* Section overlays (single source for rgba that SCSS cannot var() from mix alone) */
   --color-footer-section-fade: color-mix(in srgb, var(--color-bg) 60%, transparent);
@@ -154,7 +156,7 @@
   /* Cursor / interactive */
   --size-cursor-fill-padding: 8px;
   --size-cursor-default: 3em;
-  --size-cursor-arrow-glyph: 32%;
+  --size-cursor-arrow-glyph: 50%;
   /* Default for useCursorScaleTarget `size` option (px) */
   --size-cursor-scale-target-default: 100px;
 

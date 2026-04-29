@@ -1,14 +1,20 @@
 'use client'
 
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { Canvas } from '@react-three/fiber'
+import { Canvas, useFrame } from '@react-three/fiber'
 import { gsap } from 'gsap'
-import type { Group } from 'three'
+import { Color, type DirectionalLight as DirectionalLightImpl, type Group } from 'three'
+
 import { usePlanetScaleStore } from '~/features/home/components/3d/scenes/planet/PlanetScene/planet-scale.store'
 import { getPlanetPresetForIndex } from '~/features/home/components/3d/scenes/planet/planetSectionPresets'
 import { usePlanetGroupRefStore } from '~/features/home/components/3d/scenes/planet/planet-group-ref.store'
 import { usePlanetStore } from '~/features/home/components/3d/models/Planet/planet.store'
-import { registerPlanetOrbitGlowHost } from '~/features/home/components/3d/models/Planet/planetOrbitGlow.dom'
+import { useGlobeDangerDisplayStore } from '~/features/home/components/3d/models/Planet/globeDanger.store'
+import {
+  DANGER_RED_EMISSIVE_HEX,
+  PLANET_SUPPRESS_SECTION_ROTATION_BURST_MIN_DISPLAY_THREAT
+} from '~/features/home/components/3d/models/Planet/planetRotation.constants'
+import { registerPlanetOrbitGlowHost } from '~/features/home/components/3d/models/Planet/homeDangerTheme.dom'
 import { useSectionScrollerStore } from '~/features/home/components/common/SectionScroller/section-scroller.store'
 import { useMobilePlanetScrollTimeline } from '~/features/home/hooks/planetScroll/useMobilePlanetScrollTimeline'
 import GlobeCursorSync from '~/features/home/components/3d/scenes/planet/GlobeCursorSync'
@@ -46,6 +52,38 @@ function tweenPlanetRotation(options: RotationTweenOptions): gsap.core.Tween | n
   })
 }
 
+/** Scene “cool” directional — lerps toward coral as `displayThreat01` rises (sync with globe / `.homeShell`). */
+const DANGER_DIRECTIONAL_MIX = new Color(DANGER_RED_EMISSIVE_HEX)
+
+function ThreatSyncedDirectionalLight(
+  props: Readonly<{
+    presetColor: string | undefined
+    baseFallback: string
+    intensity: number
+    position: readonly [number, number, number]
+  }>
+) {
+  const { presetColor, baseFallback, intensity, position } = props
+  const lightRef = useRef<DirectionalLightImpl>(null)
+  const scratch = useRef(new Color())
+  const presetRef = useRef(presetColor)
+  const baseRef = useRef(baseFallback)
+  presetRef.current = presetColor
+  baseRef.current = baseFallback
+
+  useFrame(() => {
+    const threat = useGlobeDangerDisplayStore.getState().displayThreat01
+    scratch.current.set(presetRef.current ?? baseRef.current)
+    scratch.current.lerp(DANGER_DIRECTIONAL_MIX, threat)
+    const light = lightRef.current
+    if (light) {
+      light.color.copy(scratch.current)
+    }
+  })
+
+  return <directionalLight ref={lightRef} position={[...position]} intensity={intensity} />
+}
+
 function PlanetR3FLights({
   warmBase,
   directionalBase
@@ -65,8 +103,9 @@ function PlanetR3FLights({
         position={[5000, 6000, 10000]}
         intensity={warmIntensity}
       />
-      <directionalLight
-        color={directionalColor ?? directionalBase}
+      <ThreatSyncedDirectionalLight
+        presetColor={directionalColor}
+        baseFallback={directionalBase}
         position={[5000, 6000, 10000]}
         intensity={directionalIntensity}
       />
@@ -158,9 +197,18 @@ export default function PlanetScene() {
     const delta = activeIndex - prev
     const group = usePlanetGroupRefStore.getState().group
 
+    const burstFromSectionChange =
+      indexChanged &&
+      useGlobeDangerDisplayStore.getState().displayThreat01 <
+        PLANET_SUPPRESS_SECTION_ROTATION_BURST_MIN_DISPLAY_THREAT
+
     if (isMobile) {
       prevIndexRef.current = activeIndex
-      const rotationTween = tweenPlanetRotation({ group, indexChanged, delta })
+      const rotationTween = tweenPlanetRotation({
+        group,
+        indexChanged: burstFromSectionChange,
+        delta
+      })
       return () => {
         rotationTween?.kill()
       }
@@ -204,7 +252,11 @@ export default function PlanetScene() {
       0
     )
 
-    const rotationTween = tweenPlanetRotation({ group, indexChanged, delta })
+    const rotationTween = tweenPlanetRotation({
+      group,
+      indexChanged: burstFromSectionChange,
+      delta
+    })
 
     return () => {
       tl.kill()

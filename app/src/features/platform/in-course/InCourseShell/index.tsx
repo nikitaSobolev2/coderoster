@@ -221,7 +221,8 @@ export default function InCourseShell({
             state={executionState}
             result={executionResult}
             errorMessage={executionError}
-            mode={executionMode}
+            variant="full"
+            gradingMode={executionMode}
           />
         </div>
 

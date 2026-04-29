@@ -23,13 +23,17 @@ import (
 
 // Config bundles the limits applied to every spawned container.
 type Config struct {
-	PythonImage string
-	PHPImage    string
-	TimeoutMs   int
-	MemoryMB    int64
-	CPUs        float64
-	PidsLimit   int64
-	TmpfsBytes  int64
+	PythonImage        string
+	PHPImage           string
+	TimeoutMs          int
+	// ImagePullTimeoutMs bounds Docker pull + stream drain only. Must exceed
+	// EXECUTION_TIMEOUT_MS: cold pulls use a separate deadline so fetching a layer
+	// cannot hit the sandbox wall clock (fixes "pull stream: context deadline exceeded").
+	ImagePullTimeoutMs int
+	MemoryMB           int64
+	CPUs               float64
+	PidsLimit          int64
+	TmpfsBytes         int64
 }
 
 // Runner orchestrates one container per execution.
@@ -54,16 +58,24 @@ func New(cfg Config) (*Runner, error) {
 // ensureImage checks if the image exists locally; if not, pulls from the
 // configured registry. Subsequent calls for the same ref short-circuit via
 // the in-memory cache so we only pay the round-trip on cold start.
-func (r *Runner) ensureImage(ctx context.Context, ref string) error {
+// Pull/stream drain uses ImagePullTimeoutMs, not execution timeout ctx.
+func (r *Runner) ensureImage(execCtx context.Context, ref string) error {
 	if _, cached := r.pulledImages.Load(ref); cached {
 		return nil
 	}
-	if _, _, err := r.docker.ImageInspectWithRaw(ctx, ref); err == nil {
+	if _, _, err := r.docker.ImageInspectWithRaw(execCtx, ref); err == nil {
 		r.pulledImages.Store(ref, struct{}{})
 		return nil
 	}
+	ms := r.config.ImagePullTimeoutMs
+	if ms <= 0 {
+		ms = 900000
+	}
+	pullCtx, cancel := context.WithTimeout(context.Background(), time.Duration(ms)*time.Millisecond)
+	defer cancel()
+
 	log.Printf("sandbox: pulling image %s", ref)
-	stream, err := r.docker.ImagePull(ctx, ref, image.PullOptions{})
+	stream, err := r.docker.ImagePull(pullCtx, ref, image.PullOptions{})
 	if err != nil {
 		return fmt.Errorf("image pull: %w", err)
 	}

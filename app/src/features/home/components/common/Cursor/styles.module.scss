@@ -34,12 +34,40 @@
 
   &[data-cursor-type='globeHorizontal'] {
     mix-blend-mode: normal;
+    --globe-glyphs-opacity: 0.42;
+    border-color: color-mix(in srgb, var(--color-text-semivisible) 52%, transparent);
+
+    &[data-globe-hit='true'] {
+      --globe-glyphs-opacity: 0.94;
+      border-color: color-mix(in srgb, var(--color-text-semivisible) 85%, transparent);
+    }
+
+    &[data-globe-hit='true'] .cursor__globeHorizontal path {
+      animation: moveHorizontal 1s ease;
+    }
   }
 
   &[data-cursor-type='image'],
   &[data-cursor-type='video'] {
     mix-blend-mode: normal;
     border-color: transparent;
+  }
+}
+
+@keyframes moveHorizontal {
+  0%,
+  45%,
+  55%,
+  100% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-3px);
+  }
+
+  75% {
+    transform: translateX(3px);
   }
 }
 
@@ -50,9 +78,32 @@
 }
 
 .cursor__globeHorizontal {
-  width: calc(var(--size-cursor-arrow-glyph) * 0.78);
-  height: calc(var(--size-cursor-arrow-glyph) * 0.78);
-  color: var(--color-cursor-arrow-glyph);
+  display: block;
+  width: calc(var(--size-cursor-arrow-glyph) * 0.88);
+  height: calc(var(--size-cursor-arrow-glyph) * 0.88);
+  flex-shrink: 0;
+  color: var(--color-cursor-globe-glyph);
+
+  opacity: 0.7;
+
+  transition: opacity calc(var(--transition-cursor) * 0.9) var(--easing-cursor);
+
+  /* Gives the opacity transition an origin value on first paint (blink → fade) where supported */
+  @starting-style {
+    opacity: 0;
+  }
+
+  path {
+    transform-box: fill-box;
+    transform-origin: center center;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
 }
 
 .cursor__media {

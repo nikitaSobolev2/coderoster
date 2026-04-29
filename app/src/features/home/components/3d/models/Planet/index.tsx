@@ -13,10 +13,12 @@ import {
 } from 'three'
 
 import {
-  PLANET_DANGER_OMEGA_RAD_PER_S,
+  PLANET_DANGER_ENTER_COARSE_RAD_PER_S,
+  PLANET_DANGER_ENTER_RAD_PER_S,
   DANGER_RED_EMISSIVE_HEX,
   PLANET_ATMOSPHERE_OPACITY_IDLE,
-  PLANET_ATMOSPHERE_DANGER_OPACITY_MAX
+  PLANET_ATMOSPHERE_DANGER_OPACITY_MAX,
+  PLANET_DISPLAY_THREAT_SMOOTH_HZ
 } from './planetRotation.constants'
 import { angularVelocityDangerFactor } from './planetRotationPhysics'
 
@@ -24,7 +26,8 @@ import { planetDimensions, usePlanetStore } from './planet.store'
 import { useGlobePointerStore } from './globePointer.store'
 import { usePlanetPointerPhysics } from './usePlanetPointerSpin'
 import { disableMeshRaycast } from './disableMeshRaycast'
-import { setPlanetOrbitGlowFromHeat } from './planetOrbitGlow.dom'
+import { useGlobeDangerDisplayStore } from './globeDanger.store'
+import { setPlanetOrbitGlowFromHeat, syncHomeThreatGlobe01 } from './homeDangerTheme.dom'
 
 const SCRATCH_DEST = new ThreeColor(DANGER_RED_EMISSIVE_HEX)
 
@@ -41,6 +44,9 @@ export default function Planet(props: Readonly<Props>) {
   const urbanMatRef = useRef<MeshStandardMaterial>(null!)
   const ruralMatRef = useRef<MeshStandardMaterial>(null!)
   const atmMatRef = useRef<MeshStandardMaterial>(null!)
+
+  const displayThreatSmoothRef = useRef(0)
+  const setDisplayThreatGlobeStore = useGlobeDangerDisplayStore(s => s.setDisplayThreat01)
 
   const baseUrban = useRef(new ThreeColor())
   const baseUrbanIntensity = useRef(0)
@@ -94,19 +100,33 @@ export default function Planet(props: Readonly<Props>) {
     '/assets/textures/planet/Oceanic 05 (Elevation 4k).png'
   ])
 
+  const dangerRampCriticalRadPerS = interactionDesktop
+    ? PLANET_DANGER_ENTER_RAD_PER_S
+    : PLANET_DANGER_ENTER_COARSE_RAD_PER_S
+
   useFrame((_state, deltaSeconds) => {
     const idleTick = settings.rotationSpeed
 
     const step = applyIdleAndUserSpinStep(deltaSeconds, idleTick)
 
-    const severity = ThreeMathUtils.clamp(
-      angularVelocityDangerFactor(step.userOmegaMagnitude, PLANET_DANGER_OMEGA_RAD_PER_S),
+    const instantaneousSeverity = ThreeMathUtils.clamp(
+      angularVelocityDangerFactor(step.userOmegaMagnitude, dangerRampCriticalRadPerS) * 1.15,
       0,
       1
     )
-    const tintStrength = ThreeMathUtils.clamp(severity * 1.2, 0, 1)
+    const targetThreat = step.dangerLatched ? 1 : instantaneousSeverity
+
+    displayThreatSmoothRef.current = ThreeMathUtils.damp(
+      displayThreatSmoothRef.current,
+      targetThreat,
+      PLANET_DISPLAY_THREAT_SMOOTH_HZ,
+      deltaSeconds
+    )
+    const tintStrength = ThreeMathUtils.clamp(displayThreatSmoothRef.current, 0, 1)
 
     setPlanetOrbitGlowFromHeat(tintStrength)
+    syncHomeThreatGlobe01(tintStrength)
+    setDisplayThreatGlobeStore(tintStrength)
 
     const urban = urbanMatRef.current
     const rural = ruralMatRef.current

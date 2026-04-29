@@ -4,7 +4,6 @@
 @mixin livechatSurface() {
   @include bluredBg;
 
-  // background: var(--platform-glass-bg-strong);
   color: var(--color-text);
   box-shadow: var(--platform-glass-shadow);
 }

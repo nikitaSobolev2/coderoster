@@ -26,6 +26,31 @@
   height: 100%;
   border-left: var(--border-width-hair) solid var(--platform-glass-border);
   background: color-mix(in srgb, var(--color-bg) 96%, transparent);
+  position: relative;
+}
+
+.workspace__lock {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  max-width: 100%;
+  margin: auto;
+  @include bluredBg;
+  border: var(--border-width-hair) solid var(--platform-glass-border);
+  box-shadow: var(--platform-glass-shadow);
+}
+
+.workspace__lockIcon {
+  font-size: 2rem;
+  color: color-mix(in srgb, var(--color-text-secondary) 70%, var(--platform-color-accent));
+}
+
+.workspace__lockTitle {
+  font-family: var(--font-family-headings);
 }
 
 .workspace__head {
@@ -44,6 +69,23 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/** SegmentedControl + variant island — keep on one row (TaskPane island wrap is `width:100%`). */
+.workspace__langTools {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+
+.workspace__variantIslandWrap {
+  display: flex;
+  align-items: center;
+  width: auto;
+  flex-shrink: 0;
 }
 
 .workspace__editor {
@@ -55,6 +97,15 @@
   border-top: var(--border-width-hair) solid var(--platform-color-divider);
   min-height: 0;
   overflow: hidden;
+}
+
+.workspace__ai {
+  min-height: 0;
+  padding: 0 0.75rem 0.5rem;
+}
+
+.nextLessonAiNudgeDropdown {
+  max-width: min(22rem, calc(100vw - 1.5rem));
 }
 
 .workspace__foot {

@@ -29,11 +29,17 @@ export default async function CourseDetailPage({ params }: PageProps) {
 
   let enrollment = null
   let isAuthenticated = false
+  let viewerTier = 0
   try {
     const session = await withAuth()
     if (session.user) {
       isAuthenticated = true
-      enrollment = await api.enrollment.getMine({ courseSlug: slug })
+      const [mine, plan] = await Promise.all([
+        api.enrollment.getMine({ courseSlug: slug }),
+        api.plan.getMine()
+      ])
+      enrollment = mine
+      viewerTier = plan?.tierLevel ?? 0
     }
   } catch {
     isAuthenticated = false
@@ -48,7 +54,11 @@ export default async function CourseDetailPage({ params }: PageProps) {
             longDescription={course.longDescription}
             outcomes={course.learningOutcomes}
           />
-          <CourseSyllabus course={course} enrollment={enrollment} />
+          <CourseSyllabus
+            course={course}
+            enrollment={enrollment}
+            viewerEffectiveTier={viewerTier}
+          />
         </div>
         <div id="course-enroll" className={styles.page__rail}>
           <CourseEnrollPanel course={course} isAuthenticated={isAuthenticated} />

@@ -39,7 +39,7 @@ export const createTRPCContext = async (opts: TRPCContextOptions): Promise<TRPCC
   }
 }
 
-async function resolveCurrentUser(): Promise<AuthenticatedUser | null> {
+export async function resolveCurrentUser(): Promise<AuthenticatedUser | null> {
   try {
     const session = await withAuth()
     if (!session.user) return null

@@ -88,11 +88,32 @@
   color: inherit;
   text-decoration: none;
   flex: 1;
+  min-width: 0;
 
   &:hover,
   &:focus-visible {
     color: var(--platform-color-accent);
   }
+}
+
+.lesson_locked {
+  opacity: 0.88;
+
+  .lesson__link {
+    color: var(--color-text-secondary);
+  }
+}
+
+.lesson__tier {
+  flex-shrink: 0;
+  text-transform: none;
+  letter-spacing: 0.03em;
+}
+
+.lesson__lock {
+  flex-shrink: 0;
+  font-size: 0.85em;
+  color: color-mix(in srgb, var(--color-text-secondary) 80%, var(--platform-color-accent));
 }
 
 .lesson__title {

@@ -137,6 +137,23 @@
   vertical-align: baseline;
 }
 
+.planBadge {
+  display: inline-flex;
+  vertical-align: middle;
+  margin-right: 0.15rem;
+  transform: translateY(-1px);
+
+  :global(.mantine-Badge-root) {
+    text-transform: none;
+    letter-spacing: 0.04em;
+    font-size: 0.62rem;
+    padding-inline: 0.35rem;
+    border: var(--border-width-hair) solid var(--platform-glass-border);
+    background: color-mix(in srgb, var(--color-bg) 55%, transparent);
+    color: var(--color-text-secondary);
+  }
+}
+
 .bodyText {
   color: color-mix(in srgb, var(--color-text) 94%, transparent);
 }

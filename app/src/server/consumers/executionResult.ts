@@ -4,16 +4,20 @@ import { db } from '~/server/db'
 import { startConsumer } from '~/server/amqp/consumer'
 import { cache } from '~/server/cache'
 import { invalidateProfileCachesForUsername } from '~/server/cache/invalidateProfileCaches'
+import { requiredTierForTask } from '~/shared/lib/planTier'
 import { achievementService } from '~/server/services/AchievementService'
+import { dailyChallengeService } from '~/server/services/DailyChallengeService'
+import { planService } from '~/server/services/PlanService'
 import { streakService } from '~/server/services/StreakService'
 import { xpService, type XpSource } from '~/server/services/XpService'
-import { dailyChallengeService } from '~/server/services/DailyChallengeService'
 import { weeklyChallengeService } from '~/server/services/WeeklyChallengeService'
 import {
   EXECUTION_COMPLETED_TOPIC,
   executionCompletedSchema,
   type ExecutionCompleted
 } from '~/shared/contracts/execution'
+import type { Language } from '~/server/repositories/types'
+import { mergeDraftSave } from '~/shared/lib/taskAttemptCurrentData'
 
 const QUEUE = 'execution.completed'
 
@@ -30,7 +34,12 @@ type Tx = Prisma.TransactionClient
  *            evaluate achievements, advance daily/weekly challenges.
  */
 async function handleEvent(payload: unknown): Promise<void> {
-  const event = executionCompletedSchema.parse(payload)
+  const parsed = executionCompletedSchema.safeParse(payload)
+  if (!parsed.success) {
+    console.error('[consumer] execution.completed Zod error', parsed.error.flatten(), payload)
+    throw new Error('invalid execution.completed payload')
+  }
+  const event = parsed.data
   const execution = await db.execution.findUnique({ where: { id: event.executionId } })
   if (!execution) {
     console.warn('[consumer] unknown execution', event.executionId)
@@ -39,28 +48,40 @@ async function handleEvent(payload: unknown): Promise<void> {
 
   const isSubmit = event.mode === 'submit'
 
-  await db.$transaction(async tx => {
-    await tx.execution.update({
-      where: { id: event.executionId },
-      data: {
-        status: mapStatus(event.status),
-        finishedAt: new Date(),
-        stdout: event.stdout,
-        stderr: event.stderr,
-        runtimeMs: event.runtimeMs,
-        passed: isSubmit ? event.passed : null,
-        testResults: event.testResults,
-        errorMessage: event.errorMessage
-      }
-    })
-
-    if (!isSubmit) return
-    if (!execution.taskId) {
-      await handleChallengeOnly({ tx, execution, event })
-      return
+  await db.execution.update({
+    where: { id: event.executionId },
+    data: {
+      status: mapStatus(event.status),
+      finishedAt: new Date(),
+      stdout: event.stdout,
+      stderr: event.stderr,
+      runtimeMs: event.runtimeMs,
+      passed: isSubmit ? event.passed : null,
+      testResults: event.testResults as unknown as Prisma.InputJsonValue,
+      errorMessage: event.errorMessage
     }
-    await handleSubmitForTask({ tx, execution, event })
   })
+
+  if (!isSubmit) {
+    await invalidateCaches(execution.userId)
+    return
+  }
+
+  try {
+    await db.$transaction(async tx => {
+      if (!execution.taskId) {
+        await handleChallengeOnly({ tx, execution, event })
+        return
+      }
+      await handleSubmitForTask({ tx, execution, event })
+    })
+  } catch (error) {
+    console.error(
+      '[consumer] submit side-effects failed (execution row already saved)',
+      event.executionId,
+      error
+    )
+  }
 
   await invalidateCaches(execution.userId)
 }
@@ -75,6 +96,15 @@ async function handleSubmitForTask(ctx: SubmitContext): Promise<void> {
   const { tx, execution, event } = ctx
   if (!execution.taskId) return
 
+  const prevRow = await tx.courseTaskAttempt.findUnique({
+    where: {
+      courseTaskId_userId: { courseTaskId: execution.taskId, userId: execution.userId }
+    },
+    select: { currentData: true }
+  })
+  const lang = execution.language as Language
+  const merged = mergeDraftSave(prevRow?.currentData, lang, execution.code) as Prisma.InputJsonValue
+
   const attempt = await tx.courseTaskAttempt.upsert({
     where: {
       courseTaskId_userId: { courseTaskId: execution.taskId, userId: execution.userId }
@@ -82,14 +112,14 @@ async function handleSubmitForTask(ctx: SubmitContext): Promise<void> {
     update: {
       status: event.passed ? 'SUCCESS' : 'ACTIVE',
       tryN: { increment: 1 },
-      currentData: { code: execution.code }
+      currentData: merged
     },
     create: {
       courseTaskId: execution.taskId,
       userId: execution.userId,
       status: event.passed ? 'SUCCESS' : 'ACTIVE',
       tryN: 1,
-      currentData: { code: execution.code }
+      currentData: merged
     }
   })
 
@@ -191,26 +221,56 @@ async function advanceEnrollment(tx: Tx, userId: string, taskId: string): Promis
     include: { module: { include: { course: true } } }
   })
   if (!task?.module) return false
-  const courseId = task.module.course.id
+  const course = task.module.course
+  const courseId = course.id
   const enrollment = await tx.enrollment.findUnique({
     where: { userId_courseId: { userId, courseId } }
   })
   if (!enrollment) return false
-  const completed = enrollment.completedLessonIds.includes(taskId)
+
+  const tier = await planService.getEffectiveTier(userId, tx)
+  const modules = await tx.courseModule.findMany({
+    where: { courseId },
+    orderBy: { order: 'asc' },
+    include: { tasks: { orderBy: { order: 'asc' } } }
+  })
+  const accessibleIds: string[] = []
+  for (const mod of modules) {
+    for (const t of mod.tasks) {
+      const need = requiredTierForTask(course.tierRequired, {
+        isPremium: t.isPremium,
+        minPlanTier: t.minPlanTier
+      })
+      if (tier >= need) accessibleIds.push(t.id)
+    }
+  }
+
+  const completedIds = enrollment.completedLessonIds.includes(taskId)
     ? enrollment.completedLessonIds
     : [...enrollment.completedLessonIds, taskId]
-  const totalTasks = await tx.courseTask.count({
-    where: { module: { courseId } }
-  })
-  const percent = totalTasks === 0 ? 0 : Math.round((completed.length / totalTasks) * 100)
-  const isComplete = percent >= 100 && enrollment.status !== 'FINISHED'
+
+  const completedAccessible = completedIds.filter(id => accessibleIds.includes(id)).length
+  const totalAccessible = accessibleIds.length
+  const percent =
+    totalAccessible === 0 ? 0 : Math.round((completedAccessible / totalAccessible) * 100)
+  const allAccessibleDone = totalAccessible > 0 && completedAccessible >= totalAccessible
+  const isComplete = allAccessibleDone && enrollment.status !== 'FINISHED'
+
+  const nextLessonId = await planService.findNextAccessibleLessonIdAfterTask(
+    courseId,
+    userId,
+    taskId,
+    tx
+  )
+
   await tx.enrollment.update({
     where: { id: enrollment.id },
     data: {
-      completedLessonIds: completed,
+      completedLessonIds: completedIds,
       progressPercent: percent,
-      status: percent >= 100 ? 'FINISHED' : enrollment.status,
-      finishedAt: percent >= 100 ? (enrollment.finishedAt ?? new Date()) : enrollment.finishedAt
+      status: allAccessibleDone ? 'FINISHED' : enrollment.status,
+      finishedAt: allAccessibleDone ? (enrollment.finishedAt ?? new Date()) : enrollment.finishedAt,
+      currentLessonId: nextLessonId
     }
   })
   return isComplete

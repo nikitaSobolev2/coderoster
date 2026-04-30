@@ -15,6 +15,8 @@ export interface EditableTask {
   allowedLanguages: string[]
   initialData: Record<string, unknown>
   result: Record<string, unknown> | null
+  isPremium: boolean
+  minPlanTier: number
   autotests: EditableAutotest[]
 }
 
@@ -36,6 +38,8 @@ export interface TaskUpdatePatch {
   allowedLanguages?: string[]
   initialData?: Record<string, unknown>
   result?: Record<string, unknown> | null
+  isPremium?: boolean
+  minPlanTier?: number
 }
 
 export interface AutotestPatch {

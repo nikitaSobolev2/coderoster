@@ -4,6 +4,7 @@ import { useState, type ReactNode } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faChevronDown,
+  faCrown,
   faIdBadge,
   faKey,
   faLink,
@@ -14,6 +15,7 @@ import { api } from '~/trpc/react'
 import type { UserSettings } from '~/server/repositories/types'
 import ProfileCard from '../sections/ProfileCard'
 import AccountCard from '../sections/AccountCard'
+import PlanCard from '../sections/PlanCard'
 import SocialsCard from '../sections/SocialsCard'
 import AppearanceCard from '../sections/AppearanceCard'
 import DangerCard from '../sections/DangerCard'
@@ -24,7 +26,7 @@ export interface Props {
 }
 
 interface SectionConfig {
-  id: 'profile' | 'account' | 'socials' | 'appearance' | 'danger'
+  id: 'profile' | 'account' | 'plan' | 'socials' | 'appearance' | 'danger'
   label: string
   description: string
   icon: typeof faIdBadge
@@ -45,6 +47,13 @@ const SECTIONS: SectionConfig[] = [
     description: 'Email, дата регистрации, выход',
     icon: faKey,
     render: settings => <AccountCard initial={settings} />
+  },
+  {
+    id: 'plan',
+    label: 'Тариф',
+    description: 'Подписка, бонусы XP, премиум-уроки',
+    icon: faCrown,
+    render: () => <PlanCard />
   },
   {
     id: 'socials',

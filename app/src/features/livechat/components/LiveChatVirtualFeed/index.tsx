@@ -4,7 +4,7 @@ import type { CSSProperties, RefObject } from 'react'
 import { useEffect, useRef } from 'react'
 import clsx from 'clsx'
 import Link from 'next/link'
-import { Menu, UnstyledButton } from '@mantine/core'
+import { Badge, Menu, UnstyledButton } from '@mantine/core'
 import { useVirtualizer } from '@tanstack/react-virtual'
 
 import { LIVECHAT_AUTHOR_MENU_Z_INDEX } from '~/features/livechat/livechatLayers'
@@ -91,6 +91,13 @@ export function LiveChatVirtualFeed({
             className={styles.line}
             style={transform}
           >
+            {message.authorPlanBadge ? (
+              <span className={styles.planBadge}>
+                <Badge variant="outline" size="xs" radius="sm" color="gray">
+                  {message.authorPlanBadge}
+                </Badge>
+              </span>
+            ) : null}
             {message.authorKind === 'AUTH' && message.authorProfileUsername ? (
               <Menu
                 width={200}
@@ -117,10 +124,7 @@ export function LiveChatVirtualFeed({
                 </Menu.Dropdown>
               </Menu>
             ) : (
-              <span
-                className={styles.author}
-                style={{ color: usernameHex(message.usernameColor) }}
-              >
+              <span className={styles.author} style={{ color: usernameHex(message.usernameColor) }}>
                 {message.authorLabel}
               </span>
             )}

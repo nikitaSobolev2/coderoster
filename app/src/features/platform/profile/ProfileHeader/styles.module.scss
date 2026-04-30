@@ -69,10 +69,25 @@
   text-transform: uppercase;
 }
 
+.header__nameRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem 0.75rem;
+}
+
 .header__name {
   margin: 0;
   font-size: var(--font-size-h2);
   color: var(--color-text);
+}
+
+.header__tierBadge {
+  flex-shrink: 0;
+  text-transform: none;
+  letter-spacing: 0.04em;
+  border-width: var(--border-width-hair);
+  background: color-mix(in srgb, var(--color-bg) 40%, transparent);
 }
 
 .header__handle {

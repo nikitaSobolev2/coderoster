@@ -14,6 +14,8 @@ export default authkitMiddleware({
       '/',
       '/courses',
       '/courses/:slug*',
+      '/plans',
+      '/plans/:path*',
       '/u/:username*',
       '/leaderboard',
       '/achievements',

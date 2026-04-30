@@ -33,6 +33,7 @@ const PYTHON_BASICS: CourseDetail = {
   durationHours: 12,
   xpReward: 1200,
   enrollmentCount: 1842,
+  tierRequired: 0,
   thumbnail: null,
   tags: ['основы', 'синтаксис', 'практика'],
   author: author(),
@@ -49,9 +50,30 @@ const PYTHON_BASICS: CourseDetail = {
       title: 'Старт',
       description: 'Установка, запуск, первая программа.',
       lessons: [
-        { id: 'l-py-1-1', title: 'Hello, World', kind: 'task', estimatedMinutes: 10 },
-        { id: 'l-py-1-2', title: 'Переменные', kind: 'task', estimatedMinutes: 15 },
-        { id: 'l-py-1-3', title: 'Числа и строки', kind: 'task', estimatedMinutes: 20 }
+        {
+          id: 'l-py-1-1',
+          title: 'Hello, World',
+          kind: 'task',
+          isPremium: false,
+          minPlanTier: 1,
+          estimatedMinutes: 10
+        },
+        {
+          id: 'l-py-1-2',
+          title: 'Переменные',
+          kind: 'task',
+          isPremium: false,
+          minPlanTier: 1,
+          estimatedMinutes: 15
+        },
+        {
+          id: 'l-py-1-3',
+          title: 'Числа и строки',
+          kind: 'task',
+          isPremium: false,
+          minPlanTier: 1,
+          estimatedMinutes: 20
+        }
       ]
     },
     {
@@ -59,9 +81,30 @@ const PYTHON_BASICS: CourseDetail = {
       title: 'Ветвления и циклы',
       description: 'if / else, while, for и неизбежные баги.',
       lessons: [
-        { id: 'l-py-2-1', title: 'Условные выражения', kind: 'task', estimatedMinutes: 25 },
-        { id: 'l-py-2-2', title: 'Цикл while', kind: 'task', estimatedMinutes: 25 },
-        { id: 'l-py-2-3', title: 'Цикл for', kind: 'task', estimatedMinutes: 25 }
+        {
+          id: 'l-py-2-1',
+          title: 'Условные выражения',
+          kind: 'task',
+          isPremium: false,
+          minPlanTier: 1,
+          estimatedMinutes: 25
+        },
+        {
+          id: 'l-py-2-2',
+          title: 'Цикл while',
+          kind: 'task',
+          isPremium: false,
+          minPlanTier: 1,
+          estimatedMinutes: 25
+        },
+        {
+          id: 'l-py-2-3',
+          title: 'Цикл for',
+          kind: 'task',
+          isPremium: false,
+          minPlanTier: 1,
+          estimatedMinutes: 25
+        }
       ]
     },
     {
@@ -69,8 +112,22 @@ const PYTHON_BASICS: CourseDetail = {
       title: 'Функции',
       description: 'Параметры, возврат, область видимости.',
       lessons: [
-        { id: 'l-py-3-1', title: 'Объявление функции', kind: 'task', estimatedMinutes: 20 },
-        { id: 'l-py-3-2', title: 'Аргументы по умолчанию', kind: 'task', estimatedMinutes: 20 }
+        {
+          id: 'l-py-3-1',
+          title: 'Объявление функции',
+          kind: 'task',
+          isPremium: false,
+          minPlanTier: 1,
+          estimatedMinutes: 20
+        },
+        {
+          id: 'l-py-3-2',
+          title: 'Аргументы по умолчанию',
+          kind: 'task',
+          isPremium: false,
+          minPlanTier: 1,
+          estimatedMinutes: 20
+        }
       ]
     }
   ]
@@ -89,6 +146,7 @@ const PHP_API: CourseDetail = {
   durationHours: 18,
   xpReward: 2200,
   enrollmentCount: 612,
+  tierRequired: 0,
   thumbnail: null,
   tags: ['backend', 'http', 'pdo'],
   author: author({ id: 'author-2', username: 'php_pro', displayName: 'Мария Лазарева' }),
@@ -105,8 +163,22 @@ const PHP_API: CourseDetail = {
       title: 'HTTP и маршрутизация',
       description: 'Запрос, ответ, заголовки.',
       lessons: [
-        { id: 'l-php-1-1', title: 'Hello, HTTP', kind: 'task', estimatedMinutes: 15 },
-        { id: 'l-php-1-2', title: 'Простой роутер', kind: 'task', estimatedMinutes: 30 }
+        {
+          id: 'l-php-1-1',
+          title: 'Hello, HTTP',
+          kind: 'task',
+          isPremium: false,
+          minPlanTier: 1,
+          estimatedMinutes: 15
+        },
+        {
+          id: 'l-php-1-2',
+          title: 'Простой роутер',
+          kind: 'task',
+          isPremium: false,
+          minPlanTier: 1,
+          estimatedMinutes: 30
+        }
       ]
     },
     {
@@ -114,8 +186,22 @@ const PHP_API: CourseDetail = {
       title: 'JSON и валидация',
       description: 'Парсим, валидируем, отвечаем.',
       lessons: [
-        { id: 'l-php-2-1', title: 'JSON request body', kind: 'task', estimatedMinutes: 25 },
-        { id: 'l-php-2-2', title: 'Минимальный валидатор', kind: 'task', estimatedMinutes: 35 }
+        {
+          id: 'l-php-2-1',
+          title: 'JSON request body',
+          kind: 'task',
+          isPremium: false,
+          minPlanTier: 1,
+          estimatedMinutes: 25
+        },
+        {
+          id: 'l-php-2-2',
+          title: 'Минимальный валидатор',
+          kind: 'task',
+          isPremium: false,
+          minPlanTier: 1,
+          estimatedMinutes: 35
+        }
       ]
     }
   ]
@@ -134,6 +220,7 @@ const ALGORITHMS: CourseDetail = {
   durationHours: 24,
   xpReward: 3000,
   enrollmentCount: 2145,
+  tierRequired: 1,
   thumbnail: null,
   tags: ['собеседование', 'алгоритмы', 'big-o'],
   author: author({ id: 'author-3', username: 'algo_dasha', displayName: 'Даша Кравцова' }),
@@ -150,8 +237,22 @@ const ALGORITHMS: CourseDetail = {
       title: 'Сложность и массивы',
       description: 'Big-O, два указателя, скользящее окно.',
       lessons: [
-        { id: 'l-algo-1-1', title: 'Сумма двух чисел', kind: 'task', estimatedMinutes: 20 },
-        { id: 'l-algo-1-2', title: 'Скользящее окно', kind: 'task', estimatedMinutes: 30 }
+        {
+          id: 'l-algo-1-1',
+          title: 'Сумма двух чисел',
+          kind: 'task',
+          isPremium: false,
+          minPlanTier: 1,
+          estimatedMinutes: 20
+        },
+        {
+          id: 'l-algo-1-2',
+          title: 'Скользящее окно',
+          kind: 'task',
+          isPremium: false,
+          minPlanTier: 1,
+          estimatedMinutes: 30
+        }
       ]
     }
   ]
@@ -168,9 +269,9 @@ export function getFakeCourseSummaries(): CourseSummary[] {
 }
 
 function stripCourseDetail(detail: CourseDetail): CourseSummary {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { longDescription, learningOutcomes, modules, ...summary } = detail
-  return summary
+  const hasPremiumTasks = modules.some(m => m.lessons.some(l => l.isPremium))
+  return { ...summary, hasPremiumTasks }
 }
 
 export function findFakeCourseBySlug(slug: string): CourseDetail | null {
@@ -257,7 +358,11 @@ const LESSON_BODIES: Record<string, Pick<LessonDetail, 'body' | 'starterCode' | 
   }
 }
 
-export function getFakeLessonDetail(courseSlug: string, lessonId: string): LessonDetail | null {
+export function getFakeLessonDetail(
+  courseSlug: string,
+  lessonId: string,
+  viewerTier: number | null = null
+): LessonDetail | null {
   const course = findFakeCourseBySlug(courseSlug)
   if (!course) return null
 
@@ -283,13 +388,26 @@ export function getFakeLessonDetail(courseSlug: string, lessonId: string): Lesso
     order: index + 1,
     body: body.body,
     starterCode: body.starterCode,
+    starterCodes: { [body.language]: body.starterCode },
     language: body.language,
+    allowedLanguages: [body.language],
     tests: [
       { name: 'Базовый прогон', hidden: false },
       { name: 'Скрытый кейс', hidden: true }
     ],
     previousLessonId: previous,
-    nextLessonId: next
+    nextLessonId: next,
+    courseTierRequired: course.tierRequired,
+    requiredPlanTier: current.lesson.isPremium
+      ? Math.max(course.tierRequired, current.lesson.minPlanTier)
+      : course.tierRequired,
+    userCanAccess:
+      viewerTier !== null && viewerTier !== undefined
+        ? viewerTier >=
+          (current.lesson.isPremium
+            ? Math.max(course.tierRequired, current.lesson.minPlanTier)
+            : course.tierRequired)
+        : true
   }
 }
 
@@ -355,7 +473,9 @@ const FAKE_PROFILE: PublicProfile = {
     coursesActive: 1,
     tasksSolved: 38
   },
-  isOwner: false
+  isOwner: false,
+  isStaff: false,
+  publicPlan: null
 }
 
 export function getFakeProfile(username: string): PublicProfile | null {

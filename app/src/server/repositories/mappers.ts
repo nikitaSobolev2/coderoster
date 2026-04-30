@@ -38,6 +38,8 @@ import type {
   UserRole,
   UserSettings
 } from './types'
+import { requiredTierForTask } from '~/shared/lib/planTier'
+import { normalizeStarterCodeMap, starterCodeForLanguage } from '~/shared/lib/taskStarterCodes'
 
 /**
  * Mapping helpers between Prisma rows and domain types. Kept in one file so
@@ -90,7 +92,8 @@ export function toCourseSummary(course: CourseWithRelations): CourseSummary {
     thumbnail: course.coverImage,
     tags: course.tags,
     author: toAuthorRef(course.author),
-    category: toCategoryRef(course.category ?? null)
+    category: toCategoryRef(course.category ?? null),
+    tierRequired: course.tierRequired
   }
 }
 
@@ -99,8 +102,10 @@ export function toCourseDetail(course: CourseWithRelations): CourseDetail {
     .slice()
     .sort((a, b) => a.order - b.order)
     .map(toModuleSummary)
+  const hasPremiumTasks = (course.modules ?? []).some(mod => mod.tasks.some(t => t.isPremium))
   return {
     ...toCourseSummary(course),
+    hasPremiumTasks,
     longDescription: course.description,
     learningOutcomes: extractLearningOutcomes(course.description),
     modules
@@ -126,7 +131,9 @@ export function toLessonSummary(task: PrismaCourseTask): LessonSummary {
     id: task.id,
     title: task.title,
     kind: kindToLessonKind(task.kind),
-    estimatedMinutes: task.estimatedMinutes
+    estimatedMinutes: task.estimatedMinutes,
+    isPremium: task.isPremium,
+    minPlanTier: task.minPlanTier
   }
 }
 
@@ -149,13 +156,71 @@ export interface LessonDetailInput {
   previousLessonId: string | null
   nextLessonId: string | null
   testNames: { name: string; hidden: boolean }[]
+  /** Viewer plan tier; `null` when anonymous. */
+  viewerTier: number | null
+}
+
+function normalizeAllowedLanguages(
+  taskAllowed: string[],
+  courseLanguage: string,
+  starterLanguages: Language[]
+): Language[] {
+  const fromTask = taskAllowed
+    .map(l => String(l).trim().toLowerCase())
+    .filter((l): l is Language => l === 'python' || l === 'php')
+
+  const order: Language[] = ['python', 'php']
+  const merged = new Set<Language>([...fromTask, ...starterLanguages])
+  const union = order.filter(l => merged.has(l))
+  if (union.length > 0) return union
+
+  const cl = String(courseLanguage).trim().toLowerCase()
+  if (cl === 'python' || cl === 'php') return [cl]
+  return ['python']
+}
+
+function languagesDeclaredInStarterCodes(initial: Record<string, unknown> | null): Language[] {
+  const map = normalizeStarterCodeMap(initial?.starterCodes)
+  return (['python', 'php'] as const).filter((k): k is Language => typeof map[k] === 'string')
+}
+
+function resolveStarterCodesForLesson(
+  initial: Record<string, unknown> | null,
+  allowedLanguages: Language[]
+): Partial<Record<Language, string>> {
+  const primary = allowedLanguages[0]!
+  const out: Partial<Record<Language, string>> = {}
+  for (const lang of allowedLanguages) {
+    out[lang] = starterCodeForLanguage({
+      starterCodes: initial?.starterCodes,
+      predefinedCode: initial?.predefinedCode,
+      language: lang,
+      primaryLanguage: primary
+    })
+  }
+  return out
 }
 
 export function toLessonDetail(input: LessonDetailInput): LessonDetail {
   const initial = input.task.initialData as Record<string, unknown> | null
-  const language =
-    (initial?.language as Language | undefined) ?? (input.course.language as Language)
-  const starterCode = (initial?.predefinedCode as string | undefined) ?? ''
+  const courseLanguage = input.course.language as Language
+  const fromStarters = languagesDeclaredInStarterCodes(initial)
+  const allowedLanguages = normalizeAllowedLanguages(
+    input.task.allowedLanguages,
+    courseLanguage,
+    fromStarters
+  )
+  const language = allowedLanguages[0]!
+  const starterCodes = resolveStarterCodesForLesson(initial, allowedLanguages)
+  const starterCode = starterCodes[language] ?? ''
+  const requiredPlanTier = requiredTierForTask(input.course.tierRequired, {
+    isPremium: input.task.isPremium,
+    minPlanTier: input.task.minPlanTier
+  })
+  const userCanAccess =
+    input.viewerTier !== null && input.viewerTier !== undefined
+      ? input.viewerTier >= requiredPlanTier
+      : false
   return {
     ...toLessonSummary(input.task),
     courseSlug: input.course.slug,
@@ -165,10 +230,15 @@ export function toLessonDetail(input: LessonDetailInput): LessonDetail {
     order: input.order,
     body: input.task.description,
     starterCode,
+    starterCodes,
     language,
+    allowedLanguages,
     tests: input.testNames,
     previousLessonId: input.previousLessonId,
-    nextLessonId: input.nextLessonId
+    nextLessonId: input.nextLessonId,
+    courseTierRequired: input.course.tierRequired,
+    requiredPlanTier,
+    userCanAccess
   }
 }
 
@@ -201,8 +271,14 @@ function enrollmentStatusToDomain(status: PrismaEnrollment['status']): Enrollmen
 export function toPublicProfile(
   user: PrismaUser,
   stats: ProfileStats,
-  isOwner: boolean
+  isOwner: boolean,
+  plan: { slug: string; name: string; tierLevel: number } | null
 ): PublicProfile {
+  const isStaff = user.role === 'ADMIN'
+  const publicPlan =
+    !isStaff && plan && plan.tierLevel > 0
+      ? { slug: plan.slug, name: plan.name, tierLevel: plan.tierLevel }
+      : null
   return {
     id: user.id,
     username: user.username,
@@ -212,7 +288,9 @@ export function toPublicProfile(
     joinedAt: user.joinedAt,
     socials: jsonToSocials(user.socials),
     stats,
-    isOwner
+    isOwner,
+    isStaff,
+    publicPlan
   }
 }
 

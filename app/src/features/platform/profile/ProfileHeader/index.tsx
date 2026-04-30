@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Avatar, Button, Progress } from '@mantine/core'
+import { Avatar, Badge, Button, Progress } from '@mantine/core'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCalendar, faGear } from '@fortawesome/free-solid-svg-icons'
 import { faGithub, faLinkedin, faXTwitter } from '@fortawesome/free-brands-svg-icons'
@@ -33,7 +33,30 @@ export default function ProfileHeader({ profile }: Props) {
           </Avatar>
           <div className={styles.header__identityBody}>
             <span className={styles.header__levelBadge}>Уровень {profile.stats.level}</span>
-            <h1 className={styles.header__name}>{profile.displayName}</h1>
+            <div className={styles.header__nameRow}>
+              <h1 className={styles.header__name}>{profile.displayName}</h1>
+              {profile.isStaff ? (
+                <Badge
+                  variant="outline"
+                  color="orange"
+                  size="lg"
+                  radius="md"
+                  className={styles.header__tierBadge}
+                >
+                  Команда
+                </Badge>
+              ) : profile.publicPlan ? (
+                <Badge
+                  variant="outline"
+                  color="grape"
+                  size="lg"
+                  radius="md"
+                  className={styles.header__tierBadge}
+                >
+                  {profile.publicPlan.name}
+                </Badge>
+              ) : null}
+            </div>
             <span className={styles.header__handle}>@{profile.username}</span>
             {profile.bio ? <p className={styles.header__bio}>{profile.bio}</p> : null}
             <div className={styles.header__metaRow}>

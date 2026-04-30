@@ -1,0 +1,39 @@
+@use '~/shared/assets/styles/mixins' as *;
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.25rem;
+  border-radius: var(--platform-card-radius-sm);
+  border: var(--border-width-hair) solid var(--platform-glass-border);
+  @include bluredBg;
+}
+
+.card__title {
+  margin: 0;
+  font-size: var(--font-size-h4);
+  color: var(--color-text);
+  letter-spacing: 0.02em;
+}
+
+.card__desc {
+  margin: 0;
+  font-size: var(--font-size-default);
+  color: var(--color-text-secondary);
+  line-height: 1.45;
+}
+
+.card__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.card__meta {
+  font-size: var(--font-size-h6);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}

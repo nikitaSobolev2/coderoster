@@ -9,5 +9,7 @@ export const lessonRouter = createTRPCRouter({
         lessonId: z.string().min(1)
       })
     )
-    .query(({ ctx, input }) => ctx.repositories.lesson.getOne(input.courseSlug, input.lessonId))
+    .query(({ ctx, input }) =>
+      ctx.repositories.lesson.getOne(input.courseSlug, input.lessonId, ctx.user?.id ?? null)
+    )
 })

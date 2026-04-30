@@ -156,49 +156,65 @@ function SubmitPanel({
         />
       </header>
 
-      <Tabs
-        value={panelTab}
-        onChange={v => setPanelTab((v ?? 'output') as PanelTab)}
-        keepMounted={false}
-        classNames={{ list: styles.tabs__list, tab: styles.tabs__tab, panel: styles.tabs__panel }}
-      >
-        <Tabs.List>
-          <Tabs.Tab value="output">Вывод</Tabs.Tab>
-          <Tabs.Tab value="tests">Тесты</Tabs.Tab>
-          <Tabs.Tab value="errors">Ошибки</Tabs.Tab>
-        </Tabs.List>
+      <div className={styles.tabs__root}>
+        <Tabs
+          value={panelTab}
+          onChange={v => setPanelTab((v ?? 'output') as PanelTab)}
+          keepMounted={false}
+          styles={{
+            root: {
+              flex: 1,
+              minHeight: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden'
+            },
+            list: { flexShrink: 0 }
+          }}
+          classNames={{
+            list: styles.tabs__list,
+            tab: styles.tabs__tab,
+            panel: styles.tabs__panel
+          }}
+        >
+          <Tabs.List>
+            <Tabs.Tab value="output">Вывод</Tabs.Tab>
+            <Tabs.Tab value="tests">Тесты</Tabs.Tab>
+            <Tabs.Tab value="errors">Ошибки</Tabs.Tab>
+          </Tabs.List>
 
-        <Tabs.Panel value="output">
-          {state === 'running' ? (
-            <Loading />
-          ) : result?.stdout?.trim() ? (
-            <pre className={styles.output}>{result.stdout}</pre>
-          ) : (
-            <Empty hint="Пока пустой вывод. Проверь вкладку «Ошибки» при сбое." />
-          )}
-          {result ? <span className={styles.output__time}>{result.runtimeMs} мс</span> : null}
-        </Tabs.Panel>
+          <Tabs.Panel value="output">
+            {state === 'running' ? (
+              <Loading />
+            ) : result?.stdout?.trim() ? (
+              <pre className={styles.output}>{result.stdout}</pre>
+            ) : (
+              <Empty hint="Пока пустой вывод. Проверь вкладку «Ошибки» при сбое." />
+            )}
+            {result ? <span className={styles.output__time}>{result.runtimeMs} мс</span> : null}
+          </Tabs.Panel>
 
-        <Tabs.Panel value="tests">
-          {state === 'running' ? (
-            <Loading />
-          ) : !result ? (
-            <Empty hint="Тесты появятся после проверки кода или сдачи." />
-          ) : (
-            <TestResultsList testResults={result.testResults} />
-          )}
-        </Tabs.Panel>
+          <Tabs.Panel value="tests">
+            {state === 'running' ? (
+              <Loading />
+            ) : !result ? (
+              <Empty hint="Тесты появятся после проверки кода или сдачи." />
+            ) : (
+              <TestResultsList testResults={result.testResults} />
+            )}
+          </Tabs.Panel>
 
-        <Tabs.Panel value="errors">
-          {infraFlag ? (
-            <pre className={styles.errors}>{errorMessage}</pre>
-          ) : progErrFlag && result?.stderr ? (
-            <pre className={styles.errors}>{result.stderr}</pre>
-          ) : (
-            <Empty hint="Ошибок нет." />
-          )}
-        </Tabs.Panel>
-      </Tabs>
+          <Tabs.Panel value="errors">
+            {infraFlag ? (
+              <pre className={styles.errors}>{errorMessage}</pre>
+            ) : progErrFlag && result?.stderr ? (
+              <pre className={styles.errors}>{result.stderr}</pre>
+            ) : (
+              <Empty hint="Ошибок нет." />
+            )}
+          </Tabs.Panel>
+        </Tabs>
+      </div>
     </section>
   )
 }

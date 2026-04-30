@@ -1,6 +1,5 @@
 import 'server-only'
 import type { Prisma, PrismaClient } from '@prisma/client'
-import { db } from '~/server/db'
 
 type Tx = Prisma.TransactionClient | PrismaClient
 
@@ -13,6 +12,7 @@ export type AchievementTrigger =
   | 'daily.cleared'
   | 'weekly.cleared'
   | 'execution.completed'
+  | 'plan.assigned'
 
 export interface RuleContext {
   userId: string
@@ -165,6 +165,16 @@ const comeback: AchievementRule = {
   }
 }
 
+const premiumMember: AchievementRule = {
+  slug: 'premium-member',
+  triggers: ['plan.assigned'],
+  async evaluate({ payload }) {
+    const tierLevel = typeof payload.tierLevel === 'number' ? payload.tierLevel : 0
+    const satisfied = tierLevel > 0
+    return { currentN: satisfied ? 1 : 0, satisfied, goal: 1 }
+  }
+}
+
 const ALL_RULES: AchievementRule[] = [
   firstSteps,
   onFire,
@@ -175,7 +185,8 @@ const ALL_RULES: AchievementRule[] = [
   marathon,
   dailyGrinder,
   weeklyChampion,
-  comeback
+  comeback,
+  premiumMember
 ]
 
 export class AchievementRuleRegistry {
@@ -207,5 +218,3 @@ export class AchievementRuleRegistry {
 }
 
 export const achievementRuleRegistry = new AchievementRuleRegistry(ALL_RULES)
-
-void db

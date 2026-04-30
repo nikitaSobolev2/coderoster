@@ -25,6 +25,14 @@ const BROKER_QUEUE_ASSERT: Record<string, Options.AssertQueue> = {
       'x-dead-letter-exchange': DLX,
       'x-dead-letter-routing-key': 'execution.completed.dead'
     }
+  },
+  'ai.code_improve.requested': {
+    durable: true,
+    arguments: {
+      'x-message-ttl': 600_000,
+      'x-dead-letter-exchange': DLX,
+      'x-dead-letter-routing-key': 'ai.code_improve.requested.dead'
+    }
   }
 }
 

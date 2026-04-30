@@ -1,6 +1,6 @@
 import 'server-only'
 import { cache } from '~/server/cache'
-import type { CourseRepository } from './course.repository'
+import type { CourseRepository, CourseListContext } from './course.repository'
 import type { LessonRepository } from './lesson.repository'
 import type { ProfileRepository } from './profile.repository'
 import type { CommentRepository } from './comment.repository'
@@ -33,11 +33,13 @@ const TTL = {
 }
 
 const KEY = {
-  courseList: (q: CoursesQuery) => `course:list:v3:${stable(q)}`,
+  courseList: (q: CoursesQuery, viewerTier: number) =>
+    `course:list:v4:${stable(q)}${q.matchesMyPlan ? `:vt=${viewerTier}` : ''}`,
   courseDetail: (slug: string) => `course:slug:v2:${slug}`,
   courseCategories: 'course:categories:v1',
   courseCategoriesNav: 'course:categoriesNav:v1',
-  lessonDetail: (courseSlug: string, lessonId: string) => `lesson:${courseSlug}:${lessonId}`,
+  lessonDetail: (courseSlug: string, lessonId: string, viewerUserId: string | null) =>
+    `lesson:${courseSlug}:${lessonId}:u:${viewerUserId ?? 'anon'}:v3`,
   profile: (username: string, viewerId: string | null) =>
     `profile:${username.toLowerCase()}:${viewerId ?? 'guest'}`,
   activity: (username: string, year: number) => `activity:${username.toLowerCase()}:${year}`,
@@ -51,8 +53,11 @@ const KEY = {
 export class CachedCourseRepository implements CourseRepository {
   constructor(private readonly inner: CourseRepository) {}
 
-  async list(query: CoursesQuery): Promise<CoursesPage> {
-    return cache.wrap(KEY.courseList(query), TTL.courseList, () => this.inner.list(query))
+  async list(query: CoursesQuery, context?: CourseListContext): Promise<CoursesPage> {
+    const viewerTier = context?.viewerTier ?? 0
+    return cache.wrap(KEY.courseList(query, viewerTier), TTL.courseList, () =>
+      this.inner.list(query, context)
+    )
   }
 
   async getBySlug(slug: string): Promise<CourseDetail | null> {
@@ -73,9 +78,15 @@ export class CachedCourseRepository implements CourseRepository {
 export class CachedLessonRepository implements LessonRepository {
   constructor(private readonly inner: LessonRepository) {}
 
-  async getOne(courseSlug: string, lessonId: string): Promise<LessonDetail | null> {
-    return cache.wrap(KEY.lessonDetail(courseSlug, lessonId), TTL.lessonDetail, () =>
-      this.inner.getOne(courseSlug, lessonId)
+  async getOne(
+    courseSlug: string,
+    lessonId: string,
+    viewerUserId?: string | null
+  ): Promise<LessonDetail | null> {
+    return cache.wrap(
+      KEY.lessonDetail(courseSlug, lessonId, viewerUserId ?? null),
+      TTL.lessonDetail,
+      () => this.inner.getOne(courseSlug, lessonId, viewerUserId)
     )
   }
 }

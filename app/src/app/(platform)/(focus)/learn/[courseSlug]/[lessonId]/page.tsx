@@ -1,5 +1,8 @@
 import { notFound, redirect } from 'next/navigation'
 import { withAuth } from '@workos-inc/authkit-nextjs'
+import { env } from '~/env'
+import { isTruthyFlag } from '~/server/lib/featureFlags'
+import { db } from '~/server/db'
 import { HydrateClient, api } from '~/trpc/server'
 import InCourseShell from '~/features/platform/in-course/InCourseShell'
 import { pageTitle, SITE_NAME } from '~/shared/constants/site'
@@ -33,8 +36,22 @@ export default async function InCoursePage({ params }: PageProps) {
   ])
   if (!course || !lesson) notFound()
 
+  if (!isTruthyFlag(env.USE_FAKE_DATA)) {
+    const plan = await api.plan.getMine()
+    const tier = plan?.tierLevel ?? 0
+    if (course.tierRequired > tier) {
+      redirect(`/courses/${courseSlug}`)
+    }
+  }
+
   const enrollment = await api.enrollment.getMine({ courseSlug })
   const completedLessonIds = enrollment?.completedLessonIds ?? []
+
+  const viewerRow = await db.user.findUnique({
+    where: { id: session.user.id },
+    select: { role: true }
+  })
+  const viewerIsAdmin = viewerRow?.role === 'ADMIN'
 
   return (
     <HydrateClient>
@@ -43,6 +60,7 @@ export default async function InCoursePage({ params }: PageProps) {
         lesson={lesson}
         isAuthenticated
         initialCompletedLessonIds={completedLessonIds}
+        viewerIsAdmin={viewerIsAdmin}
       />
     </HydrateClient>
   )

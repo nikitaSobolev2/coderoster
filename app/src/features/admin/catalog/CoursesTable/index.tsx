@@ -27,6 +27,7 @@ import {
 import { useRouter } from 'next/navigation'
 import { api } from '~/trpc/react'
 import AdminCard from '~/features/admin/_shared/AdminCard'
+import { formatPremiumCourseAccessLabel } from '~/shared/lib/premiumLabels'
 
 type StatusFilter = 'DRAFT' | 'PUBLISHED' | 'HIDDEN' | 'all'
 
@@ -105,6 +106,8 @@ export default function CoursesTable() {
               <Table.Th>Курс</Table.Th>
               <Table.Th>Язык</Table.Th>
               <Table.Th>Сложность</Table.Th>
+              <Table.Th>Премиум / тир</Table.Th>
+              <Table.Th>Pro-задачи</Table.Th>
               <Table.Th>Модулей / задач</Table.Th>
               <Table.Th>Учеников</Table.Th>
               <Table.Th>Статус</Table.Th>
@@ -124,6 +127,28 @@ export default function CoursesTable() {
                 </Table.Td>
                 <Table.Td>{course.language}</Table.Td>
                 <Table.Td>{course.difficulty}</Table.Td>
+                <Table.Td>
+                  {course.tierRequired > 0 ? (
+                    <Badge color="grape" variant="light" radius="sm" title="Минимальный тир плана">
+                      {formatPremiumCourseAccessLabel(course.tierRequired)}
+                    </Badge>
+                  ) : (
+                    <Text size="sm" c="dimmed">
+                      Нет
+                    </Text>
+                  )}
+                </Table.Td>
+                <Table.Td>
+                  {course.premiumTaskCount > 0 ? (
+                    <Badge color="pink" variant="light" radius="sm" title="Задачи с isPremium">
+                      {course.premiumTaskCount}
+                    </Badge>
+                  ) : (
+                    <Text size="sm" c="dimmed">
+                      0
+                    </Text>
+                  )}
+                </Table.Td>
                 <Table.Td>
                   {course.moduleCount} / {course.taskCount}
                 </Table.Td>

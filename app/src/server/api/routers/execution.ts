@@ -23,16 +23,27 @@ export const executionRouter = createTRPCRouter({
    * - `submit` ships the task autotests to the worker; the result consumer
    *   advances the attempt and progress only when all tests pass.
    */
-  run: heavyProcedure.input(runInputSchema).mutation(({ ctx, input }) =>
-    ctx.repositories.execution.enqueue(ctx.user.id, {
-      taskId: input.taskId ?? null,
-      language: input.language,
-      code: input.code,
-      mode: input.mode,
-      contextKind: input.context.kind,
-      contextRef: input.context.ref ?? null
-    })
-  ),
+  run: heavyProcedure.input(runInputSchema).mutation(async ({ ctx, input }) => {
+    try {
+      return await ctx.repositories.execution.enqueue(ctx.user.id, {
+        taskId: input.taskId ?? null,
+        language: input.language,
+        code: input.code,
+        mode: input.mode,
+        contextKind: input.context.kind,
+        contextRef: input.context.ref ?? null
+      })
+    } catch (error) {
+      if (error instanceof Error && error.message === 'TASK_PLAN_BLOCKED') {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message:
+            'Это задание только на Премиуме. Открой страницу «Тарифы» и выбери подходящий план.'
+        })
+      }
+      throw error
+    }
+  }),
 
   get: protectedProcedure
     .input(z.object({ executionId: z.string().min(1) }))

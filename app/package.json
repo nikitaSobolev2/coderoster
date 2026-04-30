@@ -79,6 +79,7 @@
     "monaco-editor": "^0.52.2",
     "next": "^15.5.15",
     "node-cron": "^4.2.1",
+    "openai": "^6.35.0",
     "postcss-preset-mantine": "^1.18.0",
     "postcss-simple-vars": "^7.0.1",
     "react": "^19.2.5",

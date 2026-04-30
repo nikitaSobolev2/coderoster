@@ -1,6 +1,7 @@
 import 'server-only'
 import type { Prisma } from '@prisma/client'
 import { db } from '~/server/db'
+import { planService } from '~/server/services/PlanService'
 import { toExecutionRecord } from './mappers'
 import type {
   ExecutionContextKind,
@@ -106,6 +107,10 @@ export class PrismaExecutionRepository implements ExecutionRepository {
     const resolvedTaskId = await this.resolveTaskId(input.taskId)
     const tests = await this.collectAutotests({ ...input, taskId: resolvedTaskId })
     const execution = await db.$transaction(async tx => {
+      if (resolvedTaskId) {
+        const allowed = await planService.canAccessTask(userId, resolvedTaskId, tx)
+        if (!allowed) throw new Error('TASK_PLAN_BLOCKED')
+      }
       const created = await tx.execution.create({
         data: {
           userId,

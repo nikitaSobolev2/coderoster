@@ -33,6 +33,7 @@ export default function Home() {
             {getHomeNavText(section.id)}
           </NavMenuItem>
         ))}
+        <NavMenuItem href="/plans">тарифы</NavMenuItem>
       </NavMenu>
       <ScrollHint />
       <main className={styles.main}>

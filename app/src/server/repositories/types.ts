@@ -3,6 +3,8 @@
  * router output inference, so they intentionally avoid Prisma-specific shapes.
  */
 
+import type { PlanMarketingBullet } from '~/shared/plan/planMarketing'
+
 export type Language = 'python' | 'php'
 
 export type Difficulty = 'beginner' | 'intermediate' | 'advanced'
@@ -61,6 +63,10 @@ export interface CourseSummary {
   tags: string[]
   author: AuthorRef
   category: CategoryRef | null
+  /** Minimum plan tier (`Plan.tierLevel`) to enroll. */
+  tierRequired: number
+  /** At least one module task has `isPremium` (omit/`false` when not loaded). */
+  hasPremiumTasks?: boolean
 }
 
 export interface LessonSummary {
@@ -68,6 +74,8 @@ export interface LessonSummary {
   title: string
   kind: LessonKind
   estimatedMinutes: number
+  isPremium: boolean
+  minPlanTier: number
 }
 
 export interface ModuleSummary {
@@ -105,11 +113,21 @@ export interface LessonDetail extends LessonSummary {
   moduleTitle: string
   order: number
   body: string
-  starterCode: string
+  /** Default / first editor language. */
   language: Language
+  /** All languages shown as editor tabs. */
+  allowedLanguages: Language[]
+  /** Template code per language (from admin). */
+  starterCodes: Partial<Record<Language, string>>
+  /** Convenience: same as `starterCodes[language]` (first tab). */
+  starterCode: string
   tests: LessonTestSpec[]
   previousLessonId: string | null
   nextLessonId: string | null
+  courseTierRequired: number
+  /** Effective tier needed for this lesson. */
+  requiredPlanTier: number
+  userCanAccess: boolean
 }
 
 export interface EnrollmentState {
@@ -170,6 +188,10 @@ export interface PublicProfile {
   socials: SocialLinks
   stats: ProfileStats
   isOwner: boolean
+  /** ADMIN platform role — show staff badge on profile. */
+  isStaff: boolean
+  /** Current subscription tier for public display; null for free or unset. */
+  publicPlan: { slug: string; name: string; tierLevel: number } | null
 }
 
 export interface ActivityCell {
@@ -278,6 +300,10 @@ export interface CoursesQuery {
   sort?: 'popular' | 'newest' | 'shortest'
   cursor?: string
   limit?: number
+  /** Only courses with `tierRequired === 0`. */
+  freeOnly?: boolean
+  /** `tierRequired <=` viewer plan tier (resolved server-side; guests use `0`). */
+  matchesMyPlan?: boolean
 }
 
 export interface CourseShowcase {
@@ -285,9 +311,18 @@ export interface CourseShowcase {
   enrollment: EnrollmentState
 }
 
-export interface ProfileShowcase {
-  active: CourseShowcase[]
-  finished: CourseShowcase[]
+export interface PlanSummary {
+  id: string
+  slug: string
+  name: string
+  shortDescription: string
+  marketingMarkdown: string
+  marketingFeatures: PlanMarketingBullet[]
+  isBestseller: boolean
+  tierLevel: number
+  xpBonusPercent: number
+  sortOrder: number
+  maxActiveCourses: number | null
 }
 
 export interface AuthenticatedUser {

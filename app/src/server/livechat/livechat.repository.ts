@@ -1,6 +1,6 @@
 import 'server-only'
 
-import { LivechatAuthorKind } from '@prisma/client'
+import { LivechatAuthorKind, Role } from '@prisma/client'
 import { db } from '~/server/db'
 import {
   LIVECHAT_DEFAULT_USERNAME_COLOR,
@@ -17,6 +17,12 @@ export interface LivechatMessageDTO {
   usernameColor: string
   /** Login handle for `/u/[username]`; null for guests and if user row missing. */
   authorProfileUsername: string | null
+  /** Platform staff — show «Команда» in feed. */
+  authorIsStaff: boolean
+  /** `Plan.tierLevel` for authenticated authors; 0 if no plan. */
+  authorPlanTierLevel: number
+  /** Short label for paid tier badge (e.g. plan name); null when not shown. */
+  authorPlanBadge: string | null
 }
 
 type LivechatRowWithAuthor = {
@@ -26,7 +32,11 @@ type LivechatRowWithAuthor = {
   authorKind: LivechatAuthorKind
   authorLabel: string
   usernameColor: string
-  user: { username: string } | null
+  user: {
+    username: string
+    role: Role
+    plan: { tierLevel: number; name: string; slug: string } | null
+  } | null
 }
 
 export function isAllowedUsernameColor(value: string): value is LivechatUsernameColorToken {
@@ -68,7 +78,15 @@ export class LivechatRepository {
           : {},
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: take + 1,
-      include: { user: { select: { username: true } } }
+      include: {
+        user: {
+          select: {
+            username: true,
+            role: true,
+            plan: { select: { tierLevel: true, name: true, slug: true } }
+          }
+        }
+      }
     })
 
     const hasMore = rows.length > take
@@ -90,7 +108,15 @@ export class LivechatRepository {
     const rows = await db.livechatMessage.findMany({
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: take + 1,
-      include: { user: { select: { username: true } } }
+      include: {
+        user: {
+          select: {
+            username: true,
+            role: true,
+            plan: { select: { tierLevel: true, name: true, slug: true } }
+          }
+        }
+      }
     })
     const hasMoreOlder = rows.length > take
     const slice = hasMoreOlder ? rows.slice(0, take) : rows
@@ -134,7 +160,15 @@ export class LivechatRepository {
         authorLabel: params.authorLabel,
         usernameColor: params.usernameColor
       },
-      include: { user: { select: { username: true } } }
+      include: {
+        user: {
+          select: {
+            username: true,
+            role: true,
+            plan: { select: { tierLevel: true, name: true, slug: true } }
+          }
+        }
+      }
     })
     return toDto(row)
   }
@@ -154,7 +188,15 @@ export class LivechatRepository {
         authorLabel: params.guestLabel,
         usernameColor: params.usernameColor
       },
-      include: { user: { select: { username: true } } }
+      include: {
+        user: {
+          select: {
+            username: true,
+            role: true,
+            plan: { select: { tierLevel: true, name: true, slug: true } }
+          }
+        }
+      }
     })
     return toDto(row)
   }
@@ -178,6 +220,14 @@ function toDto(row: LivechatRowWithAuthor): LivechatMessageDTO {
   const authorKind = row.authorKind === LivechatAuthorKind.AUTH ? 'AUTH' : 'GUEST'
   const authorProfileUsername =
     authorKind === 'AUTH' && row.user?.username ? row.user.username : null
+  const authorIsStaff = row.user?.role === 'ADMIN'
+  const tier = row.user?.plan?.tierLevel ?? 0
+  let authorPlanBadge: string | null = null
+  if (authorIsStaff) {
+    authorPlanBadge = 'Команда'
+  } else if (tier > 0 && row.user?.plan) {
+    authorPlanBadge = row.user.plan.name.trim() || row.user.plan.slug.toUpperCase()
+  }
   return {
     id: row.id,
     createdAt: row.createdAt,
@@ -185,6 +235,9 @@ function toDto(row: LivechatRowWithAuthor): LivechatMessageDTO {
     authorKind,
     authorLabel: row.authorLabel,
     usernameColor: row.usernameColor || LIVECHAT_DEFAULT_USERNAME_COLOR,
-    authorProfileUsername
+    authorProfileUsername,
+    authorIsStaff,
+    authorPlanTierLevel: tier,
+    authorPlanBadge
   }
 }

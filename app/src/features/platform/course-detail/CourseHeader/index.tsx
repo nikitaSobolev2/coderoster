@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faClock, faGraduationCap, faStar, faUsers } from '@fortawesome/free-solid-svg-icons'
 import CoursePreview from '~/shared/components/ui/CoursePreview'
 import type { CourseDetail } from '~/server/repositories/types'
+import { formatPremiumCourseAccessLabel } from '~/shared/lib/premiumLabels'
 import styles from './styles.module.scss'
 
 const DIFFICULTY_LABELS: Record<CourseDetail['difficulty'], string> = {
@@ -61,6 +62,16 @@ export default function CourseHeader({ course }: Props) {
             {DIFFICULTY_LABELS[course.difficulty]}
           </Badge>
         </Link>
+        {course.tierRequired > 0 ? (
+          <Badge variant="light" color="grape" radius="sm">
+            {formatPremiumCourseAccessLabel(course.tierRequired)}
+          </Badge>
+        ) : null}
+        {course.hasPremiumTasks === true ? (
+          <Badge variant="light" color="pink" radius="sm">
+            Премиум-задачи
+          </Badge>
+        ) : null}
         {course.tags.map(tag => (
           <Link
             key={tag}

@@ -118,6 +118,15 @@
   color: var(--color-positive);
 }
 
+.lesson_locked {
+  opacity: 0.72;
+  border: 1px dashed color-mix(in srgb, var(--platform-glass-border) 80%, transparent);
+
+  .lesson__icon {
+    color: color-mix(in srgb, var(--color-text-secondary) 90%, var(--platform-color-accent));
+  }
+}
+
 .lesson__icon {
   font-size: 0.75em;
 }

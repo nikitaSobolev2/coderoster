@@ -1,8 +1,10 @@
 import {
+  backfillUserPlanIds,
   promoteBootstrapAdmin,
   seedAchievements,
   seedAppSettings,
-  seedContentPages
+  seedContentPages,
+  seedPlans
 } from './bootstrap'
 import { seedCatalogCategories } from './catalog/categories'
 import { seedAllCourses } from './catalog/seedCourses'
@@ -18,6 +20,8 @@ import { seedBulkUsers } from './users/bulkUsers'
 
 export async function runSeed(): Promise<void> {
   console.log('[seed] start')
+  const freePlan = await seedPlans()
+
   const author = await upsertAuthor()
   const secondary = await upsertSecondaryAuthor()
   const algo = await upsertAlgoAuthor()
@@ -36,6 +40,7 @@ export async function runSeed(): Promise<void> {
 
   await seedContentPages()
   await seedAppSettings()
+  await backfillUserPlanIds(freePlan.id)
   await promoteBootstrapAdmin()
 
   console.log('[seed] done')

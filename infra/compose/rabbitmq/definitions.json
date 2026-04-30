@@ -73,6 +73,24 @@
       "durable": true,
       "auto_delete": false,
       "arguments": {}
+    },
+    {
+      "name": "ai.code_improve.requested",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-message-ttl": 600000,
+        "x-dead-letter-exchange": "coderoster.dlx",
+        "x-dead-letter-routing-key": "ai.code_improve.requested.dead"
+      }
+    },
+    {
+      "name": "ai.code_improve.requested.dlq",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
     }
   ],
   "bindings": [
@@ -106,6 +124,22 @@
       "destination": "execution.completed.dlq",
       "destination_type": "queue",
       "routing_key": "execution.completed.dead",
+      "arguments": {}
+    },
+    {
+      "source": "coderoster.events",
+      "vhost": "/",
+      "destination": "ai.code_improve.requested",
+      "destination_type": "queue",
+      "routing_key": "ai.code_improve.requested",
+      "arguments": {}
+    },
+    {
+      "source": "coderoster.dlx",
+      "vhost": "/",
+      "destination": "ai.code_improve.requested.dlq",
+      "destination_type": "queue",
+      "routing_key": "ai.code_improve.requested.dead",
       "arguments": {}
     }
   ]

@@ -46,10 +46,12 @@ model User {
   livechatUsernameColor   String?
   excludedFromLeaderboard Boolean   @default(false)
   commentsThreadId        String?   @unique
+  planId                  String?
   joinedAt                DateTime  @default(now())
   updatedAt               DateTime  @updatedAt
 
-  commentsThread     Thread?                  @relation("ProfileThread", fields: [commentsThreadId], references: [id])
+  plan               Plan?                  @relation(fields: [planId], references: [id], onDelete: Restrict)
+  commentsThread     Thread?                @relation("ProfileThread", fields: [commentsThreadId], references: [id])
   enrollments        Enrollment[]
   taskAttempts       CourseTaskAttempt[]
   authoredCourses    Course[]                 @relation("CourseAuthor")
@@ -64,9 +66,35 @@ model User {
   snippets           SandboxSnippet[]
   auditLogs          AuditLog[]               @relation("AuditActor")
   livechatMessages   LivechatMessage[]
+  aiCodeImproveJobs  AiCodeImproveJob[]
 
   @@index([username])
   @@index([totalXp])
+  @@index([planId])
+}
+
+/// Subscription / tier plan. `tierLevel` 0 = free; higher = more access. Exactly one row should have `isDefaultFree`.
+model Plan {
+  id                 String   @id @default(cuid())
+  slug               String   @unique
+  name               String
+  shortDescription   String   @default("")
+  /// Longer marketing copy (sanitized markdown) for `/plans` cards.
+  marketingMarkdown  String   @default("")
+  /// Ordered bullets `{ "iconKey", "text" }[]` for `/plans` feature lists.
+  marketingFeatures  Json     @default("[]")
+  /// At most one plan should be true; enforced in `AdminPlansRepository`.
+  isBestseller       Boolean  @default(false)
+  tierLevel          Int      @unique
+  xpBonusPercent     Int      @default(0)
+  sortOrder          Int      @default(0)
+  isDefaultFree      Boolean  @default(false)
+  /// When set, caps concurrent ACTIVE enrollments. `null` = no cap (premium).
+  maxActiveCourses   Int?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  users User[]
 }
 
 // ---------- Catalog ----------
@@ -116,13 +144,16 @@ model Course {
   authorId      String
   categoryId    String?
   publishedAt   DateTime?
+  /// Minimum `Plan.tierLevel` required to enroll and access non–premium tasks.
+  tierRequired  Int          @default(0)
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 
-  author      User            @relation("CourseAuthor", fields: [authorId], references: [id])
-  category    CourseCategory? @relation(fields: [categoryId], references: [id])
-  modules     CourseModule[]
-  enrollments Enrollment[]
+  author             User             @relation("CourseAuthor", fields: [authorId], references: [id])
+  category           CourseCategory?  @relation(fields: [categoryId], references: [id])
+  modules            CourseModule[]
+  enrollments        Enrollment[]
+  aiCodeImproveJobs  AiCodeImproveJob[]
 
   @@index([status, language, difficulty])
   @@index([categoryId])
@@ -164,12 +195,16 @@ model CourseTask {
   kind              TaskKind @default(TASK)
   estimatedMinutes  Int      @default(15)
   allowedLanguages  String[] @default([])
+  isPremium         Boolean  @default(false)
+  /// When `isPremium`, user needs `Plan.tierLevel >= minPlanTier` (and course tier).
+  minPlanTier       Int      @default(1)
 
-  module          CourseModule?    @relation(fields: [moduleId], references: [id], onDelete: Cascade)
-  dailyChallenge  DailyChallenge?  @relation(fields: [dailyChallengeId], references: [id], onDelete: Cascade)
-  weeklyChallenge WeeklyChallenge? @relation(fields: [weeklyChallengeId], references: [id], onDelete: Cascade)
-  attempts        CourseTaskAttempt[]
-  autotests       CourseTaskAutotest[]
+  module            CourseModule?      @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  dailyChallenge    DailyChallenge?    @relation(fields: [dailyChallengeId], references: [id], onDelete: Cascade)
+  weeklyChallenge   WeeklyChallenge?   @relation(fields: [weeklyChallengeId], references: [id], onDelete: Cascade)
+  attempts          CourseTaskAttempt[]
+  autotests         CourseTaskAutotest[]
+  aiCodeImproveJobs AiCodeImproveJob[]
 
   @@unique([moduleId, order])
   @@unique([dailyChallengeId, order])
@@ -403,6 +438,41 @@ model IdempotencyKey {
   expiresAt DateTime
 
   @@index([expiresAt])
+}
+
+enum AiCodeImproveJobStatus {
+  QUEUED
+  STREAMING
+  DONE
+  FAILED
+}
+
+/// Async AI code review/improvement job. Chunks may be buffered in Redis until terminal state.
+model AiCodeImproveJob {
+  id                     String                 @id @default(cuid())
+  userId                 String
+  taskId                 String
+  courseId               String
+  /// Programming language of the solution being improved (`python`, `php`, …).
+  language               String                 @default("python")
+  idempotencyFingerprint String
+  status                 AiCodeImproveJobStatus @default(QUEUED)
+  errorCode              String?
+  improvedCode           String                 @default("")
+  explanationMarkdown    String                 @default("")
+  openaiModelUsed        String?
+  createdAt              DateTime               @default(now())
+  updatedAt              DateTime               @updatedAt
+  finishedAt             DateTime?
+
+  user   User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  task   CourseTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  course Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, idempotencyFingerprint])
+  @@index([userId, createdAt])
+  @@index([taskId])
+  @@index([userId, taskId, language, status])
 }
 
 enum ExecutionStatus {

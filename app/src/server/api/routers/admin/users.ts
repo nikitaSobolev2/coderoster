@@ -3,7 +3,14 @@ import { TRPCError } from '@trpc/server'
 import { adminProcedure } from '~/server/api/procedures'
 import { createTRPCRouter } from '~/server/api/trpc'
 import { db } from '~/server/db'
-import { invalidateProfileCachesForUserId } from '~/server/cache/invalidateProfileCaches'
+import {
+  invalidatePlanRelatedCaches,
+  invalidateProfileCachesForUserId
+} from '~/server/cache/invalidateProfileCaches'
+import {
+  assignDefaultFreePlanWithTx,
+  assignPlanToUserWithTx
+} from '~/server/services/planSelection'
 
 const userIdInput = z.object({ id: z.string().min(1) })
 
@@ -34,7 +41,8 @@ const updateInput = z.object({
       avatarUrl: z.string().url().nullable().optional(),
       totalXp: z.number().int().min(0).max(10_000_000).optional(),
       streakDays: z.number().int().min(0).max(10_000).optional(),
-      excludedFromLeaderboard: z.boolean().optional()
+      excludedFromLeaderboard: z.boolean().optional(),
+      planId: z.string().min(1).nullable().optional()
     })
     .strict()
 })
@@ -68,9 +76,34 @@ export const adminUsersRouter = createTRPCRouter({
         message: 'Нельзя снять с себя роль администратора через эту форму.'
       })
     }
-    const next = await ctx.repositories.admin.users.update(input.id, input.patch)
-    await invalidateProfileCachesForUserId(input.id)
-    return next
+    const { planId, ...rest } = input.patch
+    const hasRest = Object.keys(rest).length > 0
+    const hasPlan = planId !== undefined
+    if (!hasRest && !hasPlan) {
+      throw new TRPCError({ code: 'BAD_REQUEST', message: 'Пустой патч.' })
+    }
+
+    await db.$transaction(async tx => {
+      if (hasRest) {
+        await ctx.repositories.admin.users.applyPatchInTx(tx, input.id, rest)
+      }
+      if (hasPlan) {
+        if (planId === null) {
+          await assignDefaultFreePlanWithTx(tx, input.id)
+        } else {
+          await assignPlanToUserWithTx(tx, {
+            userId: input.id,
+            planId,
+            bypassSelfServeRestriction: true
+          })
+        }
+      }
+    })
+
+    if (hasPlan) await invalidatePlanRelatedCaches(input.id)
+    else if (hasRest) await invalidateProfileCachesForUserId(input.id)
+
+    return ctx.repositories.admin.users.get(input.id)
   }),
 
   ban: adminProcedure.input(banInput).mutation(async ({ ctx, input }) => {

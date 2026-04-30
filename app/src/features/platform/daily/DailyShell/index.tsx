@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Badge, Button, SegmentedControl, Tabs } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -11,6 +11,7 @@ import EmptyState from '~/shared/components/ui/EmptyState'
 import Markdown from '~/shared/components/ui/Markdown'
 import { mapTerminalExecutionRecordToView } from '~/shared/lib/executionTerminalView'
 import { api } from '~/trpc/react'
+import { useExecutionPollGuards } from '~/features/platform/hooks/useExecutionPollGuards'
 import type { ExecutionRecord, Language, RunResult } from '~/server/repositories/types'
 import styles from './styles.module.scss'
 
@@ -129,6 +130,11 @@ function DailyTaskPanel({ task, attempt, taskIndex, isAuthenticated }: DailyTask
   const [executionId, setExecutionId] = useState<string | null>(null)
   const utils = api.useUtils()
 
+  const abortExecutionPoll = useCallback((message: string) => {
+    setExecutionError(message)
+    setExecutionState('done')
+  }, [])
+
   const submitMutation = api.daily.submit.useMutation({
     onMutate: () => {
       setExecutionState('running')
@@ -151,9 +157,19 @@ function DailyTaskPanel({ task, attempt, taskIndex, isAuthenticated }: DailyTask
         const record = query.state.data
         return record && isTerminal(record.status) ? false : 750
       },
-      refetchOnWindowFocus: false
+      refetchOnWindowFocus: false,
+      retry: 1,
+      retryDelay: 400
     }
   )
+
+  useExecutionPollGuards({
+    phase: executionState,
+    executionId,
+    pollFailed: pollQuery.isError,
+    pollErrorMessage: pollQuery.error?.message,
+    onAbort: abortExecutionPoll
+  })
 
   useEffect(() => {
     const record = pollQuery.data

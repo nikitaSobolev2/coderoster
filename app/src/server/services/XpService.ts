@@ -21,9 +21,9 @@ const XP_REWARDS: Record<XpSource, number> = {
 }
 
 /**
- * Single source of truth for adjusting `User.totalXp`. Concentrating rewards
- * here keeps reward values consistent and lets us tweak the economy later in
- * one place.
+ * Single source of truth for adjusting `User.totalXp`. Base amounts in
+ * `XP_REWARDS`; paid plans add `Plan.xpBonusPercent` → increment is
+ * round(base * (100 + bonus) / 100).
  */
 export class XpService {
   rewardFor(source: XpSource): number {
@@ -31,13 +31,22 @@ export class XpService {
   }
 
   async award(userId: string, source: XpSource, tx: Tx = db): Promise<number> {
-    const reward = this.rewardFor(source)
-    if (reward <= 0) return 0
+    const base = this.rewardFor(source)
+    if (base <= 0) return 0
+
+    const user = await tx.user.findUnique({
+      where: { id: userId },
+      select: { plan: { select: { xpBonusPercent: true } } }
+    })
+    const bonus = user?.plan?.xpBonusPercent ?? 0
+    const increment = Math.round((base * (100 + bonus)) / 100)
+    if (increment <= 0) return 0
+
     await tx.user.update({
       where: { id: userId },
-      data: { totalXp: { increment: reward } }
+      data: { totalXp: { increment } }
     })
-    return reward
+    return increment
   }
 }
 

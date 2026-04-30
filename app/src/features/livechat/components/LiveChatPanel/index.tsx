@@ -78,6 +78,9 @@ interface LivechatStreamPayload {
     authorLabel: string
     usernameColor: string
     authorProfileUsername?: string | null
+    authorIsStaff?: boolean
+    authorPlanTierLevel?: number
+    authorPlanBadge?: string | null
   }
 }
 

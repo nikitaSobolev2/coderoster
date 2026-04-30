@@ -49,6 +49,7 @@ export default function CourseMetaForm({ course, languageOptions, categoryOption
   const [coverImage, setCoverImage] = useState(course.coverImage ?? '')
   const [categoryId, setCategoryId] = useState<string | null>(course.categoryId)
   const [tags, setTags] = useState<string[]>(course.tags)
+  const [tierRequired, setTierRequired] = useState<number>(course.tierRequired)
 
   const update = api.admin.courseEditor.updateCourse.useMutation({
     onSuccess: async () => {
@@ -75,7 +76,8 @@ export default function CourseMetaForm({ course, languageOptions, categoryOption
         xpReward: typeof xpReward === 'number' ? xpReward : Number(xpReward) || 0,
         coverImage: coverImage || null,
         categoryId,
-        tags
+        tags,
+        tierRequired
       }
     })
   }
@@ -154,6 +156,14 @@ export default function CourseMetaForm({ course, languageOptions, categoryOption
                 min={0}
               />
             </Group>
+            <NumberInput
+              label="Минимальный tier плана для записи"
+              description="0 = доступно всем с бесплатным планом"
+              value={tierRequired}
+              onChange={v => setTierRequired(typeof v === 'number' ? v : Number(v) || 0)}
+              min={0}
+              max={999}
+            />
             <ImageUploadField
               label="Обложка курса"
               value={coverImage || null}

@@ -67,6 +67,26 @@ function parseInitialFilters(params: Record<string, string | string[] | undefine
   const sort = pickFirst(params.sort)
   if (sort && SORTS.has(sort)) initial.sort = sort as CoursesQuery['sort']
 
+  const freeFlag =
+    pickFirst(params.free) ?? pickFirst(params.freeOnly) ?? pickFirst(params.tierFree)
+  if (
+    freeFlag === '1' ||
+    freeFlag === 'true' ||
+    (typeof freeFlag === 'string' && freeFlag.toLowerCase() === 'yes')
+  ) {
+    initial.freeOnly = true
+  }
+
+  const myPlanFlag =
+    pickFirst(params.myPlan) ?? pickFirst(params.matchesMyPlan) ?? pickFirst(params.forMyPlan)
+  if (
+    myPlanFlag === '1' ||
+    myPlanFlag === 'true' ||
+    (typeof myPlanFlag === 'string' && myPlanFlag.toLowerCase() === 'yes')
+  ) {
+    initial.matchesMyPlan = true
+  }
+
   return initial
 }
 

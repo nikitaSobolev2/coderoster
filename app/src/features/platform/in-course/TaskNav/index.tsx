@@ -3,22 +3,36 @@
 import Link from 'next/link'
 import { Progress } from '@mantine/core'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCircle, faCircleCheck, faPlay } from '@fortawesome/free-solid-svg-icons'
+import { faCircle, faCircleCheck, faLock, faPlay } from '@fortawesome/free-solid-svg-icons'
 import type { CourseDetail } from '~/server/repositories/types'
+import { requiredTierForTask } from '~/shared/lib/planTier'
 import styles from './styles.module.scss'
 
 export interface Props {
   course: CourseDetail
   currentLessonId: string
   completedLessonIds: string[]
+  /** Viewer effective `Plan.tierLevel` (0 = free). */
+  viewerEffectiveTier: number
 }
 
-export default function TaskNav({ course, currentLessonId, completedLessonIds }: Props) {
+export default function TaskNav({
+  course,
+  currentLessonId,
+  completedLessonIds,
+  viewerEffectiveTier
+}: Props) {
   const completed = new Set(completedLessonIds)
   const flat = course.modules.flatMap(module => module.lessons.map(lesson => ({ module, lesson })))
-  const totalLessons = flat.length
-  const completedCount = flat.filter(item => completed.has(item.lesson.id)).length
-  const progressPercent = totalLessons === 0 ? 0 : Math.round((completedCount / totalLessons) * 100)
+  const accessibleItems = flat.filter(
+    ({ lesson }) => requiredTierForTask(course.tierRequired, lesson) <= viewerEffectiveTier
+  )
+  const totalForProgress = accessibleItems.length
+  const completedAccessible = accessibleItems.filter(({ lesson }) =>
+    completed.has(lesson.id)
+  ).length
+  const progressPercent =
+    totalForProgress === 0 ? 0 : Math.round((completedAccessible / totalForProgress) * 100)
 
   return (
     <aside className={styles.nav}>
@@ -29,7 +43,8 @@ export default function TaskNav({ course, currentLessonId, completedLessonIds }:
         <div className={styles.nav__progress}>
           <Progress value={progressPercent} radius="xl" color="indigo" size="sm" />
           <span className={styles.nav__progressMeta}>
-            {completedCount} / {totalLessons} · {progressPercent}%
+            {completedAccessible} / {totalForProgress > 0 ? totalForProgress : flat.length} ·{' '}
+            {progressPercent}%
           </span>
         </div>
       </div>
@@ -42,13 +57,23 @@ export default function TaskNav({ course, currentLessonId, completedLessonIds }:
               {module.lessons.map(lesson => {
                 const isDone = completed.has(lesson.id)
                 const isCurrent = lesson.id === currentLessonId
+                const locked =
+                  requiredTierForTask(course.tierRequired, lesson) > viewerEffectiveTier
                 const className = [
                   styles.lesson,
                   isCurrent ? styles.lesson_current : null,
-                  isDone ? styles.lesson_done : null
+                  isDone ? styles.lesson_done : null,
+                  locked ? styles.lesson_locked : null
                 ]
                   .filter(Boolean)
                   .join(' ')
+                const icon = locked
+                  ? faLock
+                  : isCurrent
+                    ? faPlay
+                    : isDone
+                      ? faCircleCheck
+                      : faCircle
                 return (
                   <li key={lesson.id}>
                     <Link
@@ -57,10 +82,7 @@ export default function TaskNav({ course, currentLessonId, completedLessonIds }:
                       aria-current={isCurrent ? 'page' : undefined}
                       prefetch={false}
                     >
-                      <FontAwesomeIcon
-                        icon={isCurrent ? faPlay : isDone ? faCircleCheck : faCircle}
-                        className={styles.lesson__icon}
-                      />
+                      <FontAwesomeIcon icon={icon} className={styles.lesson__icon} />
                       <span className={styles.lesson__title}>{lesson.title}</span>
                       <span className={styles.lesson__minutes}>{lesson.estimatedMinutes}м</span>
                     </Link>

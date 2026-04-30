@@ -1,7 +1,15 @@
 'use client'
 
 import { useMediaQuery } from '@mantine/hooks'
-import { Button, Checkbox, Drawer, ScrollArea, Stack, Text } from '@mantine/core'
+import {
+  Button,
+  Checkbox,
+  Drawer,
+  ScrollArea,
+  Stack,
+  Switch,
+  Text
+} from '@mantine/core'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCheck, faRotateLeft } from '@fortawesome/free-solid-svg-icons'
 import type { CategoryRef, CoursesQuery, Difficulty, Language } from '~/server/repositories/types'
@@ -136,6 +144,26 @@ export default function CourseFiltersDrawer({
                   ))}
                 </Stack>
               </Checkbox.Group>
+            </section>
+
+            <section className={styles.section}>
+              <Text component="h2" className={styles.sectionTitle}>
+                Премиум / доступ
+              </Text>
+              <Stack gap="md">
+                <Switch
+                  label="Только бесплатные"
+                  checked={Boolean(filters.freeOnly)}
+                  onChange={e => update({ freeOnly: e.currentTarget.checked ? true : undefined })}
+                />
+                <Switch
+                  label="Подходит для моего тарифа"
+                  checked={Boolean(filters.matchesMyPlan)}
+                  onChange={e =>
+                    update({ matchesMyPlan: e.currentTarget.checked ? true : undefined })
+                  }
+                />
+              </Stack>
             </section>
           </div>
         </ScrollArea>

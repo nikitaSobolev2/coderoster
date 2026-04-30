@@ -13,8 +13,13 @@ import type {
 } from './types'
 import { findFakeCourseBySlug, getFakeCourseSummaries } from './fixtures'
 
+/** Resolved on the server from the signed-in user; defaults to `0` for guests. */
+export interface CourseListContext {
+  viewerTier: number
+}
+
 export interface CourseRepository {
-  list(query: CoursesQuery): Promise<CoursesPage>
+  list(query: CoursesQuery, context?: CourseListContext): Promise<CoursesPage>
   getBySlug(slug: string): Promise<CourseDetail | null>
   listCategories(): Promise<CategoryRef[]>
   /** Roots + children with ≥1 published course in subtree — header mega-menu. */
@@ -22,9 +27,11 @@ export interface CourseRepository {
 }
 
 export class FakeCourseRepository implements CourseRepository {
-  async list(query: CoursesQuery): Promise<CoursesPage> {
+  async list(query: CoursesQuery, context?: CourseListContext): Promise<CoursesPage> {
     const all = getFakeCourseSummaries()
-    const filtered = all.filter(course => matchesFakeQuery(course, query))
+    const filtered = all.filter(course =>
+      matchesFakeQuery(course, query, context?.viewerTier ?? 0)
+    )
     const sorted = applySort(filtered, query.sort)
     return { items: sorted, nextCursor: null, total: sorted.length }
   }
@@ -57,8 +64,8 @@ export class FakeCourseRepository implements CourseRepository {
 }
 
 export class PrismaCourseRepository implements CourseRepository {
-  async list(query: CoursesQuery): Promise<CoursesPage> {
-    const where = await buildWhere(query)
+  async list(query: CoursesQuery, context?: CourseListContext): Promise<CoursesPage> {
+    const where = await buildWhere(query, context?.viewerTier ?? 0)
     const orderBy = buildOrderBy(query.sort)
     const limit = Math.min(60, Math.max(1, query.limit ?? 24))
 
@@ -81,8 +88,13 @@ export class PrismaCourseRepository implements CourseRepository {
     const hasMore = rows.length > limit
     const sliced = hasMore ? rows.slice(0, limit) : rows
     const nextCursor = hasMore ? (sliced[sliced.length - 1]?.id ?? null) : null
+    const ids = sliced.map(r => r.id)
+    const premiumByCourse = await loadCourseIdsWithPremiumTasks(ids)
     return {
-      items: sliced.map(toCourseSummary),
+      items: sliced.map(row => ({
+        ...toCourseSummary(row),
+        hasPremiumTasks: premiumByCourse.get(row.id) ?? false
+      })),
       nextCursor,
       total
     }
@@ -201,7 +213,10 @@ async function expandCategorySlugsForFilter(slugs: string[]): Promise<string[]> 
   return [...out]
 }
 
-async function buildWhere(query: CoursesQuery): Promise<Prisma.CourseWhereInput> {
+async function buildWhere(
+  query: CoursesQuery,
+  viewerTier: number
+): Promise<Prisma.CourseWhereInput> {
   const where: Prisma.CourseWhereInput = { status: 'PUBLISHED' }
   if (query.languages?.length) where.language = { in: query.languages }
   if (query.difficulties?.length) where.difficulty = { in: query.difficulties }
@@ -222,7 +237,30 @@ async function buildWhere(query: CoursesQuery): Promise<Prisma.CourseWhereInput>
       { tags: { hasSome: [query.q.toLowerCase()] } }
     ]
   }
+  if (query.freeOnly && query.matchesMyPlan) {
+    where.tierRequired = 0
+  } else if (query.freeOnly) {
+    where.tierRequired = 0
+  } else if (query.matchesMyPlan) {
+    where.tierRequired = { lte: viewerTier }
+  }
   return where
+}
+
+async function loadCourseIdsWithPremiumTasks(courseIds: string[]): Promise<Map<string, boolean>> {
+  const result = new Map<string, boolean>(courseIds.map(id => [id, false]))
+  if (courseIds.length === 0) return result
+  const rows = await db.courseModule.findMany({
+    where: { courseId: { in: courseIds } },
+    select: {
+      courseId: true,
+      _count: { select: { tasks: { where: { isPremium: true } } } }
+    }
+  })
+  for (const row of rows) {
+    if (row._count.tasks > 0) result.set(row.courseId, true)
+  }
+  return result
 }
 
 function buildOrderBy(sort: CoursesQuery['sort']): Prisma.CourseOrderByWithRelationInput[] {
@@ -237,7 +275,11 @@ function buildOrderBy(sort: CoursesQuery['sort']): Prisma.CourseOrderByWithRelat
   }
 }
 
-function matchesFakeQuery(course: CourseSummary, query: CoursesQuery): boolean {
+function matchesFakeQuery(
+  course: CourseSummary,
+  query: CoursesQuery,
+  viewerTier: number
+): boolean {
   if (query.languages?.length && !query.languages.includes(course.language)) return false
   if (query.difficulties?.length && !query.difficulties.includes(course.difficulty)) return false
   if (
@@ -252,6 +294,8 @@ function matchesFakeQuery(course: CourseSummary, query: CoursesQuery): boolean {
       `${course.title} ${course.description} ${course.shortSummary} ${course.tags.join(' ')}`.toLowerCase()
     if (!haystack.includes(query.q.toLowerCase())) return false
   }
+  if (query.freeOnly && course.tierRequired !== 0) return false
+  if (query.matchesMyPlan && course.tierRequired > viewerTier) return false
   return true
 }
 

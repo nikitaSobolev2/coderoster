@@ -95,5 +95,10 @@ export const NAV_CATEGORIES: NavCategoryConfig[] = [
         icon: faRankingStar
       }
     ]
+  },
+  {
+    id: 'plans',
+    label: 'Тарифы',
+    href: '/plans'
   }
 ]

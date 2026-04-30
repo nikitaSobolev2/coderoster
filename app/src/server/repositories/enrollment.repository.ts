@@ -1,5 +1,6 @@
 import 'server-only'
 import { db } from '~/server/db'
+import { planService } from '~/server/services/PlanService'
 import { toCourseSummary, toEnrollmentState } from './mappers'
 import type { CourseShowcase, EnrollmentState } from './types'
 import {
@@ -22,6 +23,18 @@ export class FakeEnrollmentRepository implements EnrollmentRepository {
   }
 
   async start(_userId: string, courseSlug: string): Promise<EnrollmentState> {
+    const course = findFakeCourseBySlug(courseSlug)
+    if (!course) throw new Error('COURSE_NOT_FOUND')
+    if (course.tierRequired > 0) throw new Error('PLAN_TIER_TOO_LOW')
+    const existing = getFakeEnrollment(courseSlug)
+    if (existing?.status === 'active') {
+      return existing
+    }
+    const activeCount = listFakeEnrollments().filter(e => e.status === 'active').length
+    const FREE_ACTIVE_CAP = 3
+    if (activeCount >= FREE_ACTIVE_CAP) {
+      throw new Error('ACTIVE_ENROLLMENT_CAP')
+    }
     const next: EnrollmentState = {
       courseSlug,
       status: 'active',
@@ -76,22 +89,25 @@ export class PrismaEnrollmentRepository implements EnrollmentRepository {
 
   async start(userId: string, courseSlug: string): Promise<EnrollmentState> {
     const course = await db.course.findUniqueOrThrow({ where: { slug: courseSlug } })
-    const firstLessonId = await this.findFirstLessonId(course.id)
-    const enrollment = await db.enrollment.upsert({
-      where: { userId_courseId: { userId, courseId: course.id } },
-      update: {
-        status: 'ACTIVE',
-        startedAt: new Date(),
-        finishedAt: null,
-        progressPercent: 0,
-        completedLessonIds: [],
-        currentLessonId: firstLessonId
-      },
-      create: {
-        userId,
-        courseId: course.id,
-        currentLessonId: firstLessonId
-      }
+    const enrollment = await db.$transaction(async tx => {
+      await planService.assertCanStartOrResumeEnrollment(userId, course.id, tx)
+      const firstLessonId = await planService.findFirstAccessibleLessonId(course.id, userId, tx)
+      return tx.enrollment.upsert({
+        where: { userId_courseId: { userId, courseId: course.id } },
+        update: {
+          status: 'ACTIVE',
+          startedAt: new Date(),
+          finishedAt: null,
+          progressPercent: 0,
+          completedLessonIds: [],
+          currentLessonId: firstLessonId
+        },
+        create: {
+          userId,
+          courseId: course.id,
+          currentLessonId: firstLessonId
+        }
+      })
     })
     return toEnrollmentState(enrollment, courseSlug)
   }
@@ -130,14 +146,5 @@ export class PrismaEnrollmentRepository implements EnrollmentRepository {
       else if (enrollment.status === 'FINISHED') finished.push(showcase)
     }
     return { active, finished }
-  }
-
-  private async findFirstLessonId(courseId: string): Promise<string | null> {
-    const firstModule = await db.courseModule.findFirst({
-      where: { courseId },
-      orderBy: { order: 'asc' },
-      include: { tasks: { orderBy: { order: 'asc' }, take: 1 } }
-    })
-    return firstModule?.tasks[0]?.id ?? null
   }
 }

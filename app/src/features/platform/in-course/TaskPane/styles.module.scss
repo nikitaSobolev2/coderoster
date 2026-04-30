@@ -33,3 +33,116 @@
   line-height: 1.6;
   font-size: var(--font-size-h4);
 }
+
+.pane__islandWrap {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.pane__island {
+  display: inline-flex;
+  align-items: stretch;
+  padding: 3px;
+  gap: 2px;
+  border-radius: 999px;
+  border: var(--border-width-hair) solid var(--platform-glass-border);
+  background: color-mix(in srgb, var(--color-bg) 92%, transparent);
+  @include bluredBg;
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--color-text) 6%, transparent);
+}
+
+.pane__islandBtn {
+  appearance: none;
+  margin: 0;
+  border: none;
+  cursor: pointer;
+  font-size: var(--font-size-h6);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  padding: 0.45rem 1rem;
+  border-radius: 999px;
+  color: var(--color-text-secondary);
+  background: transparent;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
+
+  &:hover {
+    color: var(--color-text);
+  }
+}
+
+.pane__islandBtnActive {
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--platform-color-accent-soft) 35%, var(--color-bg) 70%);
+}
+
+@property --taskPaneRainbowAngle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+.pane__islandBtnExplanation {
+  position: relative;
+  color: var(--color-text-secondary);
+}
+
+.pane__islandBtnExplanation::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  padding: 2px;
+  background: conic-gradient(
+    from var(--taskPaneRainbowAngle),
+    #ff006e,
+    #8338ec,
+    #3a86ff,
+    #06d6a0,
+    #ffbe0b,
+    #fb5607,
+    #ff006e
+  );
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  animation: taskPaneRainbowSpin 10s linear infinite;
+  pointer-events: none;
+  opacity: 0.25;
+}
+
+.pane__islandBtnExplanationActive {
+  color: var(--color-text);
+
+  &::before {
+    opacity: 0.95;
+  }
+}
+
+@keyframes taskPaneRainbowSpin {
+  to {
+    --taskPaneRainbowAngle: 360deg;
+  }
+}
+
+.pane__bodyExplanation {
+  color: var(--color-text);
+  line-height: 1.65;
+  font-size: var(--font-size-h5);
+}
+
+/** Brighter body copy than global Markdown paragraphs (still same as assignment body). */
+.pane__explanationMarkdown {
+  :global(.markdown) {
+    p,
+    ul,
+    ol,
+    blockquote {
+      color: var(--color-text);
+    }
+  }
+}

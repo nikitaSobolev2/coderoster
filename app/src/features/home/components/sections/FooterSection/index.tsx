@@ -30,7 +30,8 @@ const NAV_LINKS = [
   { href: '#bitter-truth', label: 'Горькая правда' },
   { href: '#what-to-do', label: 'Решение' },
   { href: '#how-to-start', label: 'Как начать' },
-  { href: '#features', label: 'Платформа' }
+  { href: '#features', label: 'Платформа' },
+  { href: '/plans', label: 'Тарифы' }
 ]
 
 export default function FooterSection() {

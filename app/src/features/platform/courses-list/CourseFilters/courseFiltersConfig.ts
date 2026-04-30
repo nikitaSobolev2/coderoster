@@ -31,5 +31,8 @@ export function activeCatalogFilterBadgeCount(filters: CoursesQuery): number {
   const difficulties = filters.difficulties?.length ?? 0
   const durationActive =
     filters.durationMin !== undefined || filters.durationMax !== undefined ? 1 : 0
-  return categories + languages + difficulties + durationActive
+  const tierPlan =
+    (filters.freeOnly ? 1 : 0) +
+    (filters.matchesMyPlan ? 1 : 0)
+  return categories + languages + difficulties + durationActive + tierPlan
 }

@@ -29,6 +29,14 @@ export async function invalidateProfileCachesForUserId(userId: string): Promise<
 }
 
 /**
+ * Busts viewer-specific lesson blobs (tier / `userCanAccess`) and profile slices after plan change.
+ */
+export async function invalidatePlanRelatedCaches(userId: string): Promise<void> {
+  await invalidateProfileCachesForUserId(userId)
+  await cache.delMatch(`lesson:*:u:${userId}`)
+}
+
+/**
  * Finds the profile wall owner behind `comment.threadId` and clears their caches.
  * Call while the comment row still exists (before delete).
  */

@@ -32,6 +32,7 @@ import type { CoursesQuery } from '~/server/repositories/types'
 import { activeCatalogFilterBadgeCount, SORT_OPTIONS } from './courseFiltersConfig'
 import DurationFilterPopover from './DurationFilterPopover'
 import LevelFilterPopover from './LevelFilterPopover'
+import TierPlanFilterPopover from './TierPlanFilterPopover'
 import styles from './CourseFiltersToolbar.module.scss'
 
 const SORT_ICONS = {
@@ -171,6 +172,24 @@ export default function CourseFiltersToolbar({
             filters={filters}
             onApply={difficulties => update({ difficulties })}
             onClear={() => clearKey('difficulties')}
+          />
+        </div>
+        <div className={styles.toolbar__tierSlot}>
+          <TierPlanFilterPopover
+            filters={filters}
+            onApply={patch =>
+              update({
+                freeOnly: patch.freeOnly,
+                matchesMyPlan: patch.matchesMyPlan
+              })
+            }
+            onClear={() =>
+              onChange({
+                ...filters,
+                freeOnly: undefined,
+                matchesMyPlan: undefined
+              })
+            }
           />
         </div>
       </div>

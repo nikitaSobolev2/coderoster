@@ -48,7 +48,13 @@ export class PrismaProfileRepository implements ProfileRepository {
     const user = await findUserByUsernameLoose(username)
     if (!user) return null
     const stats = await this.computeStats(user.id)
-    return toPublicProfile(user, stats, viewerUserId === user.id)
+    const plan = user.planId
+      ? await db.plan.findUnique({
+          where: { id: user.planId },
+          select: { slug: true, name: true, tierLevel: true }
+        })
+      : null
+    return toPublicProfile(user, stats, viewerUserId === user.id, plan)
   }
 
   async getActivity(username: string, year: number): Promise<ActivityCell[]> {

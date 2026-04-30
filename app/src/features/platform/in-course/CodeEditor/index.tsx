@@ -16,6 +16,8 @@ export interface Props {
   onChange: (next: string) => void
   language: Language
   readOnly?: boolean
+  /** Overrides {@link language} → Monaco grammar (e.g. `json` while streaming model output). */
+  monacoLanguageId?: string
 }
 
 const MONACO_LANGUAGE_BY_APP_LANGUAGE: Record<Language, string> = {
@@ -27,7 +29,13 @@ const MONACO_LANGUAGE_BY_APP_LANGUAGE: Record<Language, string> = {
  * Thin wrapper around `@monaco-editor/react` matching the platform palette.
  * Loaded lazily on the client because the Monaco bundle is heavy.
  */
-export default function CodeEditor({ value, onChange, language, readOnly = false }: Props) {
+export default function CodeEditor({
+  value,
+  onChange,
+  language,
+  readOnly = false,
+  monacoLanguageId
+}: Props) {
   useEffect(() => {
     ensureMonacoLoaderConfigured()
   }, [])
@@ -36,9 +44,14 @@ export default function CodeEditor({ value, onChange, language, readOnly = false
     <div className={styles.editor}>
       <MonacoEditor
         value={value}
-        language={MONACO_LANGUAGE_BY_APP_LANGUAGE[language]}
+        language={monacoLanguageId ?? MONACO_LANGUAGE_BY_APP_LANGUAGE[language]}
         theme="vs-dark"
-        onChange={next => onChange(next ?? '')}
+        onChange={next => {
+          if (readOnly) return
+          const raw = next ?? ''
+          if (raw === value) return
+          onChange(raw)
+        }}
         options={{
           readOnly,
           fontFamily: '"JetBrains Mono", "Fira Code", ui-monospace, monospace',

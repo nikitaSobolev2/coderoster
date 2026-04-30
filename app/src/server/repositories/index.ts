@@ -66,6 +66,8 @@ import { AdminChallengesRepository } from './admin/challenges.repository'
 import { AdminCommentsRepository, AdminLeaderboardRepository } from './admin/moderation.repository'
 import { AdminLanguagesRepository } from './admin/settings.repository'
 import { AdminAuditRepository } from './admin/audit.repository'
+import { AdminPlansRepository } from './admin/plans.repository'
+import { AdminAiCodeImproveRepository } from './admin/aiCodeImprove.repository'
 
 export interface AdminRepositories {
   users: AdminUsersRepository
@@ -78,6 +80,8 @@ export interface AdminRepositories {
   comments: AdminCommentsRepository
   languages: AdminLanguagesRepository
   audit: AdminAuditRepository
+  plans: AdminPlansRepository
+  aiCodeImprove: AdminAiCodeImproveRepository
 }
 
 export interface AppRepositories {
@@ -104,7 +108,9 @@ const adminRepositories: AdminRepositories = {
   leaderboard: new AdminLeaderboardRepository(),
   comments: new AdminCommentsRepository(),
   languages: new AdminLanguagesRepository(),
-  audit: new AdminAuditRepository()
+  audit: new AdminAuditRepository(),
+  plans: new AdminPlansRepository(),
+  aiCodeImprove: new AdminAiCodeImproveRepository()
 }
 
 const fakeRepositories: AppRepositories = {

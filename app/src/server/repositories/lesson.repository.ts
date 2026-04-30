@@ -1,6 +1,7 @@
 import 'server-only'
 import type { CourseTask } from '@prisma/client'
 import { db } from '~/server/db'
+import { planService } from '~/server/services/PlanService'
 import { toLessonDetail } from './mappers'
 import type { LessonDetail } from './types'
 import { getFakeLessonDetail } from './fixtures'
@@ -18,17 +19,34 @@ function taskMatchesIdentifier(task: CourseTask, identifier: string): boolean {
 }
 
 export interface LessonRepository {
-  getOne(courseSlug: string, lessonId: string): Promise<LessonDetail | null>
+  getOne(
+    courseSlug: string,
+    lessonId: string,
+    viewerUserId?: string | null
+  ): Promise<LessonDetail | null>
 }
 
 export class FakeLessonRepository implements LessonRepository {
-  async getOne(courseSlug: string, lessonId: string): Promise<LessonDetail | null> {
-    return getFakeLessonDetail(courseSlug, lessonId)
+  async getOne(
+    courseSlug: string,
+    lessonId: string,
+    _viewerUserId?: string | null
+  ): Promise<LessonDetail | null> {
+    void _viewerUserId
+    return getFakeLessonDetail(courseSlug, lessonId, 99)
   }
 }
 
 export class PrismaLessonRepository implements LessonRepository {
-  async getOne(courseSlug: string, lessonId: string): Promise<LessonDetail | null> {
+  async getOne(
+    courseSlug: string,
+    lessonId: string,
+    viewerUserId?: string | null
+  ): Promise<LessonDetail | null> {
+    const viewerTier =
+      viewerUserId !== null && viewerUserId !== undefined
+        ? await planService.getEffectiveTier(viewerUserId)
+        : null
     const course = await db.course.findUnique({
       where: { slug: courseSlug },
       include: {
@@ -58,7 +76,8 @@ export class PrismaLessonRepository implements LessonRepository {
       order: index + 1,
       previousLessonId: previous,
       nextLessonId: next,
-      testNames
+      testNames,
+      viewerTier
     })
   }
 }

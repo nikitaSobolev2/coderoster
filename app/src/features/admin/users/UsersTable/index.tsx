@@ -74,6 +74,7 @@ export default function UsersTable() {
           <Table.Tr>
             <Table.Th>Пользователь</Table.Th>
             <Table.Th>Роль</Table.Th>
+            <Table.Th>Тариф</Table.Th>
             <Table.Th>XP / Стрик</Table.Th>
             <Table.Th>Статус</Table.Th>
             <Table.Th>Создан</Table.Th>
@@ -97,6 +98,20 @@ export default function UsersTable() {
                 <Badge variant="light" color={roleColor(user.role)} radius="sm">
                   {user.role.toLowerCase()}
                 </Badge>
+              </Table.Td>
+              <Table.Td>
+                {user.plan ? (
+                  <>
+                    <Text size="sm">{user.plan.name}</Text>
+                    <Text size="xs" c="dimmed">
+                      tier {user.plan.tierLevel} · {user.plan.slug}
+                    </Text>
+                  </>
+                ) : (
+                  <Text size="sm" c="dimmed">
+                    —
+                  </Text>
+                )}
               </Table.Td>
               <Table.Td>
                 <Text size="sm">{user.totalXp.toLocaleString('ru-RU')} XP</Text>

@@ -14,9 +14,15 @@ export default async function AdminUserDetailPage({ params }: Props) {
   const user = await api.admin.users.get({ id }).catch(() => null)
   if (!user) notFound()
   await api.admin.achievements.list.prefetch()
+  const planSubtitle = user.plan
+    ? `Тариф: ${user.plan.name} (tier ${user.plan.tierLevel}, ${user.plan.slug})`
+    : 'Тариф не назначен'
   return (
     <>
-      <AdminPageHeader title={user.displayName} subtitle={`@${user.username} · ${user.email}`} />
+      <AdminPageHeader
+        title={user.displayName}
+        subtitle={`@${user.username} · ${user.email} · ${planSubtitle}`}
+      />
       <HydrateClient>
         <UserDetailTabs initialUser={user} />
       </HydrateClient>

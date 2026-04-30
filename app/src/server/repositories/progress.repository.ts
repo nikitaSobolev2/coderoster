@@ -1,5 +1,8 @@
 import 'server-only'
+import type { AttemptStatus, Prisma } from '@prisma/client'
 import { db } from '~/server/db'
+import type { Language } from '~/server/repositories/types'
+import { draftsFromAttemptData, mergeDraftSave } from '~/shared/lib/taskAttemptCurrentData'
 
 /**
  * Resolves a lesson identifier (Prisma `CourseTask.id` cuid or legacy
@@ -21,20 +24,40 @@ async function resolveTaskId(identifier: string): Promise<string | null> {
 }
 
 export interface ProgressRepository {
-  saveDraft(userId: string, lessonId: string, code: string): Promise<void>
-  getDraft(userId: string, lessonId: string): Promise<string | null>
+  saveDraft(userId: string, lessonId: string, language: Language, code: string): Promise<void>
+  getDrafts(
+    userId: string,
+    lessonId: string,
+    languages: Language[]
+  ): Promise<Partial<Record<Language, string>>>
+  getTaskAttemptStatus(userId: string, lessonId: string): Promise<AttemptStatus | null>
   markComplete(userId: string, lessonId: string): Promise<{ completed: boolean }>
 }
 
 export class FakeProgressRepository implements ProgressRepository {
-  private readonly drafts = new Map<string, string>()
+  private readonly byLesson = new Map<string, Partial<Record<Language, string>>>()
 
-  async saveDraft(userId: string, lessonId: string, code: string): Promise<void> {
-    this.drafts.set(this.draftKey(userId, lessonId), code)
+  async saveDraft(
+    userId: string,
+    lessonId: string,
+    language: Language,
+    code: string
+  ): Promise<void> {
+    const key = this.draftKey(userId, lessonId)
+    const prev = this.byLesson.get(key) ?? {}
+    this.byLesson.set(key, { ...prev, [language]: code })
   }
 
-  async getDraft(userId: string, lessonId: string): Promise<string | null> {
-    return this.drafts.get(this.draftKey(userId, lessonId)) ?? null
+  async getDrafts(
+    userId: string,
+    lessonId: string,
+    _languages: Language[]
+  ): Promise<Partial<Record<Language, string>>> {
+    return { ...(this.byLesson.get(this.draftKey(userId, lessonId)) ?? {}) }
+  }
+
+  async getTaskAttemptStatus(_userId: string, _lessonId: string): Promise<AttemptStatus | null> {
+    return null
   }
 
   async markComplete(_userId: string, _lessonId: string): Promise<{ completed: boolean }> {
@@ -47,25 +70,48 @@ export class FakeProgressRepository implements ProgressRepository {
 }
 
 export class PrismaProgressRepository implements ProgressRepository {
-  async saveDraft(userId: string, lessonId: string, code: string): Promise<void> {
+  async saveDraft(
+    userId: string,
+    lessonId: string,
+    language: Language,
+    code: string
+  ): Promise<void> {
     const taskId = await resolveTaskId(lessonId)
     if (!taskId) return
+    const existing = await db.courseTaskAttempt.findUnique({
+      where: { courseTaskId_userId: { courseTaskId: taskId, userId } },
+      select: { currentData: true }
+    })
+    const merged = mergeDraftSave(existing?.currentData, language, code) as Prisma.InputJsonValue
     await db.courseTaskAttempt.upsert({
       where: { courseTaskId_userId: { courseTaskId: taskId, userId } },
-      update: { currentData: { code } },
-      create: { courseTaskId: taskId, userId, currentData: { code } }
+      update: { currentData: merged },
+      create: { courseTaskId: taskId, userId, currentData: merged }
     })
   }
 
-  async getDraft(userId: string, lessonId: string): Promise<string | null> {
+  async getDrafts(
+    userId: string,
+    lessonId: string,
+    languages: Language[]
+  ): Promise<Partial<Record<Language, string>>> {
     const taskId = await resolveTaskId(lessonId)
-    if (!taskId) return null
+    if (!taskId) return {}
     const attempt = await db.courseTaskAttempt.findUnique({
       where: { courseTaskId_userId: { courseTaskId: taskId, userId } }
     })
-    if (!attempt) return null
-    const data = attempt.currentData as { code?: string } | null
-    return data?.code ?? null
+    if (!attempt) return {}
+    return draftsFromAttemptData(attempt.currentData, languages)
+  }
+
+  async getTaskAttemptStatus(userId: string, lessonId: string): Promise<AttemptStatus | null> {
+    const taskId = await resolveTaskId(lessonId)
+    if (!taskId) return null
+    const attempt = await db.courseTaskAttempt.findUnique({
+      where: { courseTaskId_userId: { courseTaskId: taskId, userId } },
+      select: { status: true }
+    })
+    return attempt?.status ?? null
   }
 
   async markComplete(userId: string, lessonId: string): Promise<{ completed: boolean }> {

@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { Button, Modal, Progress, Skeleton } from '@mantine/core'
+import { Button, Modal, Progress, Skeleton, Text } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { notifications } from '@mantine/notifications'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -14,6 +14,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 import { api } from '~/trpc/react'
 import type { CourseDetail } from '~/server/repositories/types'
+import { formatPremiumCourseAccessLabel } from '~/shared/lib/premiumLabels'
 import styles from './styles.module.scss'
 
 export interface Props {
@@ -32,6 +33,10 @@ export default function CourseEnrollPanel({ course, isAuthenticated }: Props) {
     { courseSlug: course.slug },
     { enabled: isAuthenticated }
   )
+  const planQuery = api.plan.getMine.useQuery(undefined, { enabled: isAuthenticated, staleTime: 60_000 })
+  const viewerTier = planQuery.data?.tierLevel ?? 0
+  const tierLocked = course.tierRequired > viewerTier
+  const premiumLabel = formatPremiumCourseAccessLabel(course.tierRequired)
   const startMutation = api.enrollment.start.useMutation({
     onSuccess: async () => {
       await utils.enrollment.getMine.invalidate({ courseSlug: course.slug })
@@ -66,7 +71,7 @@ export default function CourseEnrollPanel({ course, isAuthenticated }: Props) {
     )
   }
 
-  if (enrollmentQuery.isPending) {
+  if (enrollmentQuery.isPending || planQuery.isPending) {
     return (
       <aside className={styles.panel} aria-busy="true">
         <Skeleton height={24} width="60%" radius="sm" />
@@ -82,22 +87,63 @@ export default function CourseEnrollPanel({ course, isAuthenticated }: Props) {
     return (
       <aside className={styles.panel}>
         <h3 className={styles.panel__title}>Записаться на курс</h3>
-        <p className={styles.panel__copy}>
-          Все уроки откроются сразу. Прогресс сохраняется автоматически.
-        </p>
+        {tierLocked ? (
+          <>
+            <Text size="sm" c="dimmed" mb="md">
+              Этот курс — {premiumLabel}. Для записи нужен подходящий план (см. тарифы).
+            </Text>
+            <Button
+              component="a"
+              href="/plans"
+              fullWidth
+              variant="light"
+              color="grape"
+              leftSection={<FontAwesomeIcon icon={faPlay} />}
+            >
+              Смотреть тарифы
+            </Button>
+          </>
+        ) : (
+          <>
+            <p className={styles.panel__copy}>
+              Все уроки откроются сразу. Прогресс сохраняется автоматически.
+            </p>
+            <Button
+              fullWidth
+              leftSection={<FontAwesomeIcon icon={faPlay} />}
+              loading={startMutation.isPending}
+              onClick={async () => {
+                const result = await startMutation.mutateAsync({ courseSlug: course.slug })
+                notifications.show({ color: 'green', message: 'Записал. Удачи на курсе.' })
+                if (firstLessonId) {
+                  router.push(`/learn/${course.slug}/${result.currentLessonId ?? firstLessonId}`)
+                }
+              }}
+            >
+              Начать сейчас
+            </Button>
+          </>
+        )}
+      </aside>
+    )
+  }
+
+  if (tierLocked) {
+    return (
+      <aside className={styles.panel}>
+        <h3 className={styles.panel__title}>Нужен Премиум</h3>
+        <Text size="sm" c="dimmed" mb="md">
+          Продолжать этот курс можно с {premiumLabel}. Сейчас план не подходит — обнови подписку.
+        </Text>
         <Button
+          component="a"
+          href="/plans"
           fullWidth
+          variant="light"
+          color="grape"
           leftSection={<FontAwesomeIcon icon={faPlay} />}
-          loading={startMutation.isPending}
-          onClick={async () => {
-            const result = await startMutation.mutateAsync({ courseSlug: course.slug })
-            notifications.show({ color: 'green', message: 'Записал. Удачи на курсе.' })
-            if (firstLessonId) {
-              router.push(`/learn/${course.slug}/${result.currentLessonId ?? firstLessonId}`)
-            }
-          }}
         >
-          Начать сейчас
+          Смотреть тарифы
         </Button>
       </aside>
     )

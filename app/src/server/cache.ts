@@ -39,5 +39,19 @@ export const cache = {
       queued += list.length
     }
     if (queued > 0) await pipeline.exec()
+  },
+
+  /** Redis SCAN `match` glob (e.g. `lesson:*:u:someUserId`). */
+  async delMatch(match: string): Promise<void> {
+    const stream = redis.scanStream({ match, count: 200 })
+    const pipeline = redis.pipeline()
+    let queued = 0
+    for await (const keys of stream) {
+      const list = keys as string[]
+      if (list.length === 0) continue
+      pipeline.del(...list)
+      queued += list.length
+    }
+    if (queued > 0) await pipeline.exec()
   }
 }

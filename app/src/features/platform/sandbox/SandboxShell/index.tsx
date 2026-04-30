@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Button, SegmentedControl } from '@mantine/core'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlay, faRotateLeft } from '@fortawesome/free-solid-svg-icons'
@@ -10,6 +10,7 @@ import ExecutionPanel, { type ExecutionState } from '~/features/platform/in-cour
 import type { ExecutionRecord, Language, RunResult } from '~/server/repositories/types'
 import { mapTerminalExecutionRecordToView } from '~/shared/lib/executionTerminalView'
 import { api } from '~/trpc/react'
+import { useExecutionPollGuards } from '~/features/platform/hooks/useExecutionPollGuards'
 import { SITE_NAME } from '~/shared/constants/site'
 import styles from './styles.module.scss'
 
@@ -47,6 +48,11 @@ export default function SandboxShell({ isAuthenticated }: Props) {
   const [executionError, setExecutionError] = useState<string | null>(null)
   const [executionId, setExecutionId] = useState<string | null>(null)
 
+  const abortExecutionPoll = useCallback((message: string) => {
+    setExecutionError(message)
+    setExecutionState('done')
+  }, [])
+
   const runMutation = api.execution.run.useMutation({
     onMutate: () => {
       setExecutionState('running')
@@ -69,9 +75,19 @@ export default function SandboxShell({ isAuthenticated }: Props) {
         const record = query.state.data
         return record && isTerminal(record.status) ? false : 750
       },
-      refetchOnWindowFocus: false
+      refetchOnWindowFocus: false,
+      retry: 1,
+      retryDelay: 400
     }
   )
+
+  useExecutionPollGuards({
+    phase: executionState,
+    executionId,
+    pollFailed: pollQuery.isError,
+    pollErrorMessage: pollQuery.error?.message,
+    onAbort: abortExecutionPoll
+  })
 
   useEffect(() => {
     const record = pollQuery.data

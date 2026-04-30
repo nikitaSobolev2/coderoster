@@ -4,12 +4,14 @@ import {
   faClipboardList,
   faCommentSlash,
   faComments,
+  faCrown,
   faFileLines,
   faGaugeHigh,
   faGraduationCap,
   faLanguage,
   faLayerGroup,
   faMedal,
+  faRobot,
   faTrophy,
   faUsers
 } from '@fortawesome/free-solid-svg-icons'
@@ -69,6 +71,12 @@ export const ADMIN_NAV: AdminNavGroup[] = [
     id: 'system',
     label: 'Система',
     items: [
+      { label: 'Тарифы', href: '/admin/plans', icon: faCrown },
+      {
+        label: 'ИИ: разбор кода',
+        href: '/admin/ai-code-improve',
+        icon: faRobot
+      },
       { label: 'Языки', href: '/admin/languages', icon: faLanguage },
       { label: 'Чат', href: '/admin/livechat', icon: faComments },
       { label: 'Аудит', href: '/admin/audit', icon: faClipboardList }

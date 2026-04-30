@@ -25,6 +25,8 @@ export interface OwnedTaskCreateInput {
   allowedLanguages?: string[]
   initialData?: Record<string, unknown>
   result?: Record<string, unknown> | null
+  isPremium?: boolean
+  minPlanTier?: number
 }
 
 export interface OwnedTaskUpdateInput {
@@ -36,6 +38,8 @@ export interface OwnedTaskUpdateInput {
   allowedLanguages?: string[]
   initialData?: Record<string, unknown>
   result?: Record<string, unknown> | null
+  isPremium?: boolean
+  minPlanTier?: number
 }
 
 export interface OwnedAutotestUpsertInput {
@@ -68,7 +72,9 @@ export async function createOwnedTask(
         input.result === null || input.result === undefined
           ? Prisma.JsonNull
           : (input.result as Prisma.InputJsonValue),
-      order: (last?.order ?? 0) + 1
+      order: (last?.order ?? 0) + 1,
+      isPremium: input.isPremium ?? false,
+      minPlanTier: input.minPlanTier ?? 0
     }
   })
   return created.id
@@ -86,6 +92,8 @@ export async function updateOwnedTask(taskId: string, input: OwnedTaskUpdateInpu
   if (input.result !== undefined) {
     data.result = input.result === null ? Prisma.JsonNull : (input.result as Prisma.InputJsonValue)
   }
+  if (input.isPremium !== undefined) data.isPremium = input.isPremium
+  if (input.minPlanTier !== undefined) data.minPlanTier = input.minPlanTier
   await db.courseTask.update({ where: { id: taskId }, data })
 }
 

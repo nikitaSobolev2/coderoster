@@ -13,6 +13,13 @@ export interface AdminUserListQuery {
   limit?: number
 }
 
+export interface AdminUserPlanRef {
+  id: string
+  slug: string
+  name: string
+  tierLevel: number
+}
+
 export interface AdminUserSummary {
   id: string
   username: string
@@ -25,6 +32,7 @@ export interface AdminUserSummary {
   banReason: string | null
   excludedFromLeaderboard: boolean
   joinedAt: Date
+  plan: AdminUserPlanRef | null
 }
 
 export interface AdminUserListResult {
@@ -86,6 +94,22 @@ export interface AdminUserCommentEntry {
 const PERMANENT_BAN_DATE = new Date('9999-12-31T23:59:59Z')
 const DEFAULT_LIMIT = 30
 
+export function buildAdminUserPrismaUpdate(input: AdminUserUpdateInput): Prisma.UserUpdateInput {
+  const data: Prisma.UserUpdateInput = {}
+  if (input.displayName !== undefined) data.displayName = sanitizePlainText(input.displayName)
+  if (input.username !== undefined) data.username = input.username
+  if (input.email !== undefined) data.email = input.email.toLowerCase()
+  if (input.role !== undefined) data.role = input.role
+  if (input.bio !== undefined) data.bio = sanitizePlainText(input.bio)
+  if (input.avatarUrl !== undefined) data.avatarUrl = input.avatarUrl
+  if (input.totalXp !== undefined) data.totalXp = input.totalXp
+  if (input.streakDays !== undefined) data.streakDays = input.streakDays
+  if (input.excludedFromLeaderboard !== undefined) {
+    data.excludedFromLeaderboard = input.excludedFromLeaderboard
+  }
+  return data
+}
+
 export class AdminUsersRepository {
   async list(query: AdminUserListQuery): Promise<AdminUserListResult> {
     const where = buildListWhere(query)
@@ -96,7 +120,10 @@ export class AdminUsersRepository {
         take: limit + 1,
         cursor: query.cursor ? { id: query.cursor } : undefined,
         skip: query.cursor ? 1 : 0,
-        orderBy: { joinedAt: 'desc' }
+        orderBy: { joinedAt: 'desc' },
+        include: {
+          plan: { select: { id: true, slug: true, name: true, tierLevel: true } }
+        }
       }),
       db.user.count({ where })
     ])
@@ -113,6 +140,7 @@ export class AdminUsersRepository {
     const user = await db.user.findUniqueOrThrow({
       where: { id },
       include: {
+        plan: { select: { id: true, slug: true, name: true, tierLevel: true } },
         _count: {
           select: {
             enrollments: true,
@@ -134,6 +162,7 @@ export class AdminUsersRepository {
       deletionRequestedAt: user.deletionRequestedAt,
       chatBannedUntil: user.chatBannedUntil,
       chatBanReason: user.chatBanReason,
+      plan: user.plan,
       counts: {
         enrollments: user._count.enrollments,
         executions: user._count.executions,
@@ -143,19 +172,18 @@ export class AdminUsersRepository {
     }
   }
 
+  async applyPatchInTx(
+    tx: Prisma.TransactionClient,
+    id: string,
+    input: AdminUserUpdateInput
+  ): Promise<void> {
+    const data = buildAdminUserPrismaUpdate(input)
+    if (Object.keys(data).length === 0) return
+    await tx.user.update({ where: { id }, data })
+  }
+
   async update(id: string, input: AdminUserUpdateInput): Promise<AdminUserDetail> {
-    const data: Prisma.UserUpdateInput = {}
-    if (input.displayName !== undefined) data.displayName = sanitizePlainText(input.displayName)
-    if (input.username !== undefined) data.username = input.username
-    if (input.email !== undefined) data.email = input.email.toLowerCase()
-    if (input.role !== undefined) data.role = input.role
-    if (input.bio !== undefined) data.bio = sanitizePlainText(input.bio)
-    if (input.avatarUrl !== undefined) data.avatarUrl = input.avatarUrl
-    if (input.totalXp !== undefined) data.totalXp = input.totalXp
-    if (input.streakDays !== undefined) data.streakDays = input.streakDays
-    if (input.excludedFromLeaderboard !== undefined) {
-      data.excludedFromLeaderboard = input.excludedFromLeaderboard
-    }
+    const data = buildAdminUserPrismaUpdate(input)
     await db.user.update({ where: { id }, data })
     return this.get(id)
   }
@@ -352,6 +380,7 @@ function toSummary(user: {
   banReason: string | null
   excludedFromLeaderboard: boolean
   joinedAt: Date
+  plan: { id: string; slug: string; name: string; tierLevel: number } | null
 }): AdminUserSummary {
   return {
     id: user.id,
@@ -364,7 +393,8 @@ function toSummary(user: {
     bannedUntil: user.bannedUntil,
     banReason: user.banReason,
     excludedFromLeaderboard: user.excludedFromLeaderboard,
-    joinedAt: user.joinedAt
+    joinedAt: user.joinedAt,
+    plan: user.plan
   }
 }
 

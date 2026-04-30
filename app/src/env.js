@@ -77,7 +77,19 @@ export const env = createEnv({
     S3_FORCE_PATH_STYLE: z
       .string()
       .optional()
-      .transform(value => value !== 'false')
+      .transform(value => value !== 'false'),
+    /**
+     * When not `false`, authenticated users may switch to paid tiers from `/plans`
+     * without billing (dev / internal). Set `false` in production if upgrades are admin-only.
+     */
+    SELF_SERVE_PLANS: z
+      .string()
+      .optional()
+      .transform(value => value !== 'false'),
+    AI_CODE_IMPROVE_API_KEY: z.string().optional(),
+    AI_CODE_IMPROVE_BASE_URL: z.string().url().optional(),
+    AI_CODE_IMPROVE_CB_THRESHOLD: z.coerce.number().int().positive().default(5),
+    AI_CODE_IMPROVE_CB_OPEN_SEC: z.coerce.number().int().positive().default(120)
   },
 
   /**
@@ -94,7 +106,11 @@ export const env = createEnv({
     NEXT_PUBLIC_USE_FAKE_DATA: z
       .string()
       .optional()
-      .transform(value => value === 'true' || value === '1')
+      .transform(value => value === 'true' || value === '1'),
+    NEXT_PUBLIC_SELF_SERVE_PLANS: z
+      .string()
+      .optional()
+      .transform(value => value !== 'false')
   },
 
   /**
@@ -134,8 +150,14 @@ export const env = createEnv({
     S3_ACCESS_KEY: process.env.S3_ACCESS_KEY,
     S3_SECRET_KEY: process.env.S3_SECRET_KEY,
     S3_FORCE_PATH_STYLE: process.env.S3_FORCE_PATH_STYLE,
+    SELF_SERVE_PLANS: process.env.SELF_SERVE_PLANS,
+    AI_CODE_IMPROVE_API_KEY: process.env.AI_CODE_IMPROVE_API_KEY,
+    AI_CODE_IMPROVE_BASE_URL: process.env.AI_CODE_IMPROVE_BASE_URL,
+    AI_CODE_IMPROVE_CB_THRESHOLD: process.env.AI_CODE_IMPROVE_CB_THRESHOLD,
+    AI_CODE_IMPROVE_CB_OPEN_SEC: process.env.AI_CODE_IMPROVE_CB_OPEN_SEC,
     NEXT_PUBLIC_WORKOS_REDIRECT_URI: process.env.NEXT_PUBLIC_WORKOS_REDIRECT_URI,
-    NEXT_PUBLIC_USE_FAKE_DATA: process.env.NEXT_PUBLIC_USE_FAKE_DATA
+    NEXT_PUBLIC_USE_FAKE_DATA: process.env.NEXT_PUBLIC_USE_FAKE_DATA,
+    NEXT_PUBLIC_SELF_SERVE_PLANS: process.env.NEXT_PUBLIC_SELF_SERVE_PLANS
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

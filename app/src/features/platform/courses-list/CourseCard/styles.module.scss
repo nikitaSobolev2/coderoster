@@ -193,6 +193,14 @@
   }
 }
 
+.cardCompact__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+  min-height: 0;
+}
+
 .cardCompact__cta {
   flex-shrink: 0;
 }

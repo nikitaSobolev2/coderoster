@@ -37,6 +37,8 @@ export interface AdminChallengeTask {
   allowedLanguages: string[]
   initialData: Record<string, unknown>
   result: Record<string, unknown> | null
+  isPremium: boolean
+  minPlanTier: number
   autotests: AdminChallengeAutotest[]
 }
 
@@ -223,6 +225,8 @@ function toChallengeTask(task: {
   allowedLanguages: string[]
   initialData: unknown
   result: unknown
+  isPremium: boolean
+  minPlanTier: number
   autotests: {
     id: string
     order: number
@@ -243,6 +247,8 @@ function toChallengeTask(task: {
     allowedLanguages: task.allowedLanguages,
     initialData: (task.initialData ?? {}) as Record<string, unknown>,
     result: (task.result ?? null) as Record<string, unknown> | null,
+    isPremium: task.isPremium,
+    minPlanTier: task.minPlanTier,
     autotests: task.autotests.map(a => ({
       id: a.id,
       order: a.order,

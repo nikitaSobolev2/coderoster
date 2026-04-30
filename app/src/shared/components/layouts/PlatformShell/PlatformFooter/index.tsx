@@ -40,7 +40,7 @@ const SOCIALS: SocialLink[] = [
  * hardcoded URL graveyard hiding behind the wordmark anymore.
  */
 export default async function PlatformFooter() {
-  const columns = await loadFooterColumns()
+  const columns = appendPlansLinkLast(await loadFooterColumns())
   return (
     <footer className={styles.footer}>
       <span className={styles.footer__wordmark} aria-hidden="true">
@@ -130,4 +130,16 @@ function groupRowsByKey(rows: { slug: string; title: string; groupKey: string }[
     }
   }
   return Array.from(grouped.values())
+}
+
+/** Single top-level «Тарифы» link after all CMS footer columns (before newsletter). */
+function appendPlansLinkLast(columns: FooterColumn[]): FooterColumn[] {
+  const plans = { label: 'Тарифы', href: '/plans' }
+  if (columns.some(col => col.links.some(l => l.href === '/plans'))) return columns
+  if (columns.length === 0) {
+    return [{ id: 'tariffs', title: 'Платформа', links: [plans] }]
+  }
+  const i = columns.length - 1
+  const last = columns[i]!
+  return [...columns.slice(0, i), { ...last, links: [...last.links, plans] }]
 }

@@ -15,6 +15,8 @@ export const idempotentProcedure = protectedProcedure.use(withIdempotency())
  */
 export const heavyProcedure = idempotentProcedure.use(withRateLimit('exec', 10, 60))
 
+export const aiImproveProcedure = idempotentProcedure.use(withRateLimit('ai_improve', 8, 3_600))
+
 /**
  * Comment mutations: idempotent + 5 calls / minute / user. Spam guard.
  */

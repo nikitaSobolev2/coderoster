@@ -5,6 +5,7 @@ import { Drawer } from '@mantine/core'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faList, faXmark } from '@fortawesome/free-solid-svg-icons'
 import type { CourseDetail } from '~/server/repositories/types'
+import { requiredTierForTask } from '~/shared/lib/planTier'
 import TaskNav from '..'
 import styles from './styles.module.scss'
 
@@ -12,6 +13,7 @@ export interface Props {
   course: CourseDetail
   currentLessonId: string
   completedLessonIds: string[]
+  viewerEffectiveTier: number
 }
 
 /**
@@ -22,15 +24,19 @@ export interface Props {
 export default function MobileTaskNavTrigger({
   course,
   currentLessonId,
-  completedLessonIds
+  completedLessonIds,
+  viewerEffectiveTier
 }: Props) {
   const [opened, setOpened] = useState(false)
-  const total = course.modules.reduce((sum, m) => sum + m.lessons.length, 0)
   const done = new Set(completedLessonIds)
-  const completedCount = course.modules.reduce(
-    (sum, m) => sum + m.lessons.filter(l => done.has(l.id)).length,
-    0
+  const flat = course.modules.flatMap(m => m.lessons.map(lesson => lesson))
+  const accessible = flat.filter(
+    lesson => requiredTierForTask(course.tierRequired, lesson) <= viewerEffectiveTier
   )
+  const total = accessible.length > 0 ? accessible.length : flat.length
+  const completedCount = accessible.length
+    ? accessible.filter(lesson => done.has(lesson.id)).length
+    : flat.filter(lesson => done.has(lesson.id)).length
 
   return (
     <>
@@ -71,6 +77,7 @@ export default function MobileTaskNavTrigger({
             course={course}
             currentLessonId={currentLessonId}
             completedLessonIds={completedLessonIds}
+            viewerEffectiveTier={viewerEffectiveTier}
           />
         </div>
       </Drawer>

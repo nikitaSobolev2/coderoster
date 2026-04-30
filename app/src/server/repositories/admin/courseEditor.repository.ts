@@ -37,6 +37,8 @@ export interface AdminCourseTreeTask {
   allowedLanguages: string[]
   initialData: Record<string, unknown>
   result: Record<string, unknown> | null
+  isPremium: boolean
+  minPlanTier: number
   autotests: AdminCourseTreeAutotest[]
 }
 
@@ -65,6 +67,7 @@ export interface AdminCourseTree {
   categoryId: string | null
   authorId: string
   publishedAt: Date | null
+  tierRequired: number
   modules: AdminCourseTreeModule[]
 }
 
@@ -81,6 +84,7 @@ export interface AdminCourseUpdateInput {
   coverImage?: string | null
   categoryId?: string | null
   tags?: string[]
+  tierRequired?: number
 }
 
 export interface AdminModuleUpsertInput {
@@ -125,6 +129,7 @@ export class AdminCourseEditorRepository {
       categoryId: course.categoryId,
       authorId: course.authorId,
       publishedAt: course.publishedAt,
+      tierRequired: course.tierRequired,
       modules: course.modules.map(module => ({
         id: module.id,
         order: module.order,
@@ -142,6 +147,8 @@ export class AdminCourseEditorRepository {
           allowedLanguages: task.allowedLanguages,
           initialData: (task.initialData ?? {}) as Record<string, unknown>,
           result: (task.result ?? null) as Record<string, unknown> | null,
+          isPremium: task.isPremium,
+          minPlanTier: task.minPlanTier,
           autotests: task.autotests.map(autotest => ({
             id: autotest.id,
             order: autotest.order,
@@ -173,6 +180,7 @@ export class AdminCourseEditorRepository {
         : { disconnect: true }
     }
     if (input.tags !== undefined) data.tags = input.tags
+    if (input.tierRequired !== undefined) data.tierRequired = input.tierRequired
     await db.course.update({ where: { id: courseId }, data })
   }
 

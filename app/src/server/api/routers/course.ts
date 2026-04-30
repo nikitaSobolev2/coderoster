@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { createTRPCRouter, publicProcedure } from '~/server/api/trpc'
+import { planService } from '~/server/services/PlanService'
 
 const languageSchema = z.enum(['python', 'php'])
 const difficultySchema = z.enum(['beginner', 'intermediate', 'advanced'])
@@ -23,11 +24,16 @@ export const courseRouter = createTRPCRouter({
           durationMax: z.number().int().min(0).max(2_000).optional(),
           sort: sortSchema.optional(),
           cursor: z.string().optional(),
-          limit: z.number().int().min(1).max(60).optional()
+          limit: z.number().int().min(1).max(60).optional(),
+          freeOnly: z.boolean().optional(),
+          matchesMyPlan: z.boolean().optional()
         })
         .default({})
     )
-    .query(({ ctx, input }) => ctx.repositories.course.list(input)),
+    .query(async ({ ctx, input }) => {
+      const viewerTier = ctx.user ? await planService.getEffectiveTier(ctx.user.id) : 0
+      return ctx.repositories.course.list(input, { viewerTier })
+    }),
 
   getBySlug: publicProcedure
     .input(z.object({ slug: z.string().min(1).max(120) }))

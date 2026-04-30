@@ -42,6 +42,10 @@ export class UserSyncService {
     const username = await this.resolveUniqueUsername(workosUser.email)
     const displayName = sanitizePlainText(buildDisplayName(workosUser))
     const role = isBootstrapAdminEmail(workosUser.email) ? Role.ADMIN : Role.LEARNER
+    const defaultPlan = await db.plan.findFirst({
+      where: { isDefaultFree: true },
+      select: { id: true }
+    })
     return db.user.create({
       data: {
         workosUserId: workosUser.id,
@@ -51,7 +55,8 @@ export class UserSyncService {
         firstName: workosUser.firstName,
         lastName: workosUser.lastName,
         avatarUrl: workosUser.profilePictureUrl,
-        role
+        role,
+        planId: defaultPlan?.id ?? undefined
       }
     })
   }

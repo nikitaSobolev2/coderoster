@@ -43,6 +43,10 @@ export interface AdminCourseRow {
   moduleCount: number
   taskCount: number
   enrollmentCount: number
+  /** Minimum plan tier to enroll (`Course.tierRequired`). */
+  tierRequired: number
+  /** Course tasks with `isPremium` across all modules. */
+  premiumTaskCount: number
 }
 
 export interface AdminCourseListQuery {
@@ -153,6 +157,28 @@ export class AdminCatalogRepository {
     ])
     const hasMore = rows.length > limit
     const sliced = hasMore ? rows.slice(0, limit) : rows
+    const courseIds = sliced.map(row => row.id)
+    const modulePremiumRows =
+      courseIds.length > 0
+        ? await db.courseModule.findMany({
+            where: { courseId: { in: courseIds } },
+            select: {
+              courseId: true,
+              _count: {
+                select: {
+                  tasks: { where: { isPremium: true } }
+                }
+              }
+            }
+          })
+        : []
+    const premiumTaskCountByCourseId = new Map<string, number>()
+    for (const m of modulePremiumRows) {
+      premiumTaskCountByCourseId.set(
+        m.courseId,
+        (premiumTaskCountByCourseId.get(m.courseId) ?? 0) + m._count.tasks
+      )
+    }
     return {
       items: sliced.map(row => ({
         id: row.id,
@@ -170,7 +196,9 @@ export class AdminCatalogRepository {
         updatedAt: row.updatedAt,
         moduleCount: row._count.modules,
         taskCount: row.modules.reduce((sum, mod) => sum + mod._count.tasks, 0),
-        enrollmentCount: row._count.enrollments
+        enrollmentCount: row._count.enrollments,
+        tierRequired: row.tierRequired,
+        premiumTaskCount: premiumTaskCountByCourseId.get(row.id) ?? 0
       })),
       nextCursor: hasMore ? (sliced[sliced.length - 1]?.id ?? null) : null,
       total

@@ -1,7 +1,16 @@
 'use client'
 
 import { useState } from 'react'
-import { Button, Group, NumberInput, Stack, Switch, Textarea, TextInput } from '@mantine/core'
+import {
+  Button,
+  Group,
+  NumberInput,
+  Select,
+  Stack,
+  Switch,
+  Textarea,
+  TextInput
+} from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { api } from '~/trpc/react'
 import AdminCard from '~/features/admin/_shared/AdminCard'
@@ -18,6 +27,7 @@ export interface Props {
  */
 export default function UserProfileTab({ user }: Props) {
   const utils = api.useUtils()
+  const plans = api.admin.plans.list.useQuery()
   const [displayName, setDisplayName] = useState(user.displayName)
   const [username, setUsername] = useState(user.username)
   const [email, setEmail] = useState(user.email)
@@ -26,6 +36,7 @@ export default function UserProfileTab({ user }: Props) {
   const [totalXp, setTotalXp] = useState<number | string>(user.totalXp)
   const [streakDays, setStreakDays] = useState<number | string>(user.streakDays)
   const [excluded, setExcluded] = useState(user.excludedFromLeaderboard)
+  const [planId, setPlanId] = useState<string | null>(user.plan?.id ?? null)
 
   const update = api.admin.users.update.useMutation({
     onSuccess: async () => {
@@ -37,18 +48,22 @@ export default function UserProfileTab({ user }: Props) {
   })
 
   const submit = () => {
+    const patch: Parameters<typeof update.mutate>[0]['patch'] = {
+      displayName,
+      username,
+      email,
+      bio,
+      avatarUrl: avatarUrl || null,
+      totalXp: typeof totalXp === 'number' ? totalXp : Number(totalXp) || 0,
+      streakDays: typeof streakDays === 'number' ? streakDays : Number(streakDays) || 0,
+      excludedFromLeaderboard: excluded
+    }
+    if (planId !== (user.plan?.id ?? null)) {
+      patch.planId = planId
+    }
     update.mutate({
       id: user.id,
-      patch: {
-        displayName,
-        username,
-        email,
-        bio,
-        avatarUrl: avatarUrl || null,
-        totalXp: typeof totalXp === 'number' ? totalXp : Number(totalXp) || 0,
-        streakDays: typeof streakDays === 'number' ? streakDays : Number(streakDays) || 0,
-        excludedFromLeaderboard: excluded
-      }
+      patch
     })
   }
 
@@ -75,6 +90,20 @@ export default function UserProfileTab({ user }: Props) {
           onChange={event => setEmail(event.currentTarget.value)}
           type="email"
           required
+        />
+        <Select
+          label="Тариф"
+          placeholder={plans.isLoading ? 'Загрузка…' : 'Выберите план'}
+          data={
+            plans.data?.map(p => ({
+              value: p.id,
+              label: `${p.name} · tier ${p.tierLevel}${p.isDefaultFree ? ' (free default)' : ''}`
+            })) ?? []
+          }
+          value={planId}
+          onChange={value => setPlanId(value)}
+          clearable
+          searchable
         />
         <ImageUploadField
           label="Аватар"

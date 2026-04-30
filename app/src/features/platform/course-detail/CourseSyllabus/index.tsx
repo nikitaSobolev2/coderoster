@@ -1,18 +1,22 @@
 'use client'
 
-import { Accordion } from '@mantine/core'
+import { Accordion, Badge } from '@mantine/core'
 import Link from 'next/link'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCircleCheck, faCircle, faClock } from '@fortawesome/free-solid-svg-icons'
+import { faCircleCheck, faCircle, faClock, faLock } from '@fortawesome/free-solid-svg-icons'
 import type { CourseDetail, EnrollmentState } from '~/server/repositories/types'
+import { requiredTierForTask } from '~/shared/lib/planTier'
+import { formatPremiumLessonAccessLabel } from '~/shared/lib/premiumLabels'
 import styles from './styles.module.scss'
 
 export interface Props {
   course: CourseDetail
   enrollment: EnrollmentState | null
+  /** `Plan.tierLevel` for current viewer; `0` when anonymous. */
+  viewerEffectiveTier: number
 }
 
-export default function CourseSyllabus({ course, enrollment }: Props) {
+export default function CourseSyllabus({ course, enrollment, viewerEffectiveTier }: Props) {
   const completedSet = new Set(enrollment?.completedLessonIds ?? [])
 
   return (
@@ -40,8 +44,15 @@ export default function CourseSyllabus({ course, enrollment }: Props) {
               <ul className={styles.lessons}>
                 {module.lessons.map(lesson => {
                   const completed = completedSet.has(lesson.id)
+                  const needTier = requiredTierForTask(course.tierRequired, lesson)
+                  const locked = viewerEffectiveTier < needTier
                   return (
-                    <li key={lesson.id} className={styles.lesson}>
+                    <li
+                      key={lesson.id}
+                      className={[styles.lesson, locked ? styles.lesson_locked : '']
+                        .filter(Boolean)
+                        .join(' ')}
+                    >
                       <FontAwesomeIcon
                         icon={completed ? faCircleCheck : faCircle}
                         className={completed ? styles.lesson__iconDone : styles.lesson__iconIdle}
@@ -56,6 +67,24 @@ export default function CourseSyllabus({ course, enrollment }: Props) {
                       ) : (
                         <span className={styles.lesson__title}>{lesson.title}</span>
                       )}
+                      {needTier > 0 || lesson.isPremium ? (
+                        <Badge
+                          size="xs"
+                          variant="outline"
+                          color="grape"
+                          className={styles.lesson__tier}
+                        >
+                          {formatPremiumLessonAccessLabel(needTier)}
+                        </Badge>
+                      ) : null}
+                      {locked ? (
+                        <FontAwesomeIcon
+                          icon={faLock}
+                          className={styles.lesson__lock}
+                          title="Нужен Премиум"
+                          titleId={`syllabus-lock-title-${lesson.id}`}
+                        />
+                      ) : null}
                       <span className={styles.lesson__estimate}>
                         <FontAwesomeIcon icon={faClock} />
                         {lesson.estimatedMinutes} мин

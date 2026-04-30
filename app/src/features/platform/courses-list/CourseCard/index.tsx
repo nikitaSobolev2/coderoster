@@ -4,6 +4,9 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faClock, faStar, faUsers } from '@fortawesome/free-solid-svg-icons'
 import CoursePreview from '~/shared/components/ui/CoursePreview'
 import type { CourseSummary } from '~/server/repositories/types'
+import {
+  formatPremiumCourseAccessLabel
+} from '~/shared/lib/premiumLabels'
 import styles from './styles.module.scss'
 
 const DIFFICULTY_LABELS: Record<CourseSummary['difficulty'], string> = {
@@ -15,6 +18,25 @@ const DIFFICULTY_LABELS: Record<CourseSummary['difficulty'], string> = {
 const LANGUAGE_LABELS: Record<CourseSummary['language'], string> = {
   python: 'Python',
   php: 'PHP'
+}
+
+function PremiumCatalogChips({ course }: { course: CourseSummary }) {
+  const premiumTasks = course.hasPremiumTasks === true
+  if (course.tierRequired <= 0 && !premiumTasks) return null
+  return (
+    <>
+      {course.tierRequired > 0 ? (
+        <Badge variant="outline" color="grape" radius="sm">
+          {formatPremiumCourseAccessLabel(course.tierRequired)}
+        </Badge>
+      ) : null}
+      {premiumTasks ? (
+        <Badge variant="outline" color="pink" radius="sm">
+          Премиум-задачи
+        </Badge>
+      ) : null}
+    </>
+  )
 }
 
 export type CourseCardVariant = 'compact' | 'comfortable' | 'list'
@@ -47,6 +69,9 @@ export default function CourseCard({ course, variant = 'comfortable' }: Props) {
               {course.title}
             </Link>
           </h3>
+          <div className={styles.cardCompact__chips}>
+            <PremiumCatalogChips course={course} />
+          </div>
           <Button
             component={Link}
             href={`/courses/${course.slug}`}
@@ -108,6 +133,7 @@ export default function CourseCard({ course, variant = 'comfortable' }: Props) {
                   {DIFFICULTY_LABELS[course.difficulty]}
                 </Badge>
               </Link>
+              <PremiumCatalogChips course={course} />
             </div>
             <h3 className={styles.cardList__title}>{course.title}</h3>
             {course.shortSummary.trim() ? (
@@ -205,6 +231,7 @@ export default function CourseCard({ course, variant = 'comfortable' }: Props) {
               {DIFFICULTY_LABELS[course.difficulty]}
             </Badge>
           </Link>
+              <PremiumCatalogChips course={course} />
         </div>
         <h3 className={styles.card__title}>
           <Link

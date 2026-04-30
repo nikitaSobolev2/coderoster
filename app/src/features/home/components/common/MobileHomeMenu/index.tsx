@@ -92,6 +92,11 @@ export default function MobileHomeMenu({ sections }: Props) {
                       </Link>
                     </li>
                   ))}
+                  <li key="plans">
+                    <Link href="/plans" className={styles.link} onClick={() => close()}>
+                      тарифы
+                    </Link>
+                  </li>
                 </ul>
               </nav>
               <div className={styles.search}>

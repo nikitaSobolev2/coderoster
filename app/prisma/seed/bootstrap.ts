@@ -104,6 +104,15 @@ export async function seedAchievements() {
       coverImage: 'moon',
       hidden: true,
       goal: 1
+    },
+    {
+      slug: 'premium-member',
+      title: 'Статус Pro',
+      description: 'Оформил платный тариф',
+      category: 'progression',
+      rarity: 'rare',
+      coverImage: 'star',
+      goal: 1
     }
   ]
   for (const item of items) {
@@ -145,12 +154,102 @@ export async function seedContentPages() {
 export async function seedAppSettings() {
   const defaults: { key: string; value: Prisma.InputJsonValue }[] = [
     { key: 'allowed_languages', value: ['python', 'php'] },
-    { key: 'livechat_guest_policy', value: { allowGuests: true } }
+    { key: 'livechat_guest_policy', value: { allowGuests: true } },
+    { key: 'ai_code_improve', value: { model: 'gpt-4o-mini' } }
   ]
   for (const row of defaults) {
     await prisma.appSetting.deleteMany({ where: { key: row.key } })
     await prisma.appSetting.create({ data: { key: row.key, value: row.value } })
   }
+}
+
+export async function seedPlans() {
+  const free = await prisma.plan.upsert({
+    where: { slug: 'free' },
+    update: {
+      name: 'Free',
+      shortDescription: 'Старт без оплаты — до трёх активных курсов.',
+      marketingMarkdown:
+        '**Старт без карты.** Три активных курса параллельно — достаточно, чтобы уверенно войти в ритм обучения.',
+      marketingFeatures: [
+        { iconKey: 'check', text: 'До 3 активных курсов одновременно' },
+        { iconKey: 'star', text: 'Базовый прогресс и достижения' },
+        { iconKey: 'shield', text: 'Безопасный старт: без обязательств по оплате' }
+      ],
+      isBestseller: false,
+      tierLevel: 0,
+      xpBonusPercent: 0,
+      sortOrder: 0,
+      isDefaultFree: true,
+      maxActiveCourses: 3
+    },
+    create: {
+      slug: 'free',
+      name: 'Free',
+      shortDescription: 'Старт без оплаты — до трёх активных курсов.',
+      marketingMarkdown:
+        '**Старт без карты.** Три активных курса параллельно — достаточно, чтобы уверенно войти в ритм обучения.',
+      marketingFeatures: [
+        { iconKey: 'check', text: 'До 3 активных курсов одновременно' },
+        { iconKey: 'star', text: 'Базовый прогресс и достижения' },
+        { iconKey: 'shield', text: 'Безопасный старт: без обязательств по оплате' }
+      ],
+      isBestseller: false,
+      tierLevel: 0,
+      xpBonusPercent: 0,
+      sortOrder: 0,
+      isDefaultFree: true,
+      maxActiveCourses: 3
+    }
+  })
+  await prisma.plan.upsert({
+    where: { slug: 'pro' },
+    update: {
+      name: 'Pro',
+      shortDescription: 'Безлимит курсов, бонус XP, ИИ-разбор кода.',
+      marketingMarkdown:
+        '**Для тех, кто хочет расти быстрее.** Без лимита курсов, усиленная выдача XP и ИИ-разбор кода по заданиям.',
+      marketingFeatures: [
+        { iconKey: 'infinity', text: 'Неограниченно активных курсов' },
+        { iconKey: 'bolt', text: 'Бонус +25% к опыту (XP)' },
+        { iconKey: 'wand', text: 'ИИ-разбор и подсказки по коду в задачах' },
+        { iconKey: 'rocket', text: 'Приоритетный доступ к новым материалам' }
+      ],
+      isBestseller: true,
+      tierLevel: 1,
+      xpBonusPercent: 25,
+      sortOrder: 1,
+      isDefaultFree: false,
+      maxActiveCourses: null
+    },
+    create: {
+      slug: 'pro',
+      name: 'Pro',
+      shortDescription: 'Безлимит курсов, бонус XP, ИИ-разбор кода.',
+      marketingMarkdown:
+        '**Для тех, кто хочет расти быстрее.** Без лимита курсов, усиленная выдача XP и ИИ-разбор кода по заданиям.',
+      marketingFeatures: [
+        { iconKey: 'infinity', text: 'Неограниченно активных курсов' },
+        { iconKey: 'bolt', text: 'Бонус +25% к опыту (XP)' },
+        { iconKey: 'wand', text: 'ИИ-разбор и подсказки по коду в задачах' },
+        { iconKey: 'rocket', text: 'Приоритетный доступ к новым материалам' }
+      ],
+      isBestseller: true,
+      tierLevel: 1,
+      xpBonusPercent: 25,
+      sortOrder: 1,
+      isDefaultFree: false,
+      maxActiveCourses: null
+    }
+  })
+  return free
+}
+
+export async function backfillUserPlanIds(freePlanId: string) {
+  await prisma.user.updateMany({
+    where: { planId: null },
+    data: { planId: freePlanId }
+  })
 }
 
 export async function promoteBootstrapAdmin() {

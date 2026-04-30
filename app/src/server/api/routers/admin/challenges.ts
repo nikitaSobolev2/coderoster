@@ -15,7 +15,9 @@ const taskUpsertPatch = z
     estimatedMinutes: z.number().int().min(0).max(600),
     allowedLanguages: z.array(z.string().min(1).max(40)).max(20),
     initialData: z.record(z.unknown()),
-    result: z.record(z.unknown()).nullable()
+    result: z.record(z.unknown()).nullable(),
+    isPremium: z.boolean(),
+    minPlanTier: z.number().int().min(0).max(999)
   })
   .partial()
 

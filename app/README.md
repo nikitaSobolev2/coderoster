@@ -101,13 +101,15 @@ at the API level. Every admin mutation is recorded in `AuditLog`.
 
 - **Dashboard** — counts of users, courses, tasks, content pages, achievements, comments
 - **Users** — list with search/role/ban filters; per-user tabs (Профиль, Роль и бан, Достижения, Активность, Комментарии). Admin can change role, totalXp/streak, exclude from leaderboard, ban (temporary or permanent), grant/revoke achievements, delete activity rows or comments
-- **Каталог: курсы и категории** — list + reorder + create + status (DRAFT / PUBLISHED / HIDDEN); category tree with `parentCategoryId`
+- **Каталог: курсы и категории** — list + reorder + create + status (DRAFT / PUBLISHED / HIDDEN); category tree with `parentCategoryId`. Course metadata includes `tierRequired` for catalog gating; task editor can mark premium tasks and `minPlanTier`
 - **Course editor** (flagship UX) — three-pane shell at `/admin/courses/[id]`: tree on the left, metadata + tab-based task editor in the centre, live markdown preview side-by-side. Optional / nullable fields (test stdin, result JSON) are gated behind `<OptionalFieldToggle>` so the surface stays uncluttered. Drag-equivalent reorder via up/down buttons works with keyboard + touch
 - **Контент-страницы** — Markdown CMS for `/p/[slug]`; published rows with `placement = FOOTER` automatically render as link columns in `PlatformFooter`. Includes side-by-side markdown preview
 - **Достижения** — caталог CRUD: title / description / category / rarity / goal / hidden / coverImage
 - **Дейлики и спидраны** — date-keyed `DailyChallenge` (3 tasks/day) and ISO-week-keyed `WeeklyChallenge` (5 tasks/week)
 - **Лидерборд** — sortable list with per-user toggle "Исключить из рейтинга" → `User.excludedFromLeaderboard`
 - **Комментарии** — global moderation table; one-click delete on any thread (profile, course, etc.)
+- **Тарифы** — CRUD for `Plan` (tier level, XP bonus %, optional active-enrollment cap); users get default free plan in seed
+- **ИИ: разбор кода** — `/admin/ai-code-improve` edits `AppSetting('ai_code_improve')` JSON (OpenAI-compatible `model`); воркер **`code-improve-worker`** (Go, см. `workers/code-improve`) читает очередь `ai.code_improve.requested`
 - **Языки** — global allowed languages stored in `AppSetting('allowed_languages')`. Used by `CourseTask.allowedLanguages` per-task overrides
 - **Живой чат** — toggle «гости могут писать» (`AppSetting('livechat_guest_policy')`); модерация чата на вкладке пользователя «Роль и бан»
 - **Аудит** — append-only `AuditLog` viewer with filters by actor / target

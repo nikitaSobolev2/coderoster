@@ -1,0 +1,118 @@
+@use '~/shared/assets/styles/mixins' as *;
+
+@property --codeImproveRainbowFrom {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+.headerTriggerRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.rainbowButtonWrap {
+  --codeImproveRainbowFrom: 0deg;
+  position: relative;
+  display: inline-flex;
+  padding: 2px;
+  border-radius: var(--mantine-radius-md);
+  background: conic-gradient(
+    from var(--codeImproveRainbowFrom),
+    #ff006e,
+    #8338ec,
+    #3a86ff,
+    #06d6a0,
+    #ffbe0b,
+    #fb5607,
+    #ff006e
+  );
+  animation: codeImproveRainbowAngle 8s linear infinite;
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--color-text) 8%, transparent);
+}
+
+.rainbowProBadge {
+  position: absolute;
+  top: -7px;
+  right: -6px;
+  z-index: 3;
+  pointer-events: none;
+  font-size: 9px !important;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding-inline: 5px !important;
+  min-height: 18px;
+  height: auto;
+  box-shadow: 0 1px 6px color-mix(in srgb, var(--color-text) 35%, transparent);
+}
+
+.rainbowButtonInner {
+  position: relative;
+  z-index: 1;
+  border: none !important;
+  background: color-mix(in srgb, var(--color-bg) 92%, transparent) !important;
+  @include bluredBg;
+
+  &:disabled {
+    opacity: 0.65;
+  }
+
+  &:not(:disabled):hover {
+    background: color-mix(
+      in srgb,
+      var(--platform-color-accent-soft) 40%,
+      var(--color-bg) 88%
+    ) !important;
+  }
+}
+
+.panelSurface {
+  border-radius: var(--mantine-radius-md);
+  border: var(--border-width-hair) solid var(--platform-glass-border);
+  background: color-mix(in srgb, var(--color-bg) 88%, transparent);
+  @include bluredBg;
+  padding: 0.75rem 1rem;
+  min-height: 0;
+}
+
+@keyframes codeImproveRainbowAngle {
+  from {
+    --codeImproveRainbowFrom: 0deg;
+  }
+  to {
+    --codeImproveRainbowFrom: 360deg;
+  }
+}
+
+.stream {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.streamChunk {
+  border: var(--border-width-hair) solid var(--platform-glass-border);
+  border-radius: var(--platform-card-radius-sm);
+  padding: 0.5rem 0.65rem;
+}
+
+.pre {
+  margin: 0;
+  white-space: pre-wrap;
+  font-family: var(--mantine-font-monospace);
+  font-size: var(--font-size-h6);
+}
+
+.codeBlock {
+  margin: 0;
+  width: 100%;
+  max-width: 100%;
+  white-space: pre-wrap;
+  padding: 0.65rem 0.75rem;
+  border-radius: var(--platform-card-radius-sm);
+  border: var(--border-width-hair) solid var(--platform-glass-border);
+  background: color-mix(in srgb, var(--color-bg) 92%, transparent);
+  font-family: var(--mantine-font-monospace);
+  font-size: var(--font-size-h6);
+}

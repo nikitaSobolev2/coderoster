@@ -21,7 +21,8 @@ const courseUpdatePatch = z
     xpReward: z.number().int().min(0).max(1_000_000),
     coverImage: z.string().url().nullable(),
     categoryId: z.string().nullable(),
-    tags: z.array(z.string().min(1).max(40)).max(20)
+    tags: z.array(z.string().min(1).max(40)).max(20),
+    tierRequired: z.number().int().min(0).max(999)
   })
   .partial()
 
@@ -34,7 +35,9 @@ const taskUpsertPatch = z
     estimatedMinutes: z.number().int().min(0).max(600),
     allowedLanguages: z.array(z.string().min(1).max(40)).max(20),
     initialData: z.record(z.unknown()),
-    result: z.record(z.unknown()).nullable()
+    result: z.record(z.unknown()).nullable(),
+    isPremium: z.boolean(),
+    minPlanTier: z.number().int().min(0).max(999)
   })
   .partial()
 

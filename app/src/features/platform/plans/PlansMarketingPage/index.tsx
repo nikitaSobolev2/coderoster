@@ -1,6 +1,5 @@
 'use client'
 
-import { useMemo } from 'react'
 import { Divider, SimpleGrid, Skeleton, Stack, Text, Title } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { useAuth } from '@workos-inc/authkit-nextjs/components'
@@ -40,13 +39,6 @@ export default function PlansMarketingPage() {
     onError: e => notifications.show({ color: 'red', message: e.message })
   })
 
-  const sortedPlans = useMemo(() => {
-    const rows = plans.data ?? []
-    const hits = rows.filter(p => p.isBestseller)
-    const rest = rows.filter(p => !p.isBestseller)
-    return [...hits, ...rest]
-  }, [plans.data])
-
   if (plans.isPending && !plans.data) {
     return <PlansMarketingSkeleton />
   }
@@ -67,8 +59,7 @@ export default function PlansMarketingPage() {
     )
   }
 
-  const gridCols =
-    plans.data.length >= 3 ? { base: 1, sm: 2, md: 3 } : { base: 1, sm: 2 }
+  const gridCols = plans.data.length >= 3 ? { base: 1, sm: 2, md: 3 } : { base: 1, sm: 2 }
   const policiesLoaded = !policies.isPending
   const selfServe = policies.data?.selfServePaidPlans ?? true
 
@@ -80,8 +71,8 @@ export default function PlansMarketingPage() {
           всё для роста
         </Title>
         <Text className={styles.hero__copy}>
-          Сравни лимиты курсов, бонус к XP и доступ к практике. Оформление подписки подключится позже —
-          выбор тарифа сейчас зависит от политики сайта.
+          Сравни лимиты курсов, бонус к XP и доступ к практике. Оформление подписки подключится
+          позже — выбор тарифа сейчас зависит от политики сайта.
         </Text>
       </header>
 
@@ -92,7 +83,7 @@ export default function PlansMarketingPage() {
       />
 
       <SimpleGrid cols={gridCols} spacing={{ base: 'md', sm: 'lg' }}>
-        {sortedPlans.map(plan => (
+        {plans.data.map(plan => (
           <PlanMarketingCard
             key={plan.id}
             plan={plan}

@@ -1,14 +1,6 @@
 'use client'
 
-import {
-  ActionIcon,
-  Button,
-  Group,
-  NativeSelect,
-  Stack,
-  Text,
-  TextInput
-} from '@mantine/core'
+import { ActionIcon, Button, Group, NativeSelect, Stack, Text, TextInput } from '@mantine/core'
 import { faChevronDown, faChevronUp, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import PlanBulletIcon from '~/shared/plan/PlanBulletIcon'
@@ -35,7 +27,10 @@ export interface PlanMarketingBulletsEditorProps {
   onChange: (next: PlanMarketingBullet[]) => void
 }
 
-export default function PlanMarketingBulletsEditor({ value, onChange }: PlanMarketingBulletsEditorProps) {
+export default function PlanMarketingBulletsEditor({
+  value,
+  onChange
+}: PlanMarketingBulletsEditorProps) {
   const move = (index: number, direction: -1 | 1) => {
     const next = [...value]
     const j = index + direction
@@ -69,7 +64,7 @@ export default function PlanMarketingBulletsEditor({ value, onChange }: PlanMark
       </Text>
       <Stack gap="xs">
         {value.map((row, idx) => (
-          <Group key={`${idx}-${row.text.slice(0, 8)}`} wrap="nowrap" align="flex-start" gap="xs">
+          <Group key={idx} wrap="nowrap" align="flex-start" gap="xs">
             <ActionIcon
               variant="light"
               aria-label="Выше"
@@ -93,7 +88,9 @@ export default function PlanMarketingBulletsEditor({ value, onChange }: PlanMark
                 aria-label="Иконка"
                 value={row.iconKey}
                 onChange={e =>
-                  updateRow(idx, { iconKey: e.currentTarget.value as PlanMarketingBullet['iconKey'] })
+                  updateRow(idx, {
+                    iconKey: e.currentTarget.value as PlanMarketingBullet['iconKey']
+                  })
                 }
                 data={PLAN_MARKETING_BULLET_ICON_KEYS.map(k => ({
                   value: k,
@@ -119,7 +116,12 @@ export default function PlanMarketingBulletsEditor({ value, onChange }: PlanMark
         ))}
       </Stack>
       <div>
-        <Button leftSection={<FontAwesomeIcon icon={faPlus} />} variant="light" size="xs" onClick={push}>
+        <Button
+          leftSection={<FontAwesomeIcon icon={faPlus} />}
+          variant="light"
+          size="xs"
+          onClick={push}
+        >
           Добавить пункт
         </Button>
       </div>

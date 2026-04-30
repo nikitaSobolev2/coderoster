@@ -238,11 +238,13 @@ function WeeklyTaskPanel({
         </div>
       </div>
 
-      <ExecutionPanel
-        state={executionState}
-        result={executionResult}
-        errorMessage={executionError}
-      />
+      <div className={styles.panel__execution}>
+        <ExecutionPanel
+          state={executionState}
+          result={executionResult}
+          errorMessage={executionError}
+        />
+      </div>
     </div>
   )
 }

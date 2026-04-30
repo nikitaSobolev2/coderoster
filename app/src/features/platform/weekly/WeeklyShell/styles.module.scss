@@ -101,6 +101,19 @@
     border: 1px solid var(--platform-color-border);
     min-height: 360px;
   }
+
+  &__execution {
+    grid-column: 1 / -1;
+    min-height: max(220px, 24vh);
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+
+    > * {
+      flex: 1 1 auto;
+      min-height: 0;
+    }
+  }
 }
 
 @media (max-width: 1024px) {

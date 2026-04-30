@@ -2,8 +2,9 @@
 
 .shell {
   display: grid;
-  grid-template-rows: auto minmax(420px, 60vh) auto;
+  grid-template-rows: auto minmax(260px, 1fr) minmax(240px, 1fr);
   gap: 1rem;
+  min-height: min(720px, calc(100svh - 14rem));
 
   &__head {
     display: flex;
@@ -34,5 +35,13 @@
     border: 1px solid var(--platform-color-border);
     @include bluredBg;
     overflow: hidden;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+
+    > * {
+      flex: 1 1 auto;
+      min-height: 0;
+    }
   }
 }

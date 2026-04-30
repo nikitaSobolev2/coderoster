@@ -16,6 +16,7 @@ import HowToStartSection from '~/features/home/components/sections/HowToStartSec
 import FeaturesSection from '~/features/home/components/sections/FeaturesSection'
 import FooterSection from '~/features/home/components/sections/FooterSection'
 import { HOME_SECTIONS, getHomeNavText } from '~/features/home/config/home-sections'
+import { PLANS_HOME_NAV_LABEL, PLANS_PAGE_HREF } from '~/shared/constants/plansNav'
 import styles from './styles.module.scss'
 
 export default function Home() {
@@ -33,7 +34,7 @@ export default function Home() {
             {getHomeNavText(section.id)}
           </NavMenuItem>
         ))}
-        <NavMenuItem href="/plans">тарифы</NavMenuItem>
+        <NavMenuItem href={PLANS_PAGE_HREF}>{PLANS_HOME_NAV_LABEL}</NavMenuItem>
       </NavMenu>
       <ScrollHint />
       <main className={styles.main}>

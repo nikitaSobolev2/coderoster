@@ -10,6 +10,7 @@ import {
   useMobileMenuStore
 } from '~/features/home/stores/mobile-menu.store'
 import { getHomeNavText } from '~/features/home/config/home-sections'
+import { PLANS_HOME_NAV_LABEL, PLANS_PAGE_HREF } from '~/shared/constants/plansNav'
 import styles from './styles.module.scss'
 
 export interface Props {
@@ -93,8 +94,8 @@ export default function MobileHomeMenu({ sections }: Props) {
                     </li>
                   ))}
                   <li key="plans">
-                    <Link href="/plans" className={styles.link} onClick={() => close()}>
-                      тарифы
+                    <Link href={PLANS_PAGE_HREF} className={styles.link} onClick={() => close()}>
+                      {PLANS_HOME_NAV_LABEL}
                     </Link>
                   </li>
                 </ul>

@@ -8,6 +8,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core'
 import type { CategoryNavParentRef } from '~/server/repositories/types'
+import { PLANS_NAV_LABEL, PLANS_PAGE_HREF } from '~/shared/constants/plansNav'
 
 export type { CategoryNavParentRef }
 
@@ -98,7 +99,7 @@ export const NAV_CATEGORIES: NavCategoryConfig[] = [
   },
   {
     id: 'plans',
-    label: 'Тарифы',
-    href: '/plans'
+    label: PLANS_NAV_LABEL,
+    href: PLANS_PAGE_HREF
   }
 ]

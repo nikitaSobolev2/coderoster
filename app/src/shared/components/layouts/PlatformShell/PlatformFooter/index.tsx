@@ -5,6 +5,11 @@ import type { IconDefinition } from '@fortawesome/fontawesome-svg-core'
 import { db } from '~/server/db'
 import Logo from '~/shared/components/common/Logo'
 import { SITE_NAME } from '~/shared/constants/site'
+import {
+  PLANS_FOOTER_LINK_LABEL,
+  PLANS_NAV_LABEL,
+  PLANS_PAGE_HREF
+} from '~/shared/constants/plansNav'
 import NewsletterForm from './NewsletterForm'
 import styles from './styles.module.scss'
 
@@ -40,7 +45,7 @@ const SOCIALS: SocialLink[] = [
  * hardcoded URL graveyard hiding behind the wordmark anymore.
  */
 export default async function PlatformFooter() {
-  const columns = appendPlansLinkLast(await loadFooterColumns())
+  const columns = ensurePlansFooterColumn(await loadFooterColumns())
   return (
     <footer className={styles.footer}>
       <span className={styles.footer__wordmark} aria-hidden="true">
@@ -132,14 +137,18 @@ function groupRowsByKey(rows: { slug: string; title: string; groupKey: string }[
   return Array.from(grouped.values())
 }
 
-/** Single top-level «Тарифы» link after all CMS footer columns (before newsletter). */
-function appendPlansLinkLast(columns: FooterColumn[]): FooterColumn[] {
-  const plans = { label: 'Тарифы', href: '/plans' }
-  if (columns.some(col => col.links.some(l => l.href === '/plans'))) return columns
-  if (columns.length === 0) {
-    return [{ id: 'tariffs', title: 'Платформа', links: [plans] }]
+/**
+ * Own «Тарифы» column first (before CMS columns) so `/plans` stays visible
+ * even when footer groups are long.
+ */
+function ensurePlansFooterColumn(columns: FooterColumn[]): FooterColumn[] {
+  if (columns.some(col => col.links.some(l => l.href === PLANS_PAGE_HREF))) {
+    return columns
   }
-  const i = columns.length - 1
-  const last = columns[i]!
-  return [...columns.slice(0, i), { ...last, links: [...last.links, plans] }]
+  const plansColumn: FooterColumn = {
+    id: 'tariffs',
+    title: PLANS_NAV_LABEL,
+    links: [{ label: PLANS_FOOTER_LINK_LABEL, href: PLANS_PAGE_HREF }]
+  }
+  return [plansColumn, ...columns]
 }

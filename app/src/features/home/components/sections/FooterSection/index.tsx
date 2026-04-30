@@ -11,6 +11,7 @@ import InteractiveLink from '~/features/home/components/ui/InteractiveLink'
 import ContactForm from './ContactForm'
 import { FOOTER_SECTION_ID } from '~/features/home/components/sections/section-ids'
 import { SITE_NAME } from '~/shared/constants/site'
+import { PLANS_FOOTER_LINK_LABEL, PLANS_PAGE_HREF } from '~/shared/constants/plansNav'
 import styles from './styles.module.scss'
 
 interface SocialLink {
@@ -31,7 +32,7 @@ const NAV_LINKS = [
   { href: '#what-to-do', label: 'Решение' },
   { href: '#how-to-start', label: 'Как начать' },
   { href: '#features', label: 'Платформа' },
-  { href: '/plans', label: 'Тарифы' }
+  { href: PLANS_PAGE_HREF, label: PLANS_FOOTER_LINK_LABEL }
 ]
 
 export default function FooterSection() {

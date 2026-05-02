@@ -32,6 +32,7 @@ build/
 .env.local
 .env*.local
 .env.production
+.env.prod
 .env.development
 
 # OS

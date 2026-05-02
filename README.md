@@ -27,20 +27,21 @@ coderoster/
 
 ## Services
 
-| Service                 | Stack                | Purpose                                                                         |
-| ----------------------- | -------------------- | ------------------------------------------------------------------------------- |
-| `db`                    | PostgreSQL 16        | Primary store. Single source of truth for the domain model                      |
-| `redis`                 | Redis 7              | Read-through cache, rate limits, distributed locks                              |
-| `rabbitmq`              | RabbitMQ 3 (mgmt UI) | Message broker for code execution and result events                             |
-| `app`                   | Next.js 15 + tRPC    | Web app, server components, tRPC API, server-side cache invalidation            |
-| `outbox`                | Node                 | Polls the `OutboxEvent` table and publishes to RabbitMQ (circuit-breaker)       |
-| `result-consumer`       | Node                 | Consumes `execution.completed`, updates execution + attempts + activity         |
-| `code-improve-worker`   | Go                   | Consumes AI code-improve jobs, OpenAI non-stream, persists job + circuit breaker |
-| `snapshot`              | Node                 | Daily aggregator from `UserActivity` to `UserActivitySnapshot`                  |
-| `worker-code-exec`      | Go + Docker SDK      | Sandboxed code execution: one ephemeral container per request                   |
+| Service               | Stack                | Purpose                                                                          |
+| --------------------- | -------------------- | -------------------------------------------------------------------------------- |
+| `db`                  | PostgreSQL 16        | Primary store. Single source of truth for the domain model                       |
+| `redis`               | Redis 7              | Read-through cache, rate limits, distributed locks                               |
+| `rabbitmq`            | RabbitMQ 3 (mgmt UI) | Message broker for code execution and result events                              |
+| `app`                 | Next.js 15 + tRPC    | Web app, server components, tRPC API, server-side cache invalidation             |
+| `outbox`              | Node                 | Polls the `OutboxEvent` table and publishes to RabbitMQ (circuit-breaker)        |
+| `result-consumer`     | Node                 | Consumes `execution.completed`, updates execution + attempts + activity          |
+| `code-improve-worker` | Go                   | Consumes AI code-improve jobs, OpenAI non-stream, persists job + circuit breaker |
+| `snapshot`            | Node                 | Daily aggregator from `UserActivity` to `UserActivitySnapshot`                   |
+| `worker-code-exec`    | Go + Docker SDK      | Sandboxed code execution: one ephemeral container per request                    |
 
 ## Documentation
 
+- Production on a single Ubuntu VM: [`docs/production-deployment-ubuntu-24.md`](docs/production-deployment-ubuntu-24.md) (uses [`docker-compose.vm-prod.yml`](docker-compose.vm-prod.yml))
 - App-level docs (UI, tRPC procedures, design system): [`app/README.md`](app/README.md)
 - Frontend API surface and rate limits: [`app/ROUTES.md`](app/ROUTES.md)
 - Worker entrypoint: [`workers/code-executor/cmd/code-executor/main.go`](workers/code-executor/cmd/code-executor/main.go)

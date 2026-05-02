@@ -1,6 +1,5 @@
 import 'server-only'
 import { createHash } from 'crypto'
-import type { Prisma } from '@prisma/client'
 import { TRPCError } from '@trpc/server'
 import { db } from '~/server/db'
 import { assertAiImproveCircuitClosed } from '~/server/services/aiImproveAvailability'

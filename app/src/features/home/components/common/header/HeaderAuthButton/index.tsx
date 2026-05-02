@@ -16,7 +16,12 @@ export default function HeaderAuthButton({ className = '' }: Props) {
   useCursorFillTarget(ref)
 
   return (
-    <Link href="/login" className={`${styles.headerAuthButton} ${className}`} ref={ref}>
+    <Link
+      href="/login"
+      prefetch={false}
+      className={`${styles.headerAuthButton} ${className}`}
+      ref={ref}
+    >
       <span>Войти</span>
       <FontAwesomeIcon icon={faArrowRightToBracket} />
     </Link>

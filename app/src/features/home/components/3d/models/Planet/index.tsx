@@ -32,6 +32,14 @@ import { useCursorStore } from '~/features/home/components/common/Cursor/cursor.
 
 const SCRATCH_DEST = new ThreeColor(DANGER_RED_EMISSIVE_HEX)
 
+/** Per-segment encoding: spaces and `&` in filenames must not break the request URL. */
+function texturePublicUrl(pathFromRoot: string): string {
+  return pathFromRoot
+    .split('/')
+    .map(segment => encodeURIComponent(segment))
+    .join('/')
+}
+
 interface Props {
   /** Fine-pointer desktop: globe hover sets custom cursor glyph. Physics active on all pointers. */
   interactionDesktop: boolean
@@ -96,14 +104,14 @@ export default function Planet(props: Readonly<Props>) {
     islandsReefsMap,
     elevationMapTexture
   ] = useTexture([
-    '/assets/textures/planet/Oceanic 05 (Diffuse 4k).png',
-    '/assets/textures/planet/Oceanic 05 (Bump 4k).png',
-    '/assets/textures/planet/Oceanic 05 (Roughness 4k).png',
-    '/assets/textures/planet/Oceanic 05 (Clouds 4k).png',
-    '/assets/textures/planet/Oceanic 05 (Lights Urban 4k).png',
-    '/assets/textures/planet/Oceanic 05 (Lights Rural 4k).png',
-    '/assets/textures/planet/Oceanic 05 (Islands & Reefs 4k).png',
-    '/assets/textures/planet/Oceanic 05 (Elevation 4k).png'
+    texturePublicUrl('/assets/textures/planet/Oceanic 05 (Diffuse 4k).png'),
+    texturePublicUrl('/assets/textures/planet/Oceanic 05 (Bump 4k).png'),
+    texturePublicUrl('/assets/textures/planet/Oceanic 05 (Roughness 4k).png'),
+    texturePublicUrl('/assets/textures/planet/Oceanic 05 (Clouds 4k).png'),
+    texturePublicUrl('/assets/textures/planet/Oceanic 05 (Lights Urban 4k).png'),
+    texturePublicUrl('/assets/textures/planet/Oceanic 05 (Lights Rural 4k).png'),
+    texturePublicUrl('/assets/textures/planet/Oceanic 05 (Islands & Reefs 4k).png'),
+    texturePublicUrl('/assets/textures/planet/Oceanic 05 (Elevation 4k).png')
   ])
 
   const dangerRampCriticalRadPerS = interactionDesktop

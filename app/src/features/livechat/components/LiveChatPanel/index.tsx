@@ -370,6 +370,7 @@ export default function LiveChatPanel({
               className={styles.composerLoginBtn}
               component={Link}
               href="/login"
+              prefetch={false}
               variant="light"
             >
               Войти

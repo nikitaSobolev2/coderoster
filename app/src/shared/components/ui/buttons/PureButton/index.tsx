@@ -41,6 +41,9 @@ export default function PureButton({
     onClick?.(event)
   }
 
+  const loginPath =
+    typeof defaultProps.href === 'string' && defaultProps.href.split(/[?#]/, 1)[0] === '/login'
+
   const content =
     defaultProps.href !== undefined ? (
       <Link
@@ -50,6 +53,7 @@ export default function PureButton({
         tabIndex={disabled ? -1 : 1}
         aria-label={label}
         {...defaultProps}
+        prefetch={loginPath ? false : undefined}
         onClick={e => onClickHandler(e)}
         ref={ref as React.Ref<HTMLAnchorElement>}
       />

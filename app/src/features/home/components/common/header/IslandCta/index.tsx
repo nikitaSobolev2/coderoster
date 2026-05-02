@@ -26,8 +26,16 @@ export default function IslandCta({
   const ref = useRef<HTMLAnchorElement>(null)
   useCursorFillTarget(ref)
 
+  const isLogin = typeof href === 'string' && href.split(/[?#]/, 1)[0] === '/login'
+
   return (
-    <Link href={href} className={`${styles.cta} ${className}`} ref={ref} aria-label={fullLabel}>
+    <Link
+      href={href}
+      prefetch={isLogin ? false : undefined}
+      className={`${styles.cta} ${className}`}
+      ref={ref}
+      aria-label={fullLabel}
+    >
       <span className={styles.cta__labelFull}>{fullLabel}</span>
       <span className={styles.cta__labelShort} aria-hidden>
         {shortLabel}

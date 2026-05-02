@@ -42,6 +42,7 @@ export function PlanMarketingCard({
       <Button
         component={Link}
         href="/login"
+        prefetch={false}
         variant="outline"
         className={styles.card__cta}
         fullWidth

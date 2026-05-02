@@ -4,6 +4,10 @@ x-app-build: &app_build
   context: .
   dockerfile: infra/docker/app.Dockerfile
   target: ${APP_ENV:-prod}
+  args:
+    NEXT_PUBLIC_WORKOS_REDIRECT_URI: ${NEXT_PUBLIC_WORKOS_REDIRECT_URI:-http://localhost:3000/callback}
+    NEXT_PUBLIC_USE_FAKE_DATA: ${NEXT_PUBLIC_USE_FAKE_DATA:-${USE_FAKE_DATA:-false}}
+    NEXT_PUBLIC_SELF_SERVE_PLANS: ${NEXT_PUBLIC_SELF_SERVE_PLANS:-true}
 
 # `./app:/app` bind-mounts sources; `/app/node_modules` is an anonymous volume that shadows host node_modules (avoids Windows bind-mount perf issues).
 # After adding/updating deps in package.json or package-lock.json, refresh that volume once: docker compose exec app npm install --legacy-peer-deps --ignore-scripts

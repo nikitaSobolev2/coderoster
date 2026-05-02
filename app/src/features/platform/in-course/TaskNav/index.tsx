@@ -1,9 +1,17 @@
 'use client'
 
+import type { ReactNode } from 'react'
 import Link from 'next/link'
-import { Progress } from '@mantine/core'
+import { Progress, Tooltip } from '@mantine/core'
+import clsx from 'clsx'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCircle, faCircleCheck, faLock, faPlay } from '@fortawesome/free-solid-svg-icons'
+import {
+  faArrowLeft,
+  faChevronLeft,
+  faCircleCheck,
+  faLock,
+  faPlay
+} from '@fortawesome/free-solid-svg-icons'
 import type { CourseDetail } from '~/server/repositories/types'
 import { requiredTierForTask } from '~/shared/lib/planTier'
 import styles from './styles.module.scss'
@@ -14,13 +22,16 @@ export interface Props {
   completedLessonIds: string[]
   /** Viewer effective `Plan.tierLevel` (0 = free). */
   viewerEffectiveTier: number
+  /** Narrow rail: icons + tooltips only (desktop resized nav). */
+  minimal?: boolean
 }
 
 export default function TaskNav({
   course,
   currentLessonId,
   completedLessonIds,
-  viewerEffectiveTier
+  viewerEffectiveTier,
+  minimal = false
 }: Props) {
   const completed = new Set(completedLessonIds)
   const flat = course.modules.flatMap(module => module.lessons.map(lesson => ({ module, lesson })))
@@ -34,58 +45,126 @@ export default function TaskNav({
   const progressPercent =
     totalForProgress === 0 ? 0 : Math.round((completedAccessible / totalForProgress) * 100)
 
+  const backHref = `/courses/${course.slug}`
+
   return (
-    <aside className={styles.nav}>
+    <aside className={minimal ? `${styles.nav} ${styles.nav_minimal}` : styles.nav}>
       <div className={styles.nav__head}>
-        <Link className={styles.nav__back} href={`/courses/${course.slug}`}>
-          ← {course.title}
-        </Link>
-        <div className={styles.nav__progress}>
-          <Progress value={progressPercent} radius="xl" color="indigo" size="sm" />
-          <span className={styles.nav__progressMeta}>
-            {completedAccessible} / {totalForProgress > 0 ? totalForProgress : flat.length} ·{' '}
-            {progressPercent}%
-          </span>
-        </div>
+        {minimal ? (
+          <Tooltip label={course.title} position="right" withArrow>
+            <Link
+              className={styles.nav__backIcon}
+              href={backHref}
+              aria-label={`К курсу: ${course.title}`}
+            >
+              <FontAwesomeIcon icon={faChevronLeft} />
+            </Link>
+          </Tooltip>
+        ) : (
+          <Link className={styles.nav__back} href={backHref}>
+            <FontAwesomeIcon icon={faArrowLeft} className={styles.nav__backArrow} />
+            {course.title}
+          </Link>
+        )}
+        {!minimal ? (
+          <div className={styles.nav__progress}>
+            <Progress value={progressPercent} radius="xl" color="indigo" size="sm" />
+            <span className={styles.nav__progressMeta}>
+              {completedAccessible} / {totalForProgress > 0 ? totalForProgress : flat.length} ·{' '}
+              {progressPercent}%
+            </span>
+          </div>
+        ) : null}
       </div>
 
       <ul className={styles.nav__modules}>
-        {course.modules.map(module => (
-          <li key={module.id} className={styles.module}>
-            <h4 className={styles.module__title}>{module.title}</h4>
+        {course.modules.map((module, moduleIndex) => (
+          <li
+            key={module.id}
+            className={clsx(
+              styles.module,
+              minimal && moduleIndex > 0 && styles.module_afterDivider
+            )}
+          >
+            <h4 className={minimal ? styles.module__titleMinimal : styles.module__title}>
+              {module.title}
+            </h4>
             <ul className={styles.module__lessons}>
-              {module.lessons.map(lesson => {
+              {module.lessons.map((lesson, lessonIndexInModule) => {
+                const taskOrdinal = lessonIndexInModule + 1
                 const isDone = completed.has(lesson.id)
                 const isCurrent = lesson.id === currentLessonId
                 const locked =
                   requiredTierForTask(course.tierRequired, lesson) > viewerEffectiveTier
-                const className = [
+                const showOrdinalInRail = minimal && !locked && !isDone && !isCurrent
+                const className = clsx(
                   styles.lesson,
-                  isCurrent ? styles.lesson_current : null,
-                  isDone ? styles.lesson_done : null,
-                  locked ? styles.lesson_locked : null
-                ]
-                  .filter(Boolean)
-                  .join(' ')
-                const icon = locked
-                  ? faLock
-                  : isCurrent
-                    ? faPlay
-                    : isDone
-                      ? faCircleCheck
-                      : faCircle
+                  minimal && styles.lesson_minimal,
+                  isCurrent && styles.lesson_current,
+                  isDone && styles.lesson_done,
+                  locked && styles.lesson_locked
+                )
+
+                let leading: ReactNode
+                if (locked) {
+                  leading = (
+                    <FontAwesomeIcon icon={faLock} className={clsx(styles.lesson__icon, 'fa-fw')} />
+                  )
+                } else if (isCurrent) {
+                  leading = (
+                    <FontAwesomeIcon icon={faPlay} className={clsx(styles.lesson__icon, 'fa-fw')} />
+                  )
+                } else if (isDone) {
+                  leading = (
+                    <FontAwesomeIcon
+                      icon={faCircleCheck}
+                      className={clsx(styles.lesson__icon, 'fa-fw')}
+                    />
+                  )
+                } else if (minimal) {
+                  leading = (
+                    <span className={styles.lesson__ordinal} aria-hidden>
+                      {taskOrdinal}
+                    </span>
+                  )
+                } else {
+                  leading = (
+                    <span className={styles.lesson__ordinalExpanded} aria-hidden>
+                      {taskOrdinal}
+                    </span>
+                  )
+                }
+
+                const link = (
+                  <Link
+                    href={`/learn/${course.slug}/${lesson.id}`}
+                    className={className}
+                    aria-current={isCurrent ? 'page' : undefined}
+                    aria-label={
+                      locked
+                        ? `${lesson.title} (заблокирован)`
+                        : `${lesson.title}${showOrdinalInRail ? `, задание ${taskOrdinal}` : ''}`
+                    }
+                    prefetch={false}
+                  >
+                    {leading}
+                    <span className={styles.lesson__title}>{lesson.title}</span>
+                    <span className={styles.lesson__minutes}>{lesson.estimatedMinutes}м</span>
+                  </Link>
+                )
                 return (
                   <li key={lesson.id}>
-                    <Link
-                      href={`/learn/${course.slug}/${lesson.id}`}
-                      className={className}
-                      aria-current={isCurrent ? 'page' : undefined}
-                      prefetch={false}
-                    >
-                      <FontAwesomeIcon icon={icon} className={styles.lesson__icon} />
-                      <span className={styles.lesson__title}>{lesson.title}</span>
-                      <span className={styles.lesson__minutes}>{lesson.estimatedMinutes}м</span>
-                    </Link>
+                    {minimal ? (
+                      <Tooltip
+                        label={`${lesson.title} · ${lesson.estimatedMinutes} мин`}
+                        position="right"
+                        withArrow
+                      >
+                        {link}
+                      </Tooltip>
+                    ) : (
+                      link
+                    )}
                   </li>
                 )
               })}

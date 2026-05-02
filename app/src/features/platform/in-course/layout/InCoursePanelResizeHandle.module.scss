@@ -1,0 +1,48 @@
+@use '~/shared/assets/styles/mixins' as *;
+
+.handle {
+  @include focusGlow;
+
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+  z-index: 2;
+
+  &:hover,
+  &:focus-visible {
+    background: color-mix(in srgb, var(--platform-color-accent-soft) 55%, transparent);
+  }
+}
+
+.handle_vertical {
+  /* One hairline at panel boundary; avoids double border vs collapsed nav rail. */
+  box-sizing: border-box;
+  width: 6px;
+  margin: 0;
+  padding: 0;
+  cursor: col-resize;
+  border: none;
+  border-left: 1px solid var(--platform-glass-border);
+
+  &:hover,
+  &:focus-visible {
+    border-left-color: color-mix(in srgb, var(--color-text-secondary) 65%, transparent);
+  }
+}
+
+.handle_horizontal {
+  height: 5px;
+  margin: -1px 0;
+  cursor: row-resize;
+  border-block: 1px solid var(--platform-color-divider);
+
+  &:hover,
+  &:focus-visible {
+    border-block-color: color-mix(in srgb, var(--color-text-secondary) 65%, transparent);
+  }
+}

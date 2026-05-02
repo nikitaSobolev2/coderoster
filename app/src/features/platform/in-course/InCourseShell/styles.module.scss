@@ -2,15 +2,68 @@
 @use '~/shared/assets/styles/breakpoints' as bp;
 
 .shell {
-  display: grid;
-  grid-template-columns: 280px minmax(0, 1fr) minmax(0, 1.15fr);
   height: calc(100svh - var(--platform-header-height));
   background: var(--color-bg);
 }
 
+.shell_gridRoot {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr) minmax(0, 1.15fr);
+}
+
+.shell_panelRoot {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.panelGroupHorizontal {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+  width: 100%;
+}
+
+.panelCell {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+
+  & > * {
+    flex: 1;
+    min-height: 0;
+    min-width: 0;
+  }
+}
+
+.panelCellColumn {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+
+  & > * {
+    flex: 1;
+    min-height: 0;
+    min-width: 0;
+  }
+}
+
+.workspaceVerticalGroup {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  width: 100%;
+}
+
 /** Clears fixed livechat rail strip (`railCollapsed` width); drawer chat on ≤768px needs no inset. */
 @include bp.min-width(bp.$bp-nav-up) {
-  .shell {
+  .shell_gridRoot,
+  .shell_panelRoot {
     margin-right: var(--height-header-island-action);
   }
 }
@@ -21,12 +74,22 @@
 }
 
 .workspace {
-  display: grid;
-  grid-template-rows: auto 1fr 280px auto;
   height: 100%;
   border-left: var(--border-width-hair) solid var(--platform-glass-border);
   background: color-mix(in srgb, var(--color-bg) 96%, transparent);
   position: relative;
+}
+
+.workspace_mobileLayout {
+  display: grid;
+  grid-template-rows: auto 360px 240px auto;
+}
+
+.workspace_desktopColumn {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
 }
 
 .workspace__lock {
@@ -94,9 +157,13 @@
 }
 
 .workspace__execution {
-  border-top: var(--border-width-hair) solid var(--platform-color-divider);
+  flex: 1;
   min-height: 0;
   overflow: hidden;
+}
+
+.workspace_mobileLayout .workspace__execution {
+  border-top: var(--border-width-hair) solid var(--platform-color-divider);
 }
 
 .workspace__ai {
@@ -131,8 +198,14 @@
   letter-spacing: 0.04em;
 }
 
+@include bp.min-width(bp.$bp-nav-up) {
+  .workspace_mobileLayout {
+    grid-template-rows: auto 1fr 280px auto;
+  }
+}
+
 @include bp.max-width(bp.$bp-md) {
-  .shell {
+  .shell_gridRoot {
     grid-template-columns: 1fr;
     grid-auto-rows: auto;
     height: auto;
@@ -143,10 +216,9 @@
     display: none;
   }
 
-  .workspace {
-    grid-template-rows: auto 360px 240px auto;
-    border-left: none;
+  .workspace_mobileLayout {
     border-top: var(--border-width-hair) solid var(--platform-glass-border);
+    border-left: none;
   }
 
   .workspace__foot,

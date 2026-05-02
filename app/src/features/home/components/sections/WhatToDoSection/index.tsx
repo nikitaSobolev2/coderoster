@@ -17,21 +17,24 @@ const SOLUTIONS: Solution[] = [
   {
     title: 'писать код, а не смотреть',
     description: 'Каждый урок — задача, которую ты решаешь сам. Видео и теория идут в нагрузку.',
-    imageSrc:
-      'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=640&q=70'
+    imageSrc: '/assets/solutions-images/editor.webp'
   },
   {
     title: 'получать обратную связь',
     description:
       'Тесты прогоняют твоё решение и показывают, где сломалось. Никаких "посмотрите в комментариях".',
-    imageSrc:
-      'https://images.unsplash.com/photo-1551434678-e076c223a692?auto=format&fit=crop&w=640&q=70'
+    imageSrc: '/assets/solutions-images/tests.webp'
   },
   {
     title: 'видеть прогресс ежедневно',
     description: 'XP, стрики и уровни превращают практику в петлю, к которой хочется возвращаться.',
-    imageSrc:
-      'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=640&q=70'
+    imageSrc: '/assets/solutions-images/xp.webp'
+  },
+  {
+    title: 'усиливать решение с ии',
+    description:
+      'ИИ-разбор: аккуратный вариант кода и короткое пояснение. Не подмена практики на уроке — отдельный шаг после того, как ты справился сам.',
+    imageSrc: '/assets/solutions-images/ai.gif'
   }
 ]
 
@@ -51,7 +54,7 @@ export default function WhatToDoSection() {
           number="03"
           eyebrow="Решение"
           title="что же делать?"
-          subtitle="Меняем привычки потребления контента на привычки производства кода. Три простых правила."
+          subtitle="Меняем привычки потребления контента на привычки производства кода. Четыре простых правила."
         />
         <ul className={styles.whatToDo__list}>
           {SOLUTIONS.map((solution, index) => (

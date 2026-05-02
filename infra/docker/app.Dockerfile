@@ -24,6 +24,14 @@ CMD ["npm", "run", "dev"]
 
 FROM deps AS builder
 ENV NEXT_TELEMETRY_DISABLED=1 SKIP_ENV_VALIDATION=1
+# `NEXT_PUBLIC_*` is inlined at `next build`. Runtime container env alone does not fix client
+# bundles; pass the same values as build args (see docker-compose `build.args`).
+ARG NEXT_PUBLIC_WORKOS_REDIRECT_URI=http://localhost:3000/callback
+ARG NEXT_PUBLIC_USE_FAKE_DATA=false
+ARG NEXT_PUBLIC_SELF_SERVE_PLANS=true
+ENV NEXT_PUBLIC_WORKOS_REDIRECT_URI=$NEXT_PUBLIC_WORKOS_REDIRECT_URI
+ENV NEXT_PUBLIC_USE_FAKE_DATA=$NEXT_PUBLIC_USE_FAKE_DATA
+ENV NEXT_PUBLIC_SELF_SERVE_PLANS=$NEXT_PUBLIC_SELF_SERVE_PLANS
 COPY app ./
 RUN for attempt in 1 2 3 4 5; do \
       npx prisma generate && break; \

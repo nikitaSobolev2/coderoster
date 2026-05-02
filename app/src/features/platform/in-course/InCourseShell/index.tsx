@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useMediaQuery } from '@mantine/hooks'
 import {
   Button,
   Group,
@@ -16,6 +17,7 @@ import {
 } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import clsx from 'clsx'
+import { Panel, PanelGroup, type ImperativePanelHandle } from 'react-resizable-panels'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faArrowRight,
@@ -44,6 +46,14 @@ import CodeEditor from '../CodeEditor'
 import ExecutionPanel, { type ExecutionState } from '../ExecutionPanel'
 import { usePerLanguageDraftPersistence } from '../usePerLanguageDraftPersistence'
 import CodeImproveHeaderTrigger from './CodeImproveHeaderTrigger'
+import InCoursePanelResizeHandle from '../layout/InCoursePanelResizeHandle'
+import {
+  IN_COURSE_HORIZONTAL_AUTOSAVE_ID,
+  NAV_PANEL,
+  TASK_PANEL,
+  WORKSPACE_PANEL
+} from '../layout/inCoursePanelConstants'
+import WorkspaceEditorExecutionSplit from '../WorkspaceEditorExecutionSplit'
 import { useExecutionPollGuards } from '~/features/platform/hooks/useExecutionPollGuards'
 import styles from './styles.module.scss'
 
@@ -101,6 +111,24 @@ export default function InCourseShell({
 
   const planQuery = api.plan.getMine.useQuery(undefined, { staleTime: 60_000 })
   const viewerTier = planQuery.data?.tierLevel ?? 0
+
+  const desktopPanels = useMediaQuery('(min-width: 769px)', true)
+  const [navRailCollapsed, setNavRailCollapsed] = useState(false)
+  const navPanelRef = useRef<ImperativePanelHandle>(null)
+
+  const handleCourseHorizontalLayout = useCallback((sizes: number[]) => {
+    const navApi = navPanelRef.current
+    if (!navApi) return
+    const navPct = sizes[0] ?? 0
+    if (navApi.isCollapsed()) {
+      setNavRailCollapsed(true)
+      return
+    }
+    setNavRailCollapsed(false)
+    if (navPct > 0 && navPct < NAV_PANEL.snapCollapseBelow) {
+      queueMicrotask(() => navApi.collapse())
+    }
+  }, [])
 
   const attemptQuery = api.progress.getTaskAttemptStatus.useQuery(
     { lessonId: lesson.id },
@@ -544,25 +572,79 @@ export default function InCourseShell({
       ? 'no_lang'
       : 'waiting'
 
-  return (
-    <div className={styles.shell}>
-      <aside className={styles.shell__nav}>
-        <TaskNav
-          course={course}
-          currentLessonId={lesson.id}
-          completedLessonIds={completedLessonIds}
-          viewerEffectiveTier={viewerTier}
+  const workspaceEditorSlot = (
+    <>
+      {solutionVariant === 'improved' && improvedFailedThisLang ? (
+        <Text size="sm" c="red" px="sm" pt="xs" pb={4}>
+          {liveAiJob.errorCode === 'NO_API_KEY'
+            ? 'Не задан ключ API для ИИ.'
+            : liveAiJob.explanationMarkdown?.trim() ||
+              (liveAiJob.errorCode ?? 'Ошибка разбора')}
+        </Text>
+      ) : null}
+      {solutionVariant === 'improved' &&
+      !improvedFailedThisLang &&
+      aiBusyTargetingEditor &&
+      !hasDisplayableImprovedCode ? (
+        <Text size="sm" c="dimmed" px="sm" pt="xs" pb={4}>
+          ИИ формирует улучшенный код…
+        </Text>
+      ) : null}
+      {showImprovedMissingForLanguageMessage ? (
+        <Text size="sm" c="dimmed" px="sm" py="md">
+          Для выбранного языка пока нет ИИ-улучшения. Переключи язык с готовым разбором или запусти
+          «Улучши код» для этого языка.
+        </Text>
+      ) : improvedFailedThisLang ||
+        (solutionVariant === 'improved' &&
+          aiBusyTargetingEditor &&
+          !hasDisplayableImprovedCode) ? null : (
+        <CodeEditor
+          key={
+            solutionVariant === 'improved'
+              ? `ai-suggestion:${editorLanguage}`
+              : `user-draft:${editorLanguage}`
+          }
+          value={editorValue}
+          onChange={v => {
+            if (solutionVariant === 'draft') setDraftForLanguage(editorLanguage, v)
+            else setImprovedScratchByLang(prev => ({ ...prev, [editorLanguage]: v }))
+          }}
+          language={editorLanguage}
+          readOnly={readOnlyEditor}
         />
-      </aside>
-      <TaskPane
-        lesson={lesson}
-        paneTab={leftPaneTab}
-        onPaneTabChange={setLeftPaneTab}
-        explanationMarkdown={explanationMarkdown ?? null}
-        showExplanationTab={showExplanationPaneTab}
-        explanationWhenEmpty={explanationWhenEmpty}
-      />
-      <section className={styles.workspace}>
+      )}
+    </>
+  )
+
+  const workspaceExecutionSlot = (
+    <ExecutionPanel
+      state={executionState}
+      result={executionResult}
+      errorMessage={executionError}
+      variant="full"
+      gradingMode={executionMode}
+    />
+  )
+
+  const taskPaneEl = (
+    <TaskPane
+      lesson={lesson}
+      paneTab={leftPaneTab}
+      onPaneTabChange={setLeftPaneTab}
+      explanationMarkdown={explanationMarkdown ?? null}
+      showExplanationTab={showExplanationPaneTab}
+      explanationWhenEmpty={explanationWhenEmpty}
+    />
+  )
+
+  const workspaceSectionEl = (
+    <section
+      className={clsx(
+        styles.workspace,
+        desktopPanels ? styles.workspace_desktopColumn : styles.workspace_mobileLayout
+      )}
+    >
         {!canUseEditor ? (
           <Paper className={styles.workspace__lock} radius="md" shadow="sm">
             <Stack align="center" gap="md">
@@ -692,58 +774,11 @@ export default function InCourseShell({
           </div>
         </header>
 
-        <div className={styles.workspace__editor}>
-          {solutionVariant === 'improved' && improvedFailedThisLang ? (
-            <Text size="sm" c="red" px="sm" pt="xs" pb={4}>
-              {liveAiJob.errorCode === 'NO_API_KEY'
-                ? 'Не задан ключ API для ИИ.'
-                : liveAiJob.explanationMarkdown?.trim() ||
-                  (liveAiJob.errorCode ?? 'Ошибка разбора')}
-            </Text>
-          ) : null}
-          {solutionVariant === 'improved' &&
-          !improvedFailedThisLang &&
-          aiBusyTargetingEditor &&
-          !hasDisplayableImprovedCode ? (
-            <Text size="sm" c="dimmed" px="sm" pt="xs" pb={4}>
-              ИИ формирует улучшенный код…
-            </Text>
-          ) : null}
-          {showImprovedMissingForLanguageMessage ? (
-            <Text size="sm" c="dimmed" px="sm" py="md">
-              Для выбранного языка пока нет ИИ-улучшения. Переключи язык с готовым разбором или
-              запусти «Улучши код» для этого языка.
-            </Text>
-          ) : improvedFailedThisLang ||
-            (solutionVariant === 'improved' &&
-              aiBusyTargetingEditor &&
-              !hasDisplayableImprovedCode) ? null : (
-            <CodeEditor
-              key={
-                solutionVariant === 'improved'
-                  ? `ai-suggestion:${editorLanguage}`
-                  : `user-draft:${editorLanguage}`
-              }
-              value={editorValue}
-              onChange={v => {
-                if (solutionVariant === 'draft') setDraftForLanguage(editorLanguage, v)
-                else setImprovedScratchByLang(prev => ({ ...prev, [editorLanguage]: v }))
-              }}
-              language={editorLanguage}
-              readOnly={readOnlyEditor}
-            />
-          )}
-        </div>
-
-        <div className={styles.workspace__execution}>
-          <ExecutionPanel
-            state={executionState}
-            result={executionResult}
-            errorMessage={executionError}
-            variant="full"
-            gradingMode={executionMode}
-          />
-        </div>
+        <WorkspaceEditorExecutionSplit
+          desktopPanels={desktopPanels}
+          editorSlot={workspaceEditorSlot}
+          executionSlot={workspaceExecutionSlot}
+        />
 
         <footer className={styles.workspace__foot}>
           <span className={styles.workspace__hint}>
@@ -815,6 +850,83 @@ export default function InCourseShell({
           </div>
         </footer>
       </section>
+  )
+
+  return (
+    <div
+      className={clsx(
+        styles.shell,
+        desktopPanels ? styles.shell_panelRoot : styles.shell_gridRoot
+      )}
+    >
+      {desktopPanels ? (
+        <PanelGroup
+          direction="horizontal"
+          autoSaveId={IN_COURSE_HORIZONTAL_AUTOSAVE_ID}
+          className={styles.panelGroupHorizontal}
+          onLayout={handleCourseHorizontalLayout}
+        >
+          <Panel
+            ref={navPanelRef}
+            id="in-course-nav"
+            collapsible
+            collapsedSize={NAV_PANEL.collapsedSize}
+            minSize={NAV_PANEL.minSize}
+            maxSize={NAV_PANEL.maxSize}
+            defaultSize={NAV_PANEL.defaultSize}
+            className={styles.panelCell}
+            onCollapse={() => setNavRailCollapsed(true)}
+            onExpand={() => setNavRailCollapsed(false)}
+          >
+            <TaskNav
+              course={course}
+              currentLessonId={lesson.id}
+              completedLessonIds={completedLessonIds}
+              viewerEffectiveTier={viewerTier}
+              minimal={navRailCollapsed}
+            />
+          </Panel>
+          <InCoursePanelResizeHandle
+            orientation="vertical"
+            resizeHandleId="in-course-split-nav-task"
+          />
+          <Panel
+            id="in-course-task"
+            defaultSize={TASK_PANEL.defaultSize}
+            minSize={TASK_PANEL.minSize}
+            maxSize={TASK_PANEL.maxSize}
+            className={styles.panelCell}
+          >
+            {taskPaneEl}
+          </Panel>
+          <InCoursePanelResizeHandle
+            orientation="vertical"
+            resizeHandleId="in-course-split-task-workspace"
+          />
+          <Panel
+            id="in-course-workspace"
+            defaultSize={WORKSPACE_PANEL.defaultSize}
+            minSize={WORKSPACE_PANEL.minSize}
+            maxSize={WORKSPACE_PANEL.maxSize}
+            className={styles.panelCell}
+          >
+            {workspaceSectionEl}
+          </Panel>
+        </PanelGroup>
+      ) : (
+        <>
+          <aside className={styles.shell__nav}>
+            <TaskNav
+              course={course}
+              currentLessonId={lesson.id}
+              completedLessonIds={completedLessonIds}
+              viewerEffectiveTier={viewerTier}
+            />
+          </aside>
+          {taskPaneEl}
+          {workspaceSectionEl}
+        </>
+      )}
     </div>
   )
 }

@@ -5,6 +5,7 @@ package sandbox
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"io"
@@ -23,9 +24,9 @@ import (
 
 // Config bundles the limits applied to every spawned container.
 type Config struct {
-	PythonImage        string
-	PHPImage           string
-	TimeoutMs          int
+	PythonImage string
+	PHPImage    string
+	TimeoutMs   int
 	// ImagePullTimeoutMs bounds Docker pull + stream drain only. Must exceed
 	// EXECUTION_TIMEOUT_MS: cold pulls use a separate deadline so fetching a layer
 	// cannot hit the sandbox wall clock (fixes "pull stream: context deadline exceeded").
@@ -38,9 +39,9 @@ type Config struct {
 
 // Runner orchestrates one container per execution.
 type Runner struct {
-	docker        *client.Client
-	config        Config
-	pulledImages  sync.Map // image ref → struct{} once successfully present locally
+	docker       *client.Client
+	config       Config
+	pulledImages sync.Map // image ref → struct{} once successfully present locally
 }
 
 // New creates a Runner using the default Docker SDK client.
@@ -90,9 +91,9 @@ func (r *Runner) ensureImage(execCtx context.Context, ref string) error {
 // Run executes the code carried by `request` and returns the structured
 // result (never an error — runtime failures map to a `failed` status).
 //
-// `mode == submit` feeds each `TestSpec.Input` as stdin in turn and grades
-// the program against `TestSpec.Expected`; `mode == run` performs a single
-// container run with the user code as stdin and reports a non-graded result.
+// `mode == submit` feeds each `TestSpec.Input` as stdin in turn for PHP when
+// `Input` is non-empty (python uses a small stdin bootstrap instead). `run`
+// performs one container run without grading.
 func (r *Runner) Run(ctx context.Context, request contracts.ExecutionRequested) contracts.ExecutionCompleted {
 	image, cmd, err := r.commandFor(request.Language)
 	if err != nil {
@@ -122,12 +123,18 @@ func (r *Runner) runOnce(
 	runCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
-	code := request.Code
+	stdin := request.Code
+	execCmd := cmd
 	if preview := stdinForRunPreview(request); preview != nil {
-		code = buildStdin(request.Code, preview, request.Language)
+		if request.Language == "php" {
+			stdin = *preview
+			execCmd = phpDecodeToFileCmd(request.Code)
+		} else {
+			stdin = buildStdin(request.Code, preview, request.Language)
+		}
 	}
 
-	stdout, stderr, runtimeMs, status, runErr := r.execute(runCtx, image, cmd, code)
+	stdout, stderr, runtimeMs, status, runErr := r.execute(runCtx, image, execCmd, stdin)
 
 	completed := contracts.ExecutionCompleted{
 		ExecutionID: request.ExecutionID,
@@ -162,10 +169,16 @@ func (r *Runner) runSubmit(
 
 	for _, test := range request.Tests {
 		runCtx, cancel := context.WithTimeout(ctx, timeout)
-		// Full source piped to `python3 -` / php: may prepend stdin bootstrap so
-		// `input()` / fgets see the autotest input (see buildStdin).
-		program := buildStdin(request.Code, test.Input, request.Language)
-		stdout, stderr, runtimeMs, status, _ := r.execute(runCtx, image, cmd, program)
+		var execCmd []string
+		stdin := request.Code
+		if request.Language == "php" && testHasStdinBytes(test.Input) {
+			stdin = *test.Input
+			execCmd = phpDecodeToFileCmd(request.Code)
+		} else {
+			execCmd = cmd
+			stdin = buildStdin(request.Code, test.Input, request.Language)
+		}
+		stdout, stderr, runtimeMs, status, _ := r.execute(runCtx, image, execCmd, stdin)
 		cancel()
 
 		actual := strings.TrimRight(stdout, " \t\r\n")
@@ -215,9 +228,9 @@ func (r *Runner) runSubmit(
 	}
 }
 
-// stdinForRunPreview picks stdin text for non-graded runs so Python/PHP wrappers
-// mirror submit tests — interpreter consumes script via stdin (`python3 -`), so
-// without replacing sys.stdin / bootstrap, input()/fgets hit EOF after source loads.
+// stdinForRunPreview picks stdin text for non-graded runs so Python previews
+// match submit tests (`sys.stdin`). PHP uses a decoded temp script + attaches
+// the same stdin as graded runs (wrapPython/buildStdin is Python-only).
 func stdinForRunPreview(req contracts.ExecutionRequested) *string {
 	if req.Mode != contracts.ModeRun || len(req.Tests) == 0 {
 		return nil
@@ -246,28 +259,16 @@ func stdinForRunPreview(req contracts.ExecutionRequested) *string {
 }
 
 func buildStdin(code string, testInput *string, language string) string {
-	// The interpreter receives the user code via the original stdin attach.
-	// When tests provide stdin, we instead concatenate code first then feed a
-	// sentinel separator the program never sees — Python/PHP can read stdin
-	// directly via input()/STDIN and we simulate by appending input. Because
-	// the user code reads from stdin AFTER its own source has been consumed,
-	// we use language-specific bootstrap that runs the code from a string
-	// while preserving stdin. Simpler approach: write the user code into a
-	// file inside the container is out of scope here, so we lean on the
-	// language reading code from "-" stdin and inputs from a separate fd.
+	// `python3 -` reads the program from the same stdin stream as Docker attach.
+	// Hidden tests prepend a small bootstrap replacing `sys.stdin` with the payload.
 	//
-	// As an MVP we append a NUL separator the runner translates by piping
-	// only the user program; if the test provides input, we cannot pipe both
-	// (interpreter would read it as more code). Instead we emit a small
-	// wrapper that defines `__INPUT__` as a string and routes input() to it.
+	// PHP with non-empty stdin is handled separately: decode source to `/tmp/*.php`,
+	// `exec php`, stdin is real test payload (supports `fgets(STDIN)`, etc.).
 	if testInput == nil || *testInput == "" {
 		return code
 	}
 	if language == "python" {
 		return wrapPython(code, *testInput)
-	}
-	if language == "php" {
-		return wrapPhp(code, *testInput)
 	}
 	return code
 }
@@ -277,13 +278,6 @@ func wrapPython(userCode string, stdinPayload string) string {
 	return preamble + userCode
 }
 
-func wrapPhp(userCode string, stdinPayload string) string {
-	header := strings.TrimPrefix(userCode, "<?php")
-	preamble := "<?php\nfile_put_contents('php://memory', " + phpQuote(stdinPayload) + ");\n"
-	preamble += "$GLOBALS['__CR_STDIN__'] = " + phpQuote(stdinPayload) + ";\n"
-	return preamble + header
-}
-
 func pyQuote(value string) string {
 	escaped := strings.ReplaceAll(value, "\\", "\\\\")
 	escaped = strings.ReplaceAll(escaped, "\"", "\\\"")
@@ -291,10 +285,20 @@ func pyQuote(value string) string {
 	return "\"" + escaped + "\""
 }
 
-func phpQuote(value string) string {
-	escaped := strings.ReplaceAll(value, "\\", "\\\\")
-	escaped = strings.ReplaceAll(escaped, "'", "\\'")
-	return "'" + escaped + "'"
+// testHasStdinBytes mirrors Python `wrap` trigger: explicit empty skips stdin swap.
+func testHasStdinBytes(input *string) bool {
+	return input != nil && *input != ""
+}
+
+// phpDecodeToFileCmd wraps source in sh -c: decode base64 to /tmp then exec php so
+// process stdin stays the autotest payload (normal fgets(STDIN) / json_decode workflows).
+func phpDecodeToFileCmd(source string) []string {
+	b64 := base64.StdEncoding.EncodeToString([]byte(source))
+	script := fmt.Sprintf(
+		"printf '%%s' '%s' | base64 -d >/tmp/.cr-submit.php || exit 2\nexec php /tmp/.cr-submit.php\n",
+		b64,
+	)
+	return []string{"/bin/sh", "-eu", "-c", script}
 }
 
 func buildTestMessage(status, stderr string, passed bool, expected, actual string) string {

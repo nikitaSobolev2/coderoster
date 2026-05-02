@@ -14,6 +14,10 @@ x-app-build: &app_build
   context: .
   dockerfile: infra/docker/app.Dockerfile
   target: prod
+  args:
+    NEXT_PUBLIC_WORKOS_REDIRECT_URI: ${NEXT_PUBLIC_WORKOS_REDIRECT_URI:-http://localhost:3000/callback}
+    NEXT_PUBLIC_USE_FAKE_DATA: ${NEXT_PUBLIC_USE_FAKE_DATA:-${USE_FAKE_DATA:-false}}
+    NEXT_PUBLIC_SELF_SERVE_PLANS: ${NEXT_PUBLIC_SELF_SERVE_PLANS:-true}
 
 x-app-env: &app_env
   SKIP_ENV_VALIDATION: ""

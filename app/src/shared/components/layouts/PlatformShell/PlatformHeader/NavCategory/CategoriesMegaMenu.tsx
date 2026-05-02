@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { HoverCard, ScrollArea } from '@mantine/core'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -26,11 +26,13 @@ export interface Props {
  */
 export default function CategoriesMegaMenu({ label, parents }: Props) {
   const firstId = parents[0]?.id ?? ''
-  const [activeId, setActiveId] = useState(firstId)
+  /** Hover/focus selection; ignored when stale after `parents` updates. */
+  const [pickedId, setPickedId] = useState<string | null>(null)
 
-  useEffect(() => {
-    setActiveId(parents[0]?.id ?? '')
-  }, [parents])
+  const activeId = useMemo(
+    () => (pickedId !== null && parents.some(p => p.id === pickedId) ? pickedId : firstId),
+    [pickedId, parents, firstId]
+  )
 
   const activeParent = parents.find(p => p.id === activeId) ?? parents[0]
 
@@ -74,8 +76,8 @@ export default function CategoriesMegaMenu({ label, parents }: Props) {
                             ? `${megaStyles.parentRow} ${megaStyles.parentRow_active}`
                             : megaStyles.parentRow
                         }
-                        onMouseEnter={() => setActiveId(parent.id)}
-                        onFocus={() => setActiveId(parent.id)}
+                        onMouseEnter={() => setPickedId(parent.id)}
+                        onFocus={() => setPickedId(parent.id)}
                         prefetch={false}
                       >
                         <span className={megaStyles.parentRow__icon} aria-hidden>
@@ -101,7 +103,11 @@ export default function CategoriesMegaMenu({ label, parents }: Props) {
                 <ul className={megaStyles.mega__childList}>
                   {(activeParent?.children ?? []).map(child => (
                     <li key={child.id}>
-                      <Link href={courseCategoryHref(child.slug)} className={megaStyles.childCard} prefetch={false}>
+                      <Link
+                        href={courseCategoryHref(child.slug)}
+                        className={megaStyles.childCard}
+                        prefetch={false}
+                      >
                         <span className={megaStyles.childCard__icon} aria-hidden>
                           <FontAwesomeIcon icon={resolveIcon(child.iconKey)} />
                         </span>

@@ -1,6 +1,6 @@
 'use client'
 
-import { Divider, SimpleGrid, Skeleton, Stack, Text, Title } from '@mantine/core'
+import { Divider, SimpleGrid, Skeleton, Text, Title } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { useAuth } from '@workos-inc/authkit-nextjs/components'
 import { api } from '~/trpc/react'

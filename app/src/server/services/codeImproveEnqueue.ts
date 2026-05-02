@@ -102,7 +102,7 @@ export async function enqueueCodeImproveJob(input: {
       await tx.outboxEvent.create({
         data: {
           topic: AI_CODE_IMPROVE_TOPIC,
-          payload: { jobId: job.id } as unknown as Prisma.InputJsonValue
+          payload: { jobId: job.id }
         }
       })
       return { jobId: job.id }

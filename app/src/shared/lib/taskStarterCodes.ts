@@ -6,8 +6,10 @@ export function normalizeStarterCodeMap(raw: unknown): Partial<Record<Language, 
   const out: Partial<Record<Language, string>> = {}
   for (const [k, v] of Object.entries(raw)) {
     const lang = String(k).trim().toLowerCase()
-    if ((lang === 'python' || lang === 'php') && typeof v === 'string') {
-      out[lang as Language] = v
+    if (lang === 'python' && typeof v === 'string') {
+      out.python = v
+    } else if (lang === 'php' && typeof v === 'string') {
+      out.php = v
     }
   }
   return out

@@ -7,7 +7,6 @@ import { Badge, Button, Group, Paper, Stack, Text } from '@mantine/core'
 import type { inferRouterOutputs } from '@trpc/server'
 import Markdown from '~/shared/components/ui/Markdown'
 import PlanBulletIcon from '~/shared/plan/PlanBulletIcon'
-import type { PlanMarketingBulletIconKey } from '~/shared/plan/planMarketing'
 import type { AppRouter } from '~/server/api/root'
 import styles from './styles.module.scss'
 
@@ -110,7 +109,9 @@ export function PlanMarketingCard({
             source={
               plan.marketingMarkdown?.trim()
                 ? plan.marketingMarkdown
-                : plan.shortDescription || '_Нет описания._'
+                : plan.shortDescription?.trim()
+                  ? plan.shortDescription
+                  : '_Нет описания._'
             }
             unstyled
           />
@@ -126,7 +127,7 @@ export function PlanMarketingCard({
                 align="flex-start"
               >
                 <span className={styles.card__bulletIcon}>
-                  <PlanBulletIcon iconKey={b.iconKey as PlanMarketingBulletIconKey} size="md" />
+                  <PlanBulletIcon iconKey={b.iconKey} size="md" />
                 </span>
                 <Text className={styles.card__bulletText}>{b.text}</Text>
               </Group>
@@ -138,10 +139,7 @@ export function PlanMarketingCard({
           <Text size="sm">
             Тир {plan.tierLevel} · +{plan.xpBonusPercent}% XP
           </Text>
-          <Text size="sm">
-            Активных курсов:{' '}
-            {plan.maxActiveCourses == null ? 'без лимита' : plan.maxActiveCourses}
-          </Text>
+          <Text size="sm">Активных курсов: {plan.maxActiveCourses ?? 'без лимита'}</Text>
         </Stack>
 
         {cta}

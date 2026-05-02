@@ -697,7 +697,8 @@ export default function InCourseShell({
             <Text size="sm" c="red" px="sm" pt="xs" pb={4}>
               {liveAiJob.errorCode === 'NO_API_KEY'
                 ? 'Не задан ключ API для ИИ.'
-                : liveAiJob.explanationMarkdown?.trim() || liveAiJob.errorCode || 'Ошибка разбора'}
+                : liveAiJob.explanationMarkdown?.trim() ||
+                  (liveAiJob.errorCode ?? 'Ошибка разбора')}
             </Text>
           ) : null}
           {solutionVariant === 'improved' &&

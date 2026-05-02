@@ -84,7 +84,7 @@ export const livechatRouter = createTRPCRouter({
         chatBanned: false,
         platformBanned: false,
         isAuthenticated: false,
-        preferredUsernameColor: LIVECHAT_DEFAULT_USERNAME_COLOR as LivechatUsernameColorToken
+        preferredUsernameColor: LIVECHAT_DEFAULT_USERNAME_COLOR
       }
     }
 

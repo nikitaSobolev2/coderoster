@@ -66,14 +66,10 @@ function ThreatSyncedDirectionalLight(
   const { presetColor, baseFallback, intensity, position } = props
   const lightRef = useRef<DirectionalLightImpl>(null)
   const scratch = useRef(new Color())
-  const presetRef = useRef(presetColor)
-  const baseRef = useRef(baseFallback)
-  presetRef.current = presetColor
-  baseRef.current = baseFallback
 
   useFrame(() => {
     const threat = useGlobeDangerDisplayStore.getState().displayThreat01
-    scratch.current.set(presetRef.current ?? baseRef.current)
+    scratch.current.set(presetColor ?? baseFallback)
     scratch.current.lerp(DANGER_DIRECTIONAL_MIX, threat)
     const light = lightRef.current
     if (light) {

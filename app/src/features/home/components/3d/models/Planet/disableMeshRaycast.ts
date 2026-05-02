@@ -4,5 +4,7 @@ import type { Mesh, Object3D } from 'three'
 export function disableMeshRaycast(object: Object3D | null): void {
   if (!object) return
   const mesh = object as Mesh
-  mesh.raycast = () => {}
+  mesh.raycast = () => {
+    /* no-op: ray passes through to geometry behind */
+  }
 }

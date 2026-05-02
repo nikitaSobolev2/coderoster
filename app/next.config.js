@@ -8,14 +8,25 @@ import './src/env.js'
  * Browser-facing origin of the object storage bucket. Falls back to the dev
  * MinIO host so a fresh `docker compose up` boots without extra config.
  */
-const UPLOAD_ORIGIN = (() => {
+const UPLOAD_URL = (() => {
   const raw = process.env.S3_PUBLIC_URL ?? 'http://localhost:9000'
   try {
-    return new URL(raw).origin
+    return new URL(raw)
   } catch {
-    return 'http://localhost:9000'
+    return new URL('http://localhost:9000')
   }
 })()
+
+const UPLOAD_ORIGIN = UPLOAD_URL.origin
+
+/** Host/path pattern for `next/image` on bucket URLs (see StorageService public URLs). */
+/** @type {import('next/dist/shared/lib/image-config').RemotePattern} */
+const UPLOAD_IMAGE_REMOTE_PATTERN = {
+  protocol: UPLOAD_URL.protocol === 'https:' ? 'https' : 'http',
+  hostname: UPLOAD_URL.hostname,
+  ...(UPLOAD_URL.port ? { port: UPLOAD_URL.port } : {}),
+  pathname: '/**'
+}
 
 /** Linux fs notify breaks on Docker bind mounts from Windows/macOS; webpack dev uses watchOptions + WATCHPACK_POLLING. */
 const isDockerDev = process.env.NEXT_DEV_IN_DOCKER === '1'
@@ -52,6 +63,9 @@ const SECURITY_HEADERS = [
 /** @type {import("next").NextConfig} */
 const config = {
   output: 'standalone',
+  images: {
+    remotePatterns: [UPLOAD_IMAGE_REMOTE_PATTERN]
+  },
   experimental: {
     reactCompiler: true
   },

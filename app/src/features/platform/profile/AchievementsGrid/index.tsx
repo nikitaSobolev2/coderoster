@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { resolveIcon } from '~/shared/components/ui/IconOrImageField/iconMap'
 import type { EarnedAchievement } from '~/server/repositories/types'
@@ -30,10 +31,12 @@ export default function AchievementsGrid({ achievements }: Props) {
               }
             >
               {achievement.imageUrl ? (
-                <img
+                <Image
                   src={achievement.imageUrl}
                   alt=""
-                  aria-hidden="true"
+                  aria-hidden
+                  fill
+                  sizes="72px"
                   className={styles.tile__image}
                 />
               ) : (

@@ -93,7 +93,12 @@ function parseStored(raw: string | null): LiveChatFrameRect | null {
     ) {
       return null
     }
-    return clampPosition(v as LiveChatFrameRect)
+    return clampPosition({
+      left: v.left,
+      top: v.top,
+      width: v.width,
+      height: v.height
+    })
   } catch {
     return null
   }
@@ -176,22 +181,25 @@ export default function LiveChatFloatingShell() {
 
   const onPointerMoveHeader = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
     const drag = dragRef.current
-    if (!drag || event.pointerId !== drag.pointerId) return
+    if (drag?.pointerId !== event.pointerId) return
+    if (!drag) return
     const dx = event.clientX - drag.originX
     const dy = event.clientY - drag.originY
+    const { startLeft, startTop } = drag
     setFrame(prev => {
       if (!prev) return prev
       return clampPosition({
         ...prev,
-        left: drag!.startLeft + dx,
-        top: drag!.startTop + dy
+        left: startLeft + dx,
+        top: startTop + dy
       })
     })
   }, [])
 
   const endDrag = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
     const drag = dragRef.current
-    if (!drag || event.pointerId !== drag.pointerId) return
+    if (drag?.pointerId !== event.pointerId) return
+    if (!drag) return
     dragRef.current = null
     try {
       event.currentTarget.releasePointerCapture(event.pointerId)

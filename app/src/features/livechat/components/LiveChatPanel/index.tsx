@@ -156,9 +156,12 @@ export default function LiveChatPanel({
     let es: EventSource | null = null
     try {
       es = new EventSource('/api/livechat/stream')
-      es.onmessage = event => {
+      es.onmessage = (event: MessageEvent<string>) => {
         try {
-          const parsed = JSON.parse(event.data) as LivechatStreamPayload
+          const rawData = event.data
+          if (typeof rawData !== 'string') return
+          const parsedRaw = JSON.parse(rawData) as unknown
+          const parsed = parsedRaw as LivechatStreamPayload
           if (parsed.type !== 'message' || !parsed.message) return
           const incoming = parsed.message
           const normalized = toLivechatFeedMessage(incoming)

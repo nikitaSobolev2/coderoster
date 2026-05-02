@@ -1,10 +1,7 @@
 import 'server-only'
 import type { Prisma } from '@prisma/client'
 import { db } from '~/server/db'
-import {
-  sanitizeMarkdown,
-  sanitizePlainText
-} from '~/server/lib/sanitize'
+import { sanitizeMarkdown, sanitizePlainText } from '~/server/lib/sanitize'
 import type { PlanMarketingBullet } from '~/shared/plan/planMarketing'
 import { parsePlanMarketingBullets, planMarketingBulletsSchema } from '~/shared/plan/planMarketing'
 
@@ -77,7 +74,7 @@ export class AdminPlansRepository {
         name: sanitizePlainText(input.name),
         shortDescription: sanitizePlainText(input.shortDescription ?? ''),
         marketingMarkdown: sanitizeMarkdown(input.marketingMarkdown ?? ''),
-        marketingFeatures: marketingFeatures as unknown as Prisma.InputJsonValue,
+        marketingFeatures,
         isBestseller: input.isBestseller ?? false,
         tierLevel: input.tierLevel,
         xpBonusPercent: input.xpBonusPercent ?? 0,
@@ -114,7 +111,7 @@ export class AdminPlansRepository {
     }
     if (patch.marketingFeatures !== undefined) {
       const cleaned = this.sanitizeFeaturesInput(patch.marketingFeatures)
-      data.marketingFeatures = cleaned as unknown as Prisma.InputJsonValue
+      data.marketingFeatures = cleaned
     }
     if (patch.tierLevel !== undefined) data.tierLevel = patch.tierLevel
     if (patch.xpBonusPercent !== undefined) data.xpBonusPercent = patch.xpBonusPercent
@@ -198,25 +195,23 @@ export class AdminPlansRepository {
     })
   }
 
-  private toRow(
-    row: {
-      id: string
-      slug: string
-      name: string
-      shortDescription: string
-      marketingMarkdown: string
-      marketingFeatures: Prisma.JsonValue
-      isBestseller: boolean
-      tierLevel: number
-      xpBonusPercent: number
-      sortOrder: number
-      isDefaultFree: boolean
-      maxActiveCourses: number | null
-      createdAt: Date
-      updatedAt: Date
-      _count: { users: number }
-    }
-  ): AdminPlanRow {
+  private toRow(row: {
+    id: string
+    slug: string
+    name: string
+    shortDescription: string
+    marketingMarkdown: string
+    marketingFeatures: Prisma.JsonValue
+    isBestseller: boolean
+    tierLevel: number
+    xpBonusPercent: number
+    sortOrder: number
+    isDefaultFree: boolean
+    maxActiveCourses: number | null
+    createdAt: Date
+    updatedAt: Date
+    _count: { users: number }
+  }): AdminPlanRow {
     return {
       id: row.id,
       slug: row.slug,

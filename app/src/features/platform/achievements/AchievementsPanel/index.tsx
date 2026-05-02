@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import Image from 'next/image'
 import { Progress, SegmentedControl } from '@mantine/core'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCircleQuestion, faTrophy } from '@fortawesome/free-solid-svg-icons'
@@ -79,10 +80,12 @@ export default function AchievementsPanel({ initial, isAuthenticated }: Props) {
             <li key={item.id} className={styles.panel__tile} data-earned={item.earned}>
               <div className={styles.panel__iconWrap} data-rarity={item.rarity}>
                 {item.imageUrl ? (
-                  <img
+                  <Image
                     src={item.imageUrl}
                     alt=""
-                    aria-hidden="true"
+                    aria-hidden
+                    fill
+                    sizes="48px"
                     className={styles.panel__iconImage}
                   />
                 ) : (

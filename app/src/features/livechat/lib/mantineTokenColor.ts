@@ -16,7 +16,9 @@ export function mantineTokenToHex(theme: MantineTheme, token: string): string | 
   if (!name || shadeRaw === undefined) return undefined
   const shade = Number.parseInt(shadeRaw, 10)
   if (Number.isNaN(shade)) return undefined
-  const palette = theme.colors[name as keyof MantineTheme['colors']]
+  if (!(name in theme.colors)) return undefined
+  const palettes = theme.colors as Record<string, readonly string[] | undefined>
+  const palette = palettes[name]
   if (!palette) return undefined
   const idx = Math.min(Math.max(shade, 0), palette.length - 1)
   return palette[idx]

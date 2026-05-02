@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import clsx from 'clsx'
 import styles from './styles.module.scss'
 
@@ -27,11 +28,17 @@ export default function CoursePreview({
   if (coverImage) {
     return (
       <div className={className}>
-        <img
+        <Image
           className={styles.preview__image}
           src={coverImage}
           alt={decorative ? '' : title}
-          aria-hidden={decorative ? 'true' : undefined}
+          fill
+          sizes={
+            size === 'hero'
+              ? '(max-width: 1024px) 100vw, min(1200px, 100vw)'
+              : '(max-width: 640px) 100vw, (max-width: 1200px) 50vw, 400px'
+          }
+          aria-hidden={decorative || undefined}
         />
       </div>
     )

@@ -1,4 +1,4 @@
-@import '~/shared/assets/styles/mixins.scss';
+@use '~/shared/assets/styles/mixins' as *;
 
 .panel {
   display: flex;
@@ -63,6 +63,7 @@
   }
 
   &__iconWrap {
+    position: relative;
     display: grid;
     place-items: center;
     width: 3rem;

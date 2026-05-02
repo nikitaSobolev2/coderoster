@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, type CSSProperties } from 'react'
+import Image from 'next/image'
 import clsx from 'clsx'
 import { ActionIcon, Button, Group, Progress } from '@mantine/core'
 import { Dropzone, IMAGE_MIME_TYPE, type FileWithPath } from '@mantine/dropzone'
@@ -126,7 +127,13 @@ export default function ImageUploadField({
             )}
             style={previewStyle}
           >
-            <img className={styles.preview__image} src={value ?? ''} alt="" />
+            <Image
+              className={styles.preview__image}
+              src={value ?? ''}
+              alt=""
+              fill
+              sizes={variant === 'avatar' ? '12rem' : '(max-width: 640px) 100vw, 480px'}
+            />
           </div>
           <div className={styles.preview__actions}>
             <span className={styles.preview__filename}>{value}</span>

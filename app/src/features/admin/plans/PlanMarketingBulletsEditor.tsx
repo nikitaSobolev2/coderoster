@@ -82,7 +82,7 @@ export default function PlanMarketingBulletsEditor({
               <FontAwesomeIcon icon={faChevronDown} />
             </ActionIcon>
             <Group gap={6} wrap="nowrap">
-              <PlanBulletIcon iconKey={row.iconKey as PlanMarketingBullet['iconKey']} size="md" />
+              <PlanBulletIcon iconKey={row.iconKey} size="md" />
               <NativeSelect
                 w={200}
                 aria-label="Иконка"

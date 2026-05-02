@@ -14,7 +14,9 @@ export async function GET(request: Request) {
         await subscriber.subscribe(LIVECHAT_REDIS_CHANNEL)
       } catch (error) {
         controller.error(error)
-        subscriber.quit().catch(() => {})
+        subscriber.quit().catch(() => {
+          /* ignore */
+        })
         return
       }
 
@@ -41,8 +43,12 @@ export async function GET(request: Request) {
       request.signal.addEventListener('abort', () => {
         clearInterval(heartbeat)
         subscriber.off('message', onMessage)
-        subscriber.unsubscribe(LIVECHAT_REDIS_CHANNEL).catch(() => {})
-        subscriber.quit().catch(() => {})
+        subscriber.unsubscribe(LIVECHAT_REDIS_CHANNEL).catch(() => {
+          /* ignore */
+        })
+        subscriber.quit().catch(() => {
+          /* ignore */
+        })
         try {
           controller.close()
         } catch {

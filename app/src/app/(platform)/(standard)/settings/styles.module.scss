@@ -1,4 +1,4 @@
-@import '~/shared/assets/styles/mixins.scss';
+@use '~/shared/assets/styles/mixins' as *;
 
 .page {
   width: min(100%, var(--platform-shell-max-width));

@@ -27,7 +27,7 @@ export function toLivechatFeedMessage(raw: {
 }): LivechatFeedMessage {
   return {
     ...raw,
-    createdAt: raw.createdAt instanceof Date ? raw.createdAt : new Date(raw.createdAt as string),
+    createdAt: raw.createdAt instanceof Date ? raw.createdAt : new Date(raw.createdAt),
     authorProfileUsername: raw.authorProfileUsername ?? null,
     authorIsStaff: raw.authorIsStaff ?? false,
     authorPlanTierLevel: raw.authorPlanTierLevel ?? 0,

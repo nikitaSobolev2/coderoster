@@ -57,7 +57,7 @@ async function handleEvent(payload: unknown): Promise<void> {
       stderr: event.stderr,
       runtimeMs: event.runtimeMs,
       passed: isSubmit ? event.passed : null,
-      testResults: event.testResults as unknown as Prisma.InputJsonValue,
+      testResults: event.testResults,
       errorMessage: event.errorMessage
     }
   })

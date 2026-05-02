@@ -1,5 +1,4 @@
 import { z } from 'zod'
-import type { Prisma } from '@prisma/client'
 import { createTRPCRouter, protectedProcedure } from '~/server/api/trpc'
 import { adminProcedure, aiImproveProcedure } from '~/server/api/procedures'
 import { db } from '~/server/db'
@@ -103,7 +102,7 @@ export const codeImproveRouter = createTRPCRouter({
         db.outboxEvent.create({
           data: {
             topic: AI_CODE_IMPROVE_TOPIC,
-            payload: { jobId: job.id } as unknown as Prisma.InputJsonValue
+            payload: { jobId: job.id }
           }
         })
       ])

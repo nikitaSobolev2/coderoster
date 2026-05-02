@@ -36,7 +36,8 @@ export function verifyGuestSessionToken(token: string): string | null {
 
 export function parseGuestSessionFromCookieHeader(cookieHeader: string | null): string | null {
   if (!cookieHeader) return null
-  const match = cookieHeader.match(/(?:^|;\s*)livechat_guest=([^;]+)/)
+  const guestCookieRe = /(?:^|;\s*)livechat_guest=([^;]+)/
+  const match = guestCookieRe.exec(cookieHeader)
   const raw = match?.[1]
   if (!raw) return null
   try {

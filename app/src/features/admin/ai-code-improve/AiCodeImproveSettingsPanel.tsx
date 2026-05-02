@@ -24,7 +24,8 @@ export default function AiCodeImproveSettingsPanel() {
       onSubmit={event => {
         event.preventDefault()
         const fd = new FormData(event.currentTarget)
-        const model = String(fd.get('model') ?? '').trim()
+        const entry = fd.get('model')
+        const model = (typeof entry === 'string' ? entry : '').trim()
         if (model.length === 0) return
         mutation.mutate({ model })
       }}
@@ -32,8 +33,7 @@ export default function AiCodeImproveSettingsPanel() {
       <Stack gap="md" maw={480}>
         <Text size="sm" c="dimmed">
           Модель OpenAI-compatible чата для воркера ИИ-разбора (Go:{' '}
-          <code>workers/code-improve</code>).
-          Хранится в <code>AppSetting.ai_code_improve</code>.
+          <code>workers/code-improve</code>). Хранится в <code>AppSetting.ai_code_improve</code>.
         </Text>
         <TextInput
           name="model"

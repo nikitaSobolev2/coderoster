@@ -1,4 +1,4 @@
-@import '~/shared/assets/styles/mixins.scss';
+@use '~/shared/assets/styles/mixins' as *;
 
 .layout {
   display: grid;

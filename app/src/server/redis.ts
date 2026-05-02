@@ -13,7 +13,8 @@ declare global {
 export const redis: Redis =
   globalThis.__redisClient ??
   new Redis(env.REDIS_URL, {
-    lazyConnect: false,
+    // Avoid TCP during import — `next build` runs without Redis (e.g. Docker builder); eager connect only spams logs / wastes retries.
+    lazyConnect: true,
     maxRetriesPerRequest: 2,
     enableReadyCheck: true,
     reconnectOnError: () => true

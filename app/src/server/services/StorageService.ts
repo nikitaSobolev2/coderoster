@@ -155,7 +155,13 @@ export class StorageService {
   }
 }
 
-export const storageService = new StorageService()
+let storageServiceSingleton: StorageService | undefined
+
+/** Lazy init so `next build` with `SKIP_ENV_VALIDATION` never runs `new URL` on missing S3 env at import time. */
+export function getStorageService(): StorageService {
+  storageServiceSingleton ??= new StorageService()
+  return storageServiceSingleton
+}
 
 /**
  * Returns the scheme + host (+ optional port) of a URL — the form an S3
@@ -164,5 +170,9 @@ export const storageService = new StorageService()
  * bucket themselves, which would double up as `/<bucket>/<bucket>/<key>`.
  */
 function extractOrigin(url: string): string {
-  return new URL(url).origin
+  const trimmed = url.trim()
+  if (!trimmed) {
+    throw new Error('S3_PUBLIC_URL is empty — required for presigned uploads.')
+  }
+  return new URL(trimmed).origin
 }

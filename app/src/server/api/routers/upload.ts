@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { TRPCError } from '@trpc/server'
 import { createTRPCRouter, protectedProcedure } from '~/server/api/trpc'
-import { storageService, type UploadKind } from '~/server/services/StorageService'
+import { getStorageService, type UploadKind } from '~/server/services/StorageService'
 
 const ALLOWED_CONTENT_TYPES = [
   'image/jpeg',
@@ -54,7 +54,7 @@ export const uploadRouter = createTRPCRouter({
         message: `Файл больше лимита (${Math.round(limit / (1024 * 1024))} МБ).`
       })
     }
-    return storageService.presignPut({
+    return getStorageService().presignPut({
       kind: input.kind,
       ownerId: ctx.user.id,
       contentType: input.contentType

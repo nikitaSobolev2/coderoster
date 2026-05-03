@@ -201,6 +201,7 @@
   @include clickable;
   @include focusGlow;
 
+  position: relative;
   display: flex;
   align-items: center;
   gap: 0.6rem;
@@ -220,6 +221,73 @@
 
     color: var(--color-text);
     transform: translateX(2px);
+  }
+}
+
+.nav_minimal .lesson.lesson_current.lesson_minimal {
+  isolation: isolate;
+  padding-block: 0.38rem;
+  background: transparent;
+  color: var(--color-text);
+  /* Reset expanded-rail cue (inset leading bar fights centered rail UI). */
+  box-shadow: none;
+  outline: none;
+  border-radius: 0.5rem;
+}
+
+.nav_minimal .lesson.lesson_current.lesson_minimal::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      120% 85% at 50% -10%,
+      color-mix(in srgb, var(--platform-color-accent) 62%, transparent) 0%,
+      transparent 58%
+    ),
+    linear-gradient(
+      155deg,
+      color-mix(in srgb, var(--platform-color-accent-soft) 85%, transparent) 0%,
+      color-mix(in srgb, var(--platform-color-accent) 26%, transparent) 100%
+    );
+  opacity: 0.97;
+}
+
+.nav_minimal .lesson.lesson_current.lesson_minimal::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #fff 22%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, var(--platform-color-accent) 48%, transparent);
+}
+
+.nav_minimal .lesson.lesson_current .lesson__icon {
+  position: relative;
+  z-index: 1;
+  font-size: 1.28rem;
+  color: color-mix(in srgb, var(--color-text) 4%, var(--platform-color-accent));
+  filter: drop-shadow(0 1px 2px color-mix(in srgb, #000 45%, transparent));
+}
+
+.nav_minimal .lesson.lesson_current:hover,
+.nav_minimal .lesson.lesson_current:focus-visible {
+  transform: none;
+  color: var(--color-text);
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+
+  &::after {
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, #fff 26%, transparent),
+      inset 0 0 0 1px color-mix(in srgb, var(--platform-color-accent) 58%, transparent);
   }
 }
 
@@ -253,6 +321,11 @@
 
 .lesson_current .lesson__icon {
   font-size: 0.68rem;
+}
+
+.nav_minimal .lesson .lesson__icon {
+  font-size: 1.15rem;
+  line-height: 1;
 }
 
 .lesson__ordinal,
@@ -295,8 +368,8 @@
 
 .lesson_minimal {
   justify-content: center;
-  padding: 0.32rem 0.15rem;
-  min-height: 2rem;
+  padding: 0.38rem 0.15rem;
+  min-height: 2.35rem;
   gap: 0;
 
   .lesson__title,

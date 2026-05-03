@@ -1,10 +1,12 @@
 'use client'
 
+import clsx from 'clsx'
 import { useEffect, useState } from 'react'
 import { Tabs } from '@mantine/core'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCircleCheck, faCircleXmark, faSpinner } from '@fortawesome/free-solid-svg-icons'
 import type { RunResult } from '~/server/repositories/types'
+import { useWorkspaceVerticalLayout } from '../layout/WorkspaceVerticalLayoutContext'
 import TestResultsList from './TestResultsList'
 import styles from './styles.module.scss'
 
@@ -40,8 +42,16 @@ export default function ExecutionPanel({
   variant = 'full',
   gradingMode = 'submit'
 }: Props) {
+  const { executionRailOnly } = useWorkspaceVerticalLayout()
   if (variant === 'sandbox') {
-    return <RunOnlyPanel state={state} result={result} errorMessage={errorMessage} />
+    return (
+      <RunOnlyPanel
+        state={state}
+        result={result}
+        errorMessage={errorMessage}
+        labelOnly={executionRailOnly}
+      />
+    )
   }
   return (
     <SubmitPanel
@@ -49,6 +59,7 @@ export default function ExecutionPanel({
       result={result}
       errorMessage={errorMessage}
       gradingMode={gradingMode}
+      labelOnly={executionRailOnly}
     />
   )
 }
@@ -56,34 +67,43 @@ export default function ExecutionPanel({
 function RunOnlyPanel({
   state,
   result,
-  errorMessage
+  errorMessage,
+  labelOnly
 }: {
   state: ExecutionState
   result: RunResult | null
   errorMessage: string | null
+  labelOnly: boolean
 }) {
   return (
-    <section className={styles.panel}>
-      <header className={styles.panel__head}>
-        <h3 className={styles.panel__title}>Результат</h3>
-        {state === 'running' ? (
-          <span className={styles.verdict}>
-            <FontAwesomeIcon icon={faSpinner} spin /> запуск
-          </span>
-        ) : null}
-      </header>
-      <div className={styles.tabs__panel}>
-        {state === 'running' ? (
-          <Loading />
-        ) : errorMessage ? (
-          <pre className={styles.errors}>{errorMessage}</pre>
-        ) : result ? (
-          <RunOutput result={result} />
-        ) : (
-          <Empty hint="Запусти код, чтобы увидеть вывод." />
-        )}
+    <div className={clsx(styles.execViewport, labelOnly && styles.execViewport_labelOnly)}>
+      <aside className={styles.resultsRibbon} aria-label="Результат">
+        <span className={styles.resultsRibbonLabel}>Результат</span>
+      </aside>
+      <div className={styles.execMain} aria-hidden={labelOnly}>
+        <section className={`${styles.panel} ${styles.panel_embedded}`}>
+          <header className={styles.panel__head}>
+            <h3 className={styles.panel__title}>Результат</h3>
+            {state === 'running' ? (
+              <span className={styles.verdict}>
+                <FontAwesomeIcon icon={faSpinner} spin /> запуск
+              </span>
+            ) : null}
+          </header>
+          <div className={styles.tabs__panel}>
+            {state === 'running' ? (
+              <Loading />
+            ) : errorMessage ? (
+              <pre className={styles.errors}>{errorMessage}</pre>
+            ) : result ? (
+              <RunOutput result={result} />
+            ) : (
+              <Empty hint="Запусти код, чтобы увидеть вывод." />
+            )}
+          </div>
+        </section>
       </div>
-    </section>
+    </div>
   )
 }
 
@@ -106,12 +126,14 @@ function SubmitPanel({
   state,
   result,
   errorMessage,
-  gradingMode
+  gradingMode,
+  labelOnly
 }: {
   state: ExecutionState
   result: RunResult | null
   errorMessage: string | null
   gradingMode: ExecutionGradingMode
+  labelOnly: boolean
 }) {
   const [panelTab, setPanelTab] = useState<PanelTab>('output')
 
@@ -144,78 +166,85 @@ function SubmitPanel({
   const progErrFlag = Boolean(result?.stderr?.trim())
 
   return (
-    <section className={styles.panel}>
-      <header className={styles.panel__head}>
-        <h3 className={styles.panel__title}>Результаты</h3>
-        <Verdict
-          state={state}
-          result={result}
-          gradingMode={gradingMode}
-          infraError={infraFlag}
-          progStderr={progErrFlag}
-        />
-      </header>
+    <div className={clsx(styles.execViewport, labelOnly && styles.execViewport_labelOnly)}>
+      <aside className={styles.resultsRibbon} aria-label="Результаты">
+        <span className={styles.resultsRibbonLabel}>Результаты</span>
+      </aside>
+      <div className={styles.execMain} aria-hidden={labelOnly}>
+        <section className={`${styles.panel} ${styles.panel_embedded}`}>
+          <header className={styles.panel__head}>
+            <h3 className={styles.panel__title}>Результаты</h3>
+            <Verdict
+              state={state}
+              result={result}
+              gradingMode={gradingMode}
+              infraError={infraFlag}
+              progStderr={progErrFlag}
+            />
+          </header>
 
-      <div className={styles.tabs__root}>
-        <Tabs
-          value={panelTab}
-          onChange={v => setPanelTab((v ?? 'output') as PanelTab)}
-          keepMounted={false}
-          styles={{
-            root: {
-              flex: 1,
-              minHeight: 0,
-              display: 'flex',
-              flexDirection: 'column',
-              overflow: 'hidden'
-            },
-            list: { flexShrink: 0 }
-          }}
-          classNames={{
-            list: styles.tabs__list,
-            tab: styles.tabs__tab,
-            panel: styles.tabs__panel
-          }}
-        >
-          <Tabs.List>
-            <Tabs.Tab value="output">Вывод</Tabs.Tab>
-            <Tabs.Tab value="tests">Тесты</Tabs.Tab>
-            <Tabs.Tab value="errors">Ошибки</Tabs.Tab>
-          </Tabs.List>
+          <div className={styles.tabs__root}>
+            <Tabs
+              value={panelTab}
+              onChange={v => setPanelTab((v ?? 'output') as PanelTab)}
+              keepMounted={false}
+              styles={{
+                root: {
+                  flex: 1,
+                  minHeight: 0,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  overflow: 'hidden'
+                },
+                list: { flexShrink: 0 }
+              }}
+              classNames={{
+                list: styles.tabs__list,
+                tab: styles.tabs__tab,
+                panel: styles.tabs__panel
+              }}
+            >
+              <Tabs.List>
+                <Tabs.Tab value="output">Вывод</Tabs.Tab>
+                <Tabs.Tab value="tests">Тесты</Tabs.Tab>
+                <Tabs.Tab value="errors">Ошибки</Tabs.Tab>
+              </Tabs.List>
 
-          <Tabs.Panel value="output">
-            {state === 'running' ? (
-              <Loading />
-            ) : result?.stdout?.trim() ? (
-              <pre className={styles.output}>{result.stdout}</pre>
-            ) : (
-              <Empty hint="Пока пустой вывод. Проверь вкладку «Ошибки» при сбое." />
-            )}
-            {result ? <span className={styles.output__time}>{result.runtimeMs} мс</span> : null}
-          </Tabs.Panel>
+              <Tabs.Panel value="output">
+                {state === 'running' ? (
+                  <Loading />
+                ) : result?.stdout?.trim() ? (
+                  <pre className={styles.output}>{result.stdout}</pre>
+                ) : (
+                  <Empty hint="Пока пустой вывод. Проверь вкладку «Ошибки» при сбое." />
+                )}
+                {result ? <span className={styles.output__time}>{result.runtimeMs} мс</span> : null}
+              </Tabs.Panel>
 
-          <Tabs.Panel value="tests">
-            {state === 'running' ? (
-              <Loading />
-            ) : !result ? (
-              <Empty hint="Тесты появятся после проверки кода или сдачи." />
-            ) : (
-              <TestResultsList testResults={result.testResults} />
-            )}
-          </Tabs.Panel>
+              <Tabs.Panel value="tests">
+                {state === 'running' ? (
+                  <Loading />
+                ) : !result ? (
+                  <Empty hint="Тесты появятся после проверки кода или сдачи." />
+                ) : (
+                  <TestResultsList testResults={result.testResults} />
+                )}
+              </Tabs.Panel>
 
-          <Tabs.Panel value="errors">
-            {infraFlag ? (
-              <pre className={styles.errors}>{errorMessage}</pre>
-            ) : progErrFlag && result?.stderr ? (
-              <pre className={styles.errors}>{result.stderr}</pre>
-            ) : (
-              <Empty hint="Ошибок нет." />
-            )}
-          </Tabs.Panel>
-        </Tabs>
+              <Tabs.Panel value="errors">
+                {infraFlag ? (
+                  <pre className={styles.errors}>{errorMessage}</pre>
+                ) : progErrFlag && result?.stderr ? (
+                  <pre className={styles.errors}>{result.stderr}</pre>
+                ) : (
+                  <Empty hint="Ошибок нет." />
+                )}
+              </Tabs.Panel>
+            </Tabs>
+          </div>
+        </section>
       </div>
-    </section>
+    </div>
   )
 }
 

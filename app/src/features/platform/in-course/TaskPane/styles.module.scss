@@ -1,12 +1,30 @@
 @use '~/shared/assets/styles/mixins' as *;
 
+.viewport {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.viewport[data-task-pane-variant='compact'] {
+  container-type: inline-size;
+  container-name: taskPaneViewport;
+  align-items: flex-start;
+  box-sizing: border-box;
+  align-items: center;
+}
+
 .pane {
   display: flex;
   flex-direction: column;
+  flex: 1;
+  min-height: 0;
   gap: 1.25rem;
   padding: 1.5rem 1.75rem;
   overflow-y: auto;
-  height: 100%;
 }
 
 .pane__head {
@@ -145,4 +163,34 @@
       color: var(--color-text);
     }
   }
+}
+
+.paneCompact {
+  flex: 1 1 auto;
+  min-height: 0;
+  box-sizing: border-box;
+  width: min(100%, 33cqw);
+  max-width: min(100%, 6.75rem);
+  min-width: 0;
+  margin-inline: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.1rem 0.35rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+  gap: 0.35rem;
+  @include scrollbarSlim;
+  width: 100%;
+}
+
+.pane__compactOrdinal {
+  flex-shrink: 0;
+  white-space: nowrap;
+  font-size: clamp(13px, 1.85vmin, 17px);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  line-height: 1.1;
+  color: color-mix(in srgb, var(--platform-color-accent) 88%, var(--color-text));
 }

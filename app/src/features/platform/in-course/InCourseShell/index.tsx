@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useMediaQuery } from '@mantine/hooks'
@@ -17,7 +17,12 @@ import {
 } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import clsx from 'clsx'
-import { Panel, PanelGroup, type ImperativePanelHandle } from 'react-resizable-panels'
+import {
+  Panel,
+  PanelGroup,
+  type ImperativePanelGroupHandle,
+  type ImperativePanelHandle
+} from 'react-resizable-panels'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faArrowRight,
@@ -50,10 +55,14 @@ import InCoursePanelResizeHandle from '../layout/InCoursePanelResizeHandle'
 import {
   IN_COURSE_HORIZONTAL_AUTOSAVE_ID,
   NAV_PANEL,
+  normalizeResizablePanelLayoutToPercent,
+  shouldSnapPanelToCollapsedRail,
+  shouldUseCollapsibleRailChrome,
   TASK_PANEL,
   WORKSPACE_PANEL
 } from '../layout/inCoursePanelConstants'
 import WorkspaceEditorExecutionSplit from '../WorkspaceEditorExecutionSplit'
+import { lessonOrdinalLabel } from '../lib/lessonOrdinalLabel'
 import { useExecutionPollGuards } from '~/features/platform/hooks/useExecutionPollGuards'
 import styles from './styles.module.scss'
 
@@ -114,21 +123,78 @@ export default function InCourseShell({
 
   const desktopPanels = useMediaQuery('(min-width: 769px)', true)
   const [navRailCollapsed, setNavRailCollapsed] = useState(false)
+  const [taskRailCollapsed, setTaskRailCollapsed] = useState(false)
+  const [workspaceRailCollapsed, setWorkspaceRailCollapsed] = useState(false)
+  const horizontalPanelGroupRef = useRef<ImperativePanelGroupHandle>(null)
   const navPanelRef = useRef<ImperativePanelHandle>(null)
+  const taskPanelRef = useRef<ImperativePanelHandle>(null)
+  const workspacePanelRef = useRef<ImperativePanelHandle>(null)
 
-  const handleCourseHorizontalLayout = useCallback((sizes: number[]) => {
+  const handleHorizontalLayout = useCallback((sizes: number[]) => {
     const navApi = navPanelRef.current
-    if (!navApi) return
-    const navPct = sizes[0] ?? 0
-    if (navApi.isCollapsed()) {
-      setNavRailCollapsed(true)
-      return
+    const taskApi = taskPanelRef.current
+    const workspaceApi = workspacePanelRef.current
+    const n = normalizeResizablePanelLayoutToPercent(sizes)
+    const navPct = n[0] ?? 0
+    const taskPct = n[1] ?? 0
+    const workspacePct = n[2] ?? 0
+
+    if (navApi) {
+      setNavRailCollapsed(shouldUseCollapsibleRailChrome(navPct, NAV_PANEL.snapCollapseBelow))
+      if (
+        shouldSnapPanelToCollapsedRail(navPct, NAV_PANEL.snapCollapseBelow, NAV_PANEL.collapsedSize)
+      ) {
+        queueMicrotask(() => navApi.collapse())
+      }
     }
-    setNavRailCollapsed(false)
-    if (navPct > 0 && navPct < NAV_PANEL.snapCollapseBelow) {
-      queueMicrotask(() => navApi.collapse())
+
+    if (taskApi) {
+      setTaskRailCollapsed(shouldUseCollapsibleRailChrome(taskPct, TASK_PANEL.snapCollapseBelow))
+      if (
+        shouldSnapPanelToCollapsedRail(
+          taskPct,
+          TASK_PANEL.snapCollapseBelow,
+          TASK_PANEL.collapsedSize
+        )
+      ) {
+        queueMicrotask(() => taskApi.collapse())
+      }
+    }
+
+    if (workspaceApi) {
+      setWorkspaceRailCollapsed(
+        shouldUseCollapsibleRailChrome(workspacePct, WORKSPACE_PANEL.snapCollapseBelow)
+      )
+      if (
+        shouldSnapPanelToCollapsedRail(
+          workspacePct,
+          WORKSPACE_PANEL.snapCollapseBelow,
+          WORKSPACE_PANEL.collapsedSize
+        )
+      ) {
+        queueMicrotask(() => workspaceApi.collapse())
+      }
     }
   }, [])
+
+  useLayoutEffect(() => {
+    if (!desktopPanels) return
+    queueMicrotask(() => {
+      const raw = horizontalPanelGroupRef.current?.getLayout()
+      if (!raw || raw.length < 3) return
+      const n = normalizeResizablePanelLayoutToPercent(raw)
+      const navPct = n[0] ?? 0
+      const taskPct = n[1] ?? 0
+      const workspacePct = n[2] ?? 0
+      setNavRailCollapsed(shouldUseCollapsibleRailChrome(navPct, NAV_PANEL.snapCollapseBelow))
+      setTaskRailCollapsed(shouldUseCollapsibleRailChrome(taskPct, TASK_PANEL.snapCollapseBelow))
+      setWorkspaceRailCollapsed(
+        shouldUseCollapsibleRailChrome(workspacePct, WORKSPACE_PANEL.snapCollapseBelow)
+      )
+    })
+  }, [desktopPanels, lesson.id])
+
+  const workspaceRailUi = workspaceRailCollapsed
 
   const attemptQuery = api.progress.getTaskAttemptStatus.useQuery(
     { lessonId: lesson.id },
@@ -578,8 +644,7 @@ export default function InCourseShell({
         <Text size="sm" c="red" px="sm" pt="xs" pb={4}>
           {liveAiJob.errorCode === 'NO_API_KEY'
             ? 'Не задан ключ API для ИИ.'
-            : liveAiJob.explanationMarkdown?.trim() ||
-              (liveAiJob.errorCode ?? 'Ошибка разбора')}
+            : liveAiJob.explanationMarkdown?.trim() || (liveAiJob.errorCode ?? 'Ошибка разбора')}
         </Text>
       ) : null}
       {solutionVariant === 'improved' &&
@@ -630,11 +695,13 @@ export default function InCourseShell({
   const taskPaneEl = (
     <TaskPane
       lesson={lesson}
+      lessonOrdinalLabel={lessonOrdinalLabel(course, lesson.id)}
       paneTab={leftPaneTab}
       onPaneTabChange={setLeftPaneTab}
       explanationMarkdown={explanationMarkdown ?? null}
       showExplanationTab={showExplanationPaneTab}
       explanationWhenEmpty={explanationWhenEmpty}
+      collapsedRail={taskRailCollapsed}
     />
   )
 
@@ -645,238 +712,234 @@ export default function InCourseShell({
         desktopPanels ? styles.workspace_desktopColumn : styles.workspace_mobileLayout
       )}
     >
-        {!canUseEditor ? (
-          <Paper className={styles.workspace__lock} radius="md" shadow="sm">
-            <Stack align="center" gap="md">
-              <FontAwesomeIcon icon={faLock} className={styles.workspace__lockIcon} />
-              <Title order={3} ta="center" className={styles.workspace__lockTitle}>
-                Урок по тарифу выше
-              </Title>
-              <Text size="sm" c="dimmed" ta="center" maw={360}>
-                Нужен план минимум уровня {lesson.requiredPlanTier}. Оформи подписку и вернись —
-                прогресс и черновики сохранятся.
-              </Text>
-              <Button component={Link} href="/plans" variant="default">
-                Смотреть тарифы
-              </Button>
-            </Stack>
-          </Paper>
-        ) : null}
+      {!canUseEditor ? (
+        <Paper className={styles.workspace__lock} radius="md" shadow="sm">
+          <Stack align="center" gap="md">
+            <FontAwesomeIcon icon={faLock} className={styles.workspace__lockIcon} />
+            <Title order={3} ta="center" className={styles.workspace__lockTitle}>
+              Урок по тарифу выше
+            </Title>
+            <Text size="sm" c="dimmed" ta="center" maw={360}>
+              Нужен план минимум уровня {lesson.requiredPlanTier}. Оформи подписку и вернись —
+              прогресс и черновики сохранятся.
+            </Text>
+            <Button component={Link} href="/plans" variant="default">
+              Смотреть тарифы
+            </Button>
+          </Stack>
+        </Paper>
+      ) : null}
 
-        <header className={styles.workspace__head}>
-          <div className={styles.workspace__lang}>
-            <MobileTaskNavTrigger
-              course={course}
-              currentLessonId={lesson.id}
-              completedLessonIds={completedLessonIds}
-              viewerEffectiveTier={viewerTier}
+      <header className={styles.workspace__head}>
+        <div className={styles.workspace__lang}>
+          <MobileTaskNavTrigger
+            course={course}
+            currentLessonId={lesson.id}
+            completedLessonIds={completedLessonIds}
+            viewerEffectiveTier={viewerTier}
+          />
+          <div className={styles.workspace__langTools}>
+            <SegmentedControl
+              size="xs"
+              radius="md"
+              disabled={!canUseEditor}
+              value={editorLanguage}
+              onChange={value => selectEditorLanguage(value as Language)}
+              data={lesson.allowedLanguages.map(lang => ({
+                value: lang,
+                label: LANGUAGE_LABEL[lang]
+              }))}
             />
-            <div className={styles.workspace__langTools}>
-              <SegmentedControl
-                size="xs"
-                radius="md"
-                disabled={!canUseEditor}
-                value={editorLanguage}
-                onChange={value => selectEditorLanguage(value as Language)}
-                data={lesson.allowedLanguages.map(lang => ({
-                  value: lang,
-                  label: LANGUAGE_LABEL[lang]
-                }))}
-              />
-              {canShowVariantSwitch ? (
-                <div className={styles.workspace__variantIslandWrap}>
-                  <div
-                    className={taskPaneStyles.pane__island}
-                    role="tablist"
-                    aria-label="Вариант решения"
-                  >
-                    <button
-                      type="button"
-                      role="tab"
-                      aria-selected={solutionVariant === 'draft'}
-                      className={clsx(
-                        taskPaneStyles.pane__islandBtn,
-                        solutionVariant === 'draft' && taskPaneStyles.pane__islandBtnActive
-                      )}
-                      onClick={() => setSolutionVariant('draft')}
-                    >
-                      Твой вариант
-                    </button>
-                    <button
-                      type="button"
-                      role="tab"
-                      aria-selected={solutionVariant === 'improved'}
-                      className={clsx(
-                        taskPaneStyles.pane__islandBtn,
-                        taskPaneStyles.pane__islandBtnExplanation,
-                        solutionVariant === 'improved' &&
-                          taskPaneStyles.pane__islandBtnExplanationActive
-                      )}
-                      onClick={() => setSolutionVariant('improved')}
-                    >
-                      Улучшенный вариант
-                    </button>
-                  </div>
-                </div>
-              ) : null}
-            </div>
-          </div>
-          <div className={styles.workspace__actions}>
-            <Tooltip label="Сбросить к стартовому коду (текущий язык)" position="bottom" withArrow>
-              <Button
-                variant="subtle"
-                onClick={() => {
-                  if (solutionVariant === 'draft') resetLanguage(editorLanguage)
-                }}
-                size="xs"
-                disabled={!canUseEditor || solutionVariant === 'improved'}
-              >
-                <FontAwesomeIcon icon={faRotateLeft} />
-              </Button>
-            </Tooltip>
-            {showImproveCodeTrigger ? (
-              <CodeImproveHeaderTrigger
-                variant="improve"
-                attemptIsSuccess={attemptIsSuccess}
-                hasPaidPlan={viewerTier > 0 || viewerIsAdmin}
-                startBusy={aiImproveBusy}
-                onImproveClick={handleStartAi}
-                disabled={!canUseEditor}
-              />
-            ) : null}
-            {showRegenerateForAdmin ? (
-              <CodeImproveHeaderTrigger
-                variant="regenerate"
-                attemptIsSuccess
-                hasPaidPlan
-                startBusy={regenerateAiMutation.isPending || aiImproveBusy}
-                onImproveClick={handleRegenerateAi}
-                disabled={!canUseEditor}
-              />
-            ) : null}
-            <Button
-              variant="default"
-              leftSection={<FontAwesomeIcon icon={faPlay} />}
-              loading={runMutation.isPending && executionMode === 'run'}
-              onClick={() => dispatchExecution('run')}
-              disabled={!canUseEditor}
-            >
-              Запустить
-            </Button>
-            <Button
-              leftSection={<FontAwesomeIcon icon={faFlagCheckered} />}
-              loading={runMutation.isPending && executionMode === 'submit'}
-              onClick={() => dispatchExecution('submit')}
-              disabled={!canUseEditor}
-            >
-              Проверить
-            </Button>
-          </div>
-        </header>
-
-        <WorkspaceEditorExecutionSplit
-          desktopPanels={desktopPanels}
-          editorSlot={workspaceEditorSlot}
-          executionSlot={workspaceExecutionSlot}
-        />
-
-        <footer className={styles.workspace__foot}>
-          <span className={styles.workspace__hint}>
-            {isCompleted
-              ? 'Урок уже отмечен пройденным.'
-              : submitPassed
-                ? 'Тесты пройдены — отметь готово или иди дальше.'
-                : 'Запусти, чтобы посмотреть вывод. Проверь — чтобы прогнать тесты.'}
-          </span>
-          <div className={styles.workspace__footActions}>
-            <Button
-              variant="default"
-              disabled={!submitPassed || isCompleted || !canUseEditor}
-              loading={completeMutation.isPending}
-              leftSection={<FontAwesomeIcon icon={faCircleCheck} />}
-              onClick={handleMarkComplete}
-            >
-              Отметить готово
-            </Button>
-            <Popover
-              opened={aiNextNudgePopoverOpened}
-              onChange={setAiNextNudgePopoverOpened}
-              position="top-end"
-              shadow="md"
-              middlewares={{
-                flip: { fallbackPlacements: ['bottom-end', 'top-start'] },
-                shift: { padding: 8 }
-              }}
-              classNames={{ dropdown: styles.nextLessonAiNudgeDropdown }}
-            >
-              <Popover.Target>
-                <Button
-                  disabled={!lesson.nextLessonId}
-                  rightSection={<FontAwesomeIcon icon={faArrowRight} />}
-                  onClick={handleNextLesson}
+            {canShowVariantSwitch ? (
+              <div className={styles.workspace__variantIslandWrap}>
+                <div
+                  className={taskPaneStyles.pane__island}
+                  role="tablist"
+                  aria-label="Вариант решения"
                 >
-                  Следующий урок
-                </Button>
-              </Popover.Target>
-              <Popover.Dropdown>
-                <Stack gap="sm">
-                  <Text size="sm" fw={600}>
-                    Улучшить код с ИИ?
-                  </Text>
-                  <Text size="sm" c="dimmed">
-                    Задача уже принята тестами. Можно сразу перейти дальше или попросить ИИ
-                    предложить аккуратный рефакторинг и короткое пояснение — так проще закреплять
-                    практику.
-                  </Text>
-                  <Group justify="flex-end" gap="xs" wrap="wrap">
-                    <Button variant="default" size="xs" onClick={handleAiNextNudgeSkip}>
-                      Пропустить
-                    </Button>
-                    <Button
-                      size="xs"
-                      leftSection={<FontAwesomeIcon icon={faRobot} />}
-                      onClick={handleAiNextNudgeTry}
-                      loading={aiImproveBusy}
-                    >
-                      Попробовать
-                    </Button>
-                  </Group>
-                  <Text size="xs" c="dimmed">
-                    Нажми «Следующий урок» ещё раз, чтобы перейти без разбора.
-                  </Text>
-                </Stack>
-              </Popover.Dropdown>
-            </Popover>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={solutionVariant === 'draft'}
+                    className={clsx(
+                      taskPaneStyles.pane__islandBtn,
+                      solutionVariant === 'draft' && taskPaneStyles.pane__islandBtnActive
+                    )}
+                    onClick={() => setSolutionVariant('draft')}
+                  >
+                    Твой вариант
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={solutionVariant === 'improved'}
+                    className={clsx(
+                      taskPaneStyles.pane__islandBtn,
+                      taskPaneStyles.pane__islandBtnExplanation,
+                      solutionVariant === 'improved' &&
+                        taskPaneStyles.pane__islandBtnExplanationActive
+                    )}
+                    onClick={() => setSolutionVariant('improved')}
+                  >
+                    Улучшенный вариант
+                  </button>
+                </div>
+              </div>
+            ) : null}
           </div>
-        </footer>
-      </section>
+        </div>
+        <div className={styles.workspace__actions}>
+          <Tooltip label="Сбросить к стартовому коду (текущий язык)" position="bottom" withArrow>
+            <Button
+              variant="subtle"
+              onClick={() => {
+                if (solutionVariant === 'draft') resetLanguage(editorLanguage)
+              }}
+              size="xs"
+              disabled={!canUseEditor || solutionVariant === 'improved'}
+            >
+              <FontAwesomeIcon icon={faRotateLeft} />
+            </Button>
+          </Tooltip>
+          {showImproveCodeTrigger ? (
+            <CodeImproveHeaderTrigger
+              variant="improve"
+              attemptIsSuccess={attemptIsSuccess}
+              hasPaidPlan={viewerTier > 0 || viewerIsAdmin}
+              startBusy={aiImproveBusy}
+              onImproveClick={handleStartAi}
+              disabled={!canUseEditor}
+            />
+          ) : null}
+          {showRegenerateForAdmin ? (
+            <CodeImproveHeaderTrigger
+              variant="regenerate"
+              attemptIsSuccess
+              hasPaidPlan
+              startBusy={regenerateAiMutation.isPending || aiImproveBusy}
+              onImproveClick={handleRegenerateAi}
+              disabled={!canUseEditor}
+            />
+          ) : null}
+          <Button
+            variant="default"
+            leftSection={<FontAwesomeIcon icon={faPlay} />}
+            loading={runMutation.isPending && executionMode === 'run'}
+            onClick={() => dispatchExecution('run')}
+            disabled={!canUseEditor}
+          >
+            Запустить
+          </Button>
+          <Button
+            leftSection={<FontAwesomeIcon icon={faFlagCheckered} />}
+            loading={runMutation.isPending && executionMode === 'submit'}
+            onClick={() => dispatchExecution('submit')}
+            disabled={!canUseEditor}
+          >
+            Проверить
+          </Button>
+        </div>
+      </header>
+
+      <WorkspaceEditorExecutionSplit
+        desktopPanels={desktopPanels}
+        editorSlot={workspaceEditorSlot}
+        executionSlot={workspaceExecutionSlot}
+      />
+
+      <footer className={styles.workspace__foot}>
+        <span className={styles.workspace__hint}>
+          {isCompleted
+            ? 'Урок уже отмечен пройденным.'
+            : submitPassed
+              ? 'Тесты пройдены — отметь готово или иди дальше.'
+              : 'Запусти, чтобы посмотреть вывод. Проверь — чтобы прогнать тесты.'}
+        </span>
+        <div className={styles.workspace__footActions}>
+          <Button
+            variant="default"
+            disabled={!submitPassed || isCompleted || !canUseEditor}
+            loading={completeMutation.isPending}
+            leftSection={<FontAwesomeIcon icon={faCircleCheck} />}
+            onClick={handleMarkComplete}
+          >
+            Отметить готово
+          </Button>
+          <Popover
+            opened={aiNextNudgePopoverOpened}
+            onChange={setAiNextNudgePopoverOpened}
+            position="top-end"
+            shadow="md"
+            middlewares={{
+              flip: { fallbackPlacements: ['bottom-end', 'top-start'] },
+              shift: { padding: 8 }
+            }}
+            classNames={{ dropdown: styles.nextLessonAiNudgeDropdown }}
+          >
+            <Popover.Target>
+              <Button
+                disabled={!lesson.nextLessonId}
+                rightSection={<FontAwesomeIcon icon={faArrowRight} />}
+                onClick={handleNextLesson}
+              >
+                Следующий урок
+              </Button>
+            </Popover.Target>
+            <Popover.Dropdown>
+              <Stack gap="sm">
+                <Text size="sm" fw={600}>
+                  Улучшить код с ИИ?
+                </Text>
+                <Text size="sm" c="dimmed">
+                  Задача уже принята тестами. Можно сразу перейти дальше или попросить ИИ предложить
+                  аккуратный рефакторинг и короткое пояснение — так проще закреплять практику.
+                </Text>
+                <Group justify="flex-end" gap="xs" wrap="wrap">
+                  <Button variant="default" size="xs" onClick={handleAiNextNudgeSkip}>
+                    Пропустить
+                  </Button>
+                  <Button
+                    size="xs"
+                    leftSection={<FontAwesomeIcon icon={faRobot} />}
+                    onClick={handleAiNextNudgeTry}
+                    loading={aiImproveBusy}
+                  >
+                    Попробовать
+                  </Button>
+                </Group>
+                <Text size="xs" c="dimmed">
+                  Нажми «Следующий урок» ещё раз, чтобы перейти без разбора.
+                </Text>
+              </Stack>
+            </Popover.Dropdown>
+          </Popover>
+        </div>
+      </footer>
+    </section>
   )
 
   return (
     <div
-      className={clsx(
-        styles.shell,
-        desktopPanels ? styles.shell_panelRoot : styles.shell_gridRoot
-      )}
+      className={clsx(styles.shell, desktopPanels ? styles.shell_panelRoot : styles.shell_gridRoot)}
     >
       {desktopPanels ? (
         <PanelGroup
+          ref={horizontalPanelGroupRef}
           direction="horizontal"
           autoSaveId={IN_COURSE_HORIZONTAL_AUTOSAVE_ID}
           className={styles.panelGroupHorizontal}
-          onLayout={handleCourseHorizontalLayout}
+          onLayout={handleHorizontalLayout}
         >
           <Panel
             ref={navPanelRef}
             id="in-course-nav"
+            order={1}
             collapsible
             collapsedSize={NAV_PANEL.collapsedSize}
             minSize={NAV_PANEL.minSize}
             maxSize={NAV_PANEL.maxSize}
             defaultSize={NAV_PANEL.defaultSize}
             className={styles.panelCell}
-            onCollapse={() => setNavRailCollapsed(true)}
-            onExpand={() => setNavRailCollapsed(false)}
           >
             <TaskNav
               course={course}
@@ -888,10 +951,14 @@ export default function InCourseShell({
           </Panel>
           <InCoursePanelResizeHandle
             orientation="vertical"
-            resizeHandleId="in-course-split-nav-task"
+            resizeHandleId="in-course-split-nav-main"
           />
           <Panel
+            ref={taskPanelRef}
             id="in-course-task"
+            order={2}
+            collapsible
+            collapsedSize={TASK_PANEL.collapsedSize}
             defaultSize={TASK_PANEL.defaultSize}
             minSize={TASK_PANEL.minSize}
             maxSize={TASK_PANEL.maxSize}
@@ -904,13 +971,31 @@ export default function InCourseShell({
             resizeHandleId="in-course-split-task-workspace"
           />
           <Panel
+            ref={workspacePanelRef}
             id="in-course-workspace"
+            order={3}
+            collapsible
+            collapsedSize={WORKSPACE_PANEL.collapsedSize}
             defaultSize={WORKSPACE_PANEL.defaultSize}
             minSize={WORKSPACE_PANEL.minSize}
             maxSize={WORKSPACE_PANEL.maxSize}
             className={styles.panelCell}
           >
-            {workspaceSectionEl}
+            <div className={styles.workspacePanelRoot}>
+              {workspaceRailUi ? (
+                <aside className={styles.workspaceColumnRail} aria-label="Рабочая область">
+                  <span className={styles.workspaceColumnRailLabel}>Практика</span>
+                </aside>
+              ) : null}
+              <div
+                className={clsx(
+                  styles.workspaceHost,
+                  workspaceRailUi && styles.workspaceHost_collapsedHidden
+                )}
+              >
+                {workspaceSectionEl}
+              </div>
+            </div>
           </Panel>
         </PanelGroup>
       ) : (

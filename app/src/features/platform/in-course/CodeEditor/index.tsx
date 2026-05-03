@@ -1,8 +1,10 @@
 'use client'
 
+import clsx from 'clsx'
 import { useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import type { Language } from '~/server/repositories/types'
+import { useWorkspaceVerticalLayout } from '../layout/WorkspaceVerticalLayoutContext'
 import { ensureMonacoLoaderConfigured } from './monaco-bootstrap'
 import styles from './styles.module.scss'
 
@@ -36,12 +38,16 @@ export default function CodeEditor({
   readOnly = false,
   monacoLanguageId
 }: Props) {
+  const { editorRailOnly } = useWorkspaceVerticalLayout()
   useEffect(() => {
     ensureMonacoLoaderConfigured()
   }, [])
 
   return (
-    <div className={styles.editor}>
+    <div
+      className={clsx(styles.editor, editorRailOnly && styles.editor_labelOnly)}
+      aria-hidden={editorRailOnly}
+    >
       <MonacoEditor
         value={value}
         language={monacoLanguageId ?? MONACO_LANGUAGE_BY_APP_LANGUAGE[language]}

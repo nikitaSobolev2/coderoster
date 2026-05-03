@@ -1,6 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { Progress, Tooltip } from '@mantine/core'
 import clsx from 'clsx'
@@ -14,6 +15,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 import type { CourseDetail } from '~/server/repositories/types'
 import { requiredTierForTask } from '~/shared/lib/planTier'
+import { NAV_PANEL_RAIL_MAX_INNER_WIDTH_PX } from '../layout/inCoursePanelConstants'
 import styles from './styles.module.scss'
 
 export interface Props {
@@ -33,6 +35,24 @@ export default function TaskNav({
   viewerEffectiveTier,
   minimal = false
 }: Props) {
+  const rootRef = useRef<HTMLElement | null>(null)
+  const [narrowByMeasurePx, setNarrowByMeasurePx] = useState(false)
+
+  useLayoutEffect(() => {
+    const el = rootRef.current
+    if (!el || typeof ResizeObserver === 'undefined') return
+    const sync = () => {
+      const w = Math.round(el.getBoundingClientRect().width)
+      setNarrowByMeasurePx(w > 0 && w <= NAV_PANEL_RAIL_MAX_INNER_WIDTH_PX)
+    }
+    sync()
+    const ro = new ResizeObserver(sync)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+
+  const minimalChrome = Boolean(minimal) || narrowByMeasurePx
+
   const completed = new Set(completedLessonIds)
   const flat = course.modules.flatMap(module => module.lessons.map(lesson => ({ module, lesson })))
   const accessibleItems = flat.filter(
@@ -48,9 +68,12 @@ export default function TaskNav({
   const backHref = `/courses/${course.slug}`
 
   return (
-    <aside className={minimal ? `${styles.nav} ${styles.nav_minimal}` : styles.nav}>
+    <aside
+      ref={rootRef}
+      className={minimalChrome ? `${styles.nav} ${styles.nav_minimal}` : styles.nav}
+    >
       <div className={styles.nav__head}>
-        {minimal ? (
+        {minimalChrome ? (
           <Tooltip label={course.title} position="right" withArrow>
             <Link
               className={styles.nav__backIcon}
@@ -66,7 +89,7 @@ export default function TaskNav({
             {course.title}
           </Link>
         )}
-        {!minimal ? (
+        {!minimalChrome ? (
           <div className={styles.nav__progress}>
             <Progress value={progressPercent} radius="xl" color="indigo" size="sm" />
             <span className={styles.nav__progressMeta}>
@@ -83,10 +106,10 @@ export default function TaskNav({
             key={module.id}
             className={clsx(
               styles.module,
-              minimal && moduleIndex > 0 && styles.module_afterDivider
+              minimalChrome && moduleIndex > 0 && styles.module_afterDivider
             )}
           >
-            <h4 className={minimal ? styles.module__titleMinimal : styles.module__title}>
+            <h4 className={minimalChrome ? styles.module__titleMinimal : styles.module__title}>
               {module.title}
             </h4>
             <ul className={styles.module__lessons}>
@@ -96,10 +119,10 @@ export default function TaskNav({
                 const isCurrent = lesson.id === currentLessonId
                 const locked =
                   requiredTierForTask(course.tierRequired, lesson) > viewerEffectiveTier
-                const showOrdinalInRail = minimal && !locked && !isDone && !isCurrent
+                const showOrdinalInRail = minimalChrome && !locked && !isDone && !isCurrent
                 const className = clsx(
                   styles.lesson,
-                  minimal && styles.lesson_minimal,
+                  minimalChrome && styles.lesson_minimal,
                   isCurrent && styles.lesson_current,
                   isDone && styles.lesson_done,
                   locked && styles.lesson_locked
@@ -121,7 +144,7 @@ export default function TaskNav({
                       className={clsx(styles.lesson__icon, 'fa-fw')}
                     />
                   )
-                } else if (minimal) {
+                } else if (minimalChrome) {
                   leading = (
                     <span className={styles.lesson__ordinal} aria-hidden>
                       {taskOrdinal}
@@ -154,7 +177,7 @@ export default function TaskNav({
                 )
                 return (
                   <li key={lesson.id}>
-                    {minimal ? (
+                    {minimalChrome ? (
                       <Tooltip
                         label={`${lesson.title} · ${lesson.estimatedMinutes} мин`}
                         position="right"

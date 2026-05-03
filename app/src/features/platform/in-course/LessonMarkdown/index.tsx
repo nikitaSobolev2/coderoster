@@ -3,6 +3,11 @@ import styles from './styles.module.scss'
 
 export interface Props {
   source: string
+  /**
+   * When the task pane is narrow, the wide `h1` is hidden — skip the opening `##` / `###`
+   * block when it would duplicate LeetCode-style headings under the caption rail.
+   */
+  suppressFirstLeadHeading?: boolean
 }
 
 /**
@@ -10,8 +15,14 @@ export interface Props {
  * paragraphs, inline `**bold**` and inline `` `code` ``. Avoids pulling in a
  * full markdown dependency for the small subset our fixtures use.
  */
-export default function LessonMarkdown({ source }: Props) {
-  const blocks = source.split(/\n{2,}/)
+export default function LessonMarkdown({ source, suppressFirstLeadHeading = false }: Props) {
+  let blocks = source.split(/\n{2,}/)
+  if (suppressFirstLeadHeading && blocks.length > 0) {
+    const lead = blocks[0]?.trim()
+    if (lead?.startsWith('## ') || lead?.startsWith('### ')) {
+      blocks = blocks.slice(1)
+    }
+  }
   return (
     <div className={styles.md}>
       {blocks.map((block, index) => (

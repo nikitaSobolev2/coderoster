@@ -1,0 +1,77 @@
+@use '~/shared/assets/styles/mixins' as *;
+
+.editorPort {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  background: color-mix(in srgb, var(--color-bg) 96%, transparent);
+}
+
+/** Collapsed vertical rail (~3% height): label row only, no flex growth, contrast label. */
+.editorPort_labelOnly {
+  .editorRibbon {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    flex: 0 0 auto;
+    width: 100%;
+    min-height: 0;
+    padding: 0.2rem 0.65rem;
+    border-right: none;
+    overflow: hidden;
+    @include bluredBg;
+    height: 100%;
+  }
+
+  .editorRibbonLabel {
+    writing-mode: horizontal-tb;
+    text-orientation: mixed;
+    white-space: nowrap;
+    line-height: 1.25;
+    font-size: var(--font-size-h5);
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--color-text);
+  }
+
+  .editorMain {
+    display: none;
+  }
+}
+
+.editorRibbon {
+  display: none;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.42rem;
+  border-right: var(--border-width-hair) solid var(--platform-color-divider);
+  @include bluredBg;
+}
+
+.editorRibbonLabel {
+  margin: 0;
+  white-space: nowrap;
+  font-size: var(--font-size-h6);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: color-mix(in srgb, var(--color-text-secondary) 94%, transparent);
+}
+
+.editorMain {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/** Co-applied with `styles.workspace__editor` so Monaco fills pane height. */
+.editorStretch {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+}

@@ -2,6 +2,10 @@ import Link from 'next/link'
 import { withAuth } from '@workos-inc/authkit-nextjs'
 import { env } from '~/env'
 import { isTruthyFlag } from '~/server/lib/featureFlags'
+import {
+  clearSignupAuthFlowCookie,
+  pendingSignupConsentForSync
+} from '~/server/auth/pendingSignupConsentSync'
 import { getAppRepositories } from '~/server/repositories'
 import { userSyncService } from '~/server/services/UserSyncService'
 import Logo from '~/shared/components/common/Logo'
@@ -91,13 +95,18 @@ async function resolveViewer(): Promise<ViewerUser | null> {
       }
     }
 
-    const local = await userSyncService.syncFromSession({
-      id: session.user.id,
-      email: session.user.email,
-      firstName: session.user.firstName ?? null,
-      lastName: session.user.lastName ?? null,
-      profilePictureUrl: session.user.profilePictureUrl ?? null
-    })
+    const consentOpts = await pendingSignupConsentForSync(session.user.email)
+    const local = await userSyncService.syncFromSession(
+      {
+        id: session.user.id,
+        email: session.user.email,
+        firstName: session.user.firstName ?? null,
+        lastName: session.user.lastName ?? null,
+        profilePictureUrl: session.user.profilePictureUrl ?? null
+      },
+      consentOpts
+    )
+    if (consentOpts) await clearSignupAuthFlowCookie()
     console.log('[header] resolved viewer', {
       workosId: session.user.id,
       localId: local.id,

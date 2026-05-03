@@ -7,6 +7,7 @@ import MobileHomeMenu from '~/features/home/components/common/MobileHomeMenu'
 import SearchSpotlight from '~/shared/components/ui/search/SearchSpotlight'
 import NavMenu from '~/features/home/components/common/nav/NavMenu'
 import NavMenuItem from '~/features/home/components/common/nav/NavMenuItem'
+import HomeIntermediateSectionRail from '~/features/home/components/common/nav/HomeIntermediateSectionRail'
 import ScrollHint from '~/features/home/components/common/ScrollHint'
 import SectionScroller from '~/features/home/components/common/SectionScroller'
 import HeroSection from '~/features/home/components/sections/HeroSection'
@@ -36,6 +37,7 @@ export default function Home() {
         ))}
         <NavMenuItem href={PLANS_PAGE_HREF}>{PLANS_HOME_NAV_LABEL}</NavMenuItem>
       </NavMenu>
+      <HomeIntermediateSectionRail sections={HOME_SECTIONS} />
       <ScrollHint />
       <main className={styles.main}>
         <SectionScroller sections={HOME_SECTIONS}>

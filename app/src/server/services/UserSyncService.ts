@@ -13,6 +13,11 @@ export interface WorkosUserSnapshot {
   profilePictureUrl: string | null
 }
 
+export interface UserSyncOptions {
+  /** Set when the row is created or backfilled right after signup (local consent checkbox). */
+  personalDataProcessingConsentAt?: Date
+}
+
 /**
  * Resolves a WorkOS-authenticated session to the local `User` row, creating
  * it on first sight. Reads come straight from Postgres (single indexed
@@ -22,10 +27,21 @@ export interface WorkosUserSnapshot {
  * B" inconsistency we used to hit.
  */
 export class UserSyncService {
-  async syncFromSession(workosUser: WorkosUserSnapshot): Promise<User> {
+  async syncFromSession(workosUser: WorkosUserSnapshot, options?: UserSyncOptions): Promise<User> {
     const existing = await db.user.findUnique({ where: { workosUserId: workosUser.id } })
-    if (existing) return existing
-    return this.createNew(workosUser)
+    if (existing) {
+      if (
+        options?.personalDataProcessingConsentAt &&
+        existing.personalDataProcessingConsentAt === null
+      ) {
+        return db.user.update({
+          where: { id: existing.id },
+          data: { personalDataProcessingConsentAt: options.personalDataProcessingConsentAt }
+        })
+      }
+      return existing
+    }
+    return this.createNew(workosUser, options)
   }
 
   /**
@@ -38,7 +54,10 @@ export class UserSyncService {
     /* no-op — reads are not cached */
   }
 
-  private async createNew(workosUser: WorkosUserSnapshot): Promise<User> {
+  private async createNew(
+    workosUser: WorkosUserSnapshot,
+    options?: UserSyncOptions
+  ): Promise<User> {
     const username = await this.resolveUniqueUsername(workosUser.email)
     const displayName = sanitizePlainText(buildDisplayName(workosUser))
     const role = isBootstrapAdminEmail(workosUser.email) ? Role.ADMIN : Role.LEARNER
@@ -56,7 +75,8 @@ export class UserSyncService {
         lastName: workosUser.lastName,
         avatarUrl: workosUser.profilePictureUrl,
         role,
-        planId: defaultPlan?.id ?? undefined
+        planId: defaultPlan?.id ?? undefined,
+        personalDataProcessingConsentAt: options?.personalDataProcessingConsentAt ?? undefined
       }
     })
   }

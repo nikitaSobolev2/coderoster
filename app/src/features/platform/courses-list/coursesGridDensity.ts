@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 export type CoursesGridDensity = 'list' | 'comfortable' | 'compact'
 
@@ -22,19 +22,18 @@ export const COURSES_GRID_DENSITY_STORAGE_KEY = 'coderoster:courses:density' as 
 export const DEFAULT_COURSES_GRID_DENSITY: CoursesGridDensity = 'comfortable'
 
 function readDensity(): CoursesGridDensity {
-  if (typeof window === 'undefined') {
-    return DEFAULT_COURSES_GRID_DENSITY
-  }
   const raw = window.localStorage.getItem(COURSES_GRID_DENSITY_STORAGE_KEY)
   if (raw === 'list' || raw === 'comfortable' || raw === 'compact') return raw
   return DEFAULT_COURSES_GRID_DENSITY
 }
 
 export function useCoursesGridDensity() {
-  const [density, setDensityState] = useState<CoursesGridDensity>(() => {
-    if (typeof window === 'undefined') return DEFAULT_COURSES_GRID_DENSITY
-    return readDensity()
-  })
+  // Same initial value on server + client first paint — localStorage applied after mount (see useEffect).
+  const [density, setDensityState] = useState<CoursesGridDensity>(DEFAULT_COURSES_GRID_DENSITY)
+
+  useEffect(() => {
+    setDensityState(readDensity())
+  }, [])
 
   const setDensity = (next: CoursesGridDensity) => {
     setDensityState(next)

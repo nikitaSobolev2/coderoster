@@ -24,6 +24,7 @@
   @include inputReset;
 
   flex: 1;
+  min-width: 0;
   padding: 0.6rem 0.9rem;
   color: var(--color-text);
   background: transparent;
@@ -32,7 +33,9 @@
 .form__submit {
   @include buttonReset;
 
+  flex-shrink: 0;
   padding: 0 1rem;
+  min-width: 2.75rem;
   background: var(--color-cta-bg);
   color: var(--color-cta-fg);
   font-weight: 500;

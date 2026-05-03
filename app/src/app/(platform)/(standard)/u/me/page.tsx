@@ -2,6 +2,10 @@ import { redirect } from 'next/navigation'
 import { withAuth } from '@workos-inc/authkit-nextjs'
 import { env } from '~/env'
 import { isTruthyFlag } from '~/server/lib/featureFlags'
+import {
+  clearSignupAuthFlowCookie,
+  pendingSignupConsentForSync
+} from '~/server/auth/pendingSignupConsentSync'
 import { userSyncService } from '~/server/services/UserSyncService'
 
 export const dynamic = 'force-dynamic'
@@ -20,12 +24,17 @@ export default async function MyProfileRedirect() {
     redirect(`/u/${username}`)
   }
 
-  const user = await userSyncService.syncFromSession({
-    id: session.user.id,
-    email: session.user.email,
-    firstName: session.user.firstName ?? null,
-    lastName: session.user.lastName ?? null,
-    profilePictureUrl: session.user.profilePictureUrl ?? null
-  })
+  const consentOpts = await pendingSignupConsentForSync(session.user.email)
+  const user = await userSyncService.syncFromSession(
+    {
+      id: session.user.id,
+      email: session.user.email,
+      firstName: session.user.firstName ?? null,
+      lastName: session.user.lastName ?? null,
+      profilePictureUrl: session.user.profilePictureUrl ?? null
+    },
+    consentOpts
+  )
+  if (consentOpts) await clearSignupAuthFlowCookie()
   redirect(`/u/${user.username}`)
 }

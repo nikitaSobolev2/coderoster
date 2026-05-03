@@ -42,8 +42,10 @@ model User {
   banReason               String?
   chatBannedUntil         DateTime?
   chatBanReason           String?
-  livechatConsentAt       DateTime?
-  livechatUsernameColor   String?
+  livechatConsentAt                  DateTime?
+  livechatUsernameColor              String?
+  /// When the user accepted processing of personal data (signup checkbox).
+  personalDataProcessingConsentAt    DateTime?
   excludedFromLeaderboard Boolean   @default(false)
   commentsThreadId        String?   @unique
   planId                  String?
@@ -71,6 +73,23 @@ model User {
   @@index([username])
   @@index([totalXp])
   @@index([planId])
+}
+
+enum ContactMessageSource {
+  HOME
+  PLATFORM
+}
+
+/// Public contact form submissions (landing + platform footer).
+model ContactMessage {
+  id        String               @id @default(cuid())
+  source    ContactMessageSource
+  name      String
+  email     String
+  message   String               @db.Text
+  createdAt DateTime             @default(now())
+
+  @@index([createdAt])
 }
 
 /// Subscription / tier plan. `tierLevel` 0 = free; higher = more access. Exactly one row should have `isDefaultFree`.

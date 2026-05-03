@@ -23,3 +23,12 @@
     display: none;
   }
 }
+
+/* Intermediate desktop: hide bottom-left rail (use HomeIntermediateSectionRail on the right). */
+@include bp.min-width(bp.$bp-nav-up) {
+  @media (max-width: bp.$bp-home-intermediate-max) {
+    .navMenu {
+      display: none;
+    }
+  }
+}

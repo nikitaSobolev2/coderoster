@@ -1,0 +1,182 @@
+@use '~/shared/assets/styles/breakpoints' as bp;
+@use '~/shared/assets/styles/mixins' as *;
+
+.rail {
+  position: fixed;
+  top: 50%;
+  right: max(0.75rem, env(safe-area-inset-right, 0px));
+  z-index: 1500;
+  display: none;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.15rem;
+  transform: translateY(-50%);
+}
+
+@include bp.min-width(bp.$bp-nav-up) {
+  @media (max-width: bp.$bp-home-intermediate-max) {
+    .rail {
+      display: flex;
+    }
+  }
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.15rem;
+}
+
+.item {
+  margin: 0;
+}
+
+.hit {
+  @include focusGlow;
+
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0.25rem 0;
+  text-decoration: none;
+  border-radius: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+
+  &:hover {
+    background: transparent;
+  }
+}
+
+.inner {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.3rem;
+  transition: gap var(--transition-default);
+}
+
+.line {
+  flex-shrink: 0;
+  width: 2px;
+  height: 2.6rem;
+  align-self: center;
+  border-radius: 1px;
+  background: var(--color-text-semivisible);
+  transition:
+    height var(--transition-default),
+    background var(--transition-default);
+}
+
+.label {
+  display: block;
+  flex-shrink: 0;
+  transform: rotate(-45deg);
+  transform-origin: center right;
+  white-space: nowrap;
+  font-size: var(--font-size-h6);
+  font-weight: 400;
+  letter-spacing: var(--letter-spacing-button);
+  color: var(--color-text-secondary);
+  text-transform: lowercase;
+  transition:
+    color var(--transition-default),
+    font-size var(--transition-default),
+    opacity var(--transition-default),
+    visibility var(--transition-default),
+    max-width 0.38s var(--easing-cursor),
+    margin var(--transition-default),
+    padding var(--transition-default);
+}
+
+.labelShift {
+  display: block;
+}
+
+/*
+ * Fine pointer: collapse labels until whole rail is hovered or any link is focused
+ * (focus-within keeps all labels visible while tabbing).
+ */
+@media (hover: hover) and (pointer: fine) {
+  .rail:not(:hover):not(:focus-within) .inner {
+    gap: 0;
+  }
+
+  .rail:not(:hover):not(:focus-within) .label {
+    opacity: 0;
+    visibility: hidden;
+    max-width: 0;
+    min-width: 0;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+    pointer-events: none;
+  }
+
+  .rail:hover .label,
+  .rail:focus-within .label {
+    opacity: 1;
+    visibility: visible;
+    max-width: min(22rem, 85vw);
+    min-width: min-content;
+    overflow: visible;
+    pointer-events: auto;
+  }
+}
+
+/* Touch / coarse pointer: never hide labels */
+@media (hover: none), (pointer: coarse) {
+  .rail .label {
+    opacity: 1;
+    visibility: visible;
+    max-width: none;
+    min-width: 0;
+    overflow: visible;
+    pointer-events: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .label {
+    transition-duration: 0.01ms;
+  }
+
+  .inner {
+    transition-duration: 0.01ms;
+  }
+}
+
+/* Scroll-spy: sections above viewport — full bar, labels stay muted */
+.item_passed:not(.item_active) .line {
+  background: var(--color-text);
+}
+
+.item_passed:not(.item_active) .label {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-h6);
+}
+
+.item_active .line {
+  height: 3.35rem;
+  background: var(--color-text);
+}
+
+/* Match bar height so rotated copy stays vertically centered on the tile */
+.item_active .label {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  height: 3.35rem;
+  margin: 0;
+  padding: 0;
+  color: var(--color-text);
+  font-size: var(--font-size-h5);
+}

@@ -110,7 +110,24 @@ export const env = createEnv({
     NEXT_PUBLIC_SELF_SERVE_PLANS: z
       .string()
       .optional()
-      .transform(value => value !== 'false')
+      .transform(value => value !== 'false'),
+    /** Hosted OAuth tiles on `/login` — hide provider by setting `false`. Undefined defaults to on for Google/GitHub; off for Microsoft/Apple unless enabled. */
+    NEXT_PUBLIC_AUTH_OAUTH_GOOGLE: z
+      .string()
+      .optional()
+      .transform(value => (value === undefined ? true : value !== 'false' && value !== '0')),
+    NEXT_PUBLIC_AUTH_OAUTH_GITHUB: z
+      .string()
+      .optional()
+      .transform(value => (value === undefined ? true : value !== 'false' && value !== '0')),
+    NEXT_PUBLIC_AUTH_OAUTH_MICROSOFT: z
+      .string()
+      .optional()
+      .transform(value => value === 'true' || value === '1'),
+    NEXT_PUBLIC_AUTH_OAUTH_APPLE: z
+      .string()
+      .optional()
+      .transform(value => value === 'true' || value === '1')
   },
 
   /**
@@ -157,7 +174,11 @@ export const env = createEnv({
     AI_CODE_IMPROVE_CB_OPEN_SEC: process.env.AI_CODE_IMPROVE_CB_OPEN_SEC,
     NEXT_PUBLIC_WORKOS_REDIRECT_URI: process.env.NEXT_PUBLIC_WORKOS_REDIRECT_URI,
     NEXT_PUBLIC_USE_FAKE_DATA: process.env.NEXT_PUBLIC_USE_FAKE_DATA,
-    NEXT_PUBLIC_SELF_SERVE_PLANS: process.env.NEXT_PUBLIC_SELF_SERVE_PLANS
+    NEXT_PUBLIC_SELF_SERVE_PLANS: process.env.NEXT_PUBLIC_SELF_SERVE_PLANS,
+    NEXT_PUBLIC_AUTH_OAUTH_GOOGLE: process.env.NEXT_PUBLIC_AUTH_OAUTH_GOOGLE,
+    NEXT_PUBLIC_AUTH_OAUTH_GITHUB: process.env.NEXT_PUBLIC_AUTH_OAUTH_GITHUB,
+    NEXT_PUBLIC_AUTH_OAUTH_MICROSOFT: process.env.NEXT_PUBLIC_AUTH_OAUTH_MICROSOFT,
+    NEXT_PUBLIC_AUTH_OAUTH_APPLE: process.env.NEXT_PUBLIC_AUTH_OAUTH_APPLE
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

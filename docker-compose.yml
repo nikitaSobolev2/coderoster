@@ -9,11 +9,12 @@ x-app-build: &app_build
     NEXT_PUBLIC_USE_FAKE_DATA: ${NEXT_PUBLIC_USE_FAKE_DATA:-${USE_FAKE_DATA:-false}}
     NEXT_PUBLIC_SELF_SERVE_PLANS: ${NEXT_PUBLIC_SELF_SERVE_PLANS:-true}
 
-# `./app:/app` bind-mounts sources; `/app/node_modules` is an anonymous volume that shadows host node_modules (avoids Windows bind-mount perf issues).
-# After adding/updating deps in package.json or package-lock.json, refresh that volume once: docker compose exec app npm install --legacy-peer-deps --ignore-scripts
+# `./app:/app` bind-mounts sources; `app_node_modules` shadows host node_modules (Windows perf).
+# Entrypoint runs `npm ci` when package-lock.json changes vs stamp inside that volume — no manual install after adding deps.
+# One named volume is shared by app + workers so they stay in sync. If boots stall, remove stale `/app/.coderoster-npm-ci-lock` on the host app folder.
 x-app-volumes: &app_volumes
   - ./app:/app
-  - /app/node_modules
+  - app_node_modules:/app/node_modules
   - /app/.next
 
 x-app-env:
@@ -272,6 +273,7 @@ volumes:
   redis_data:
   rabbit_data:
   minio_data:
+  app_node_modules:
 
 networks:
   coderoster:

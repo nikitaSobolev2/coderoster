@@ -24,7 +24,16 @@ export default authkitMiddleware({
       '/banned',
       '/api/:path*',
       '/login',
+      '/login/password',
+      '/login/code',
+      '/login/forgot-password',
+      '/login/reset-password',
+      '/signup',
+      '/signup/password',
+      '/signup/code',
+      '/auth/:path*',
       '/callback',
+      '/logout',
       '/account/logout'
     ]
   }

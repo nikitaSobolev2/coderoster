@@ -4,7 +4,7 @@ import { useRef } from 'react'
 import styles from './styles.module.scss'
 import PureButton from '~/shared/components/ui/buttons/PureButton'
 import { useCursorFillTarget } from '~/features/home/hooks/useCursorFillTarget'
-import { useSectionScrollerStore } from '~/features/home/components/common/SectionScroller/section-scroller.store'
+import { useHomeNavHrefActive } from '~/features/home/lib/homeNavHrefActive'
 
 export interface Props {
   className?: string
@@ -14,7 +14,7 @@ export interface Props {
 
 export default function NavMenuItem({ className = '', children = null, href = '' }: Props) {
   const buttonRef = useRef<HTMLButtonElement>(null)
-  const isActive = useSectionScrollerStore(selectIsHrefActive(href))
+  const isActive = useHomeNavHrefActive(href)
 
   useCursorFillTarget(buttonRef)
 
@@ -27,13 +27,4 @@ export default function NavMenuItem({ className = '', children = null, href = ''
       </PureButton>
     </li>
   )
-}
-
-function selectIsHrefActive(href: string) {
-  const targetId = href.startsWith('#') ? href.slice(1) : null
-  return (state: ReturnType<typeof useSectionScrollerStore.getState>) => {
-    if (!targetId) return false
-    const activeId = state.sections[state.activeIndex]?.id
-    return activeId === targetId
-  }
 }

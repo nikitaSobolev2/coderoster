@@ -175,7 +175,7 @@ Browser Request
 | Group                   | Status | Description                                                                      |
 | ----------------------- | ------ | -------------------------------------------------------------------------------- |
 | `(home)`                | Live   | Public marketing / landing page — no auth required                               |
-| `(authentication)`      | Live   | WorkOS OAuth login and callback routes                                           |
+| `(authentication)`      | Live   | Custom Mantine auth UI (`/login`, `/signup`, magic link, password reset) + WorkOS User Management APIs; hosted PKCE entry `GET /auth/workos/start`; `/callback` finishes OAuth |
 | `(platform)/(standard)` | Live   | Platform shell: courses list/detail, public profile, settings, coming-soon stubs |
 | `(platform)/(focus)`    | Live   | Full-viewport in-course experience: 3-pane code editor + tasks + execution       |
 | `(admin)`               | Live   | Admin panel — role-gated layout + `adminProcedure` + audit log                   |
@@ -247,7 +247,7 @@ cheap range scan.
 
 ### Auth gating
 
-AuthKit middleware (`src/middleware.ts`) runs on almost every route via a broad matcher (excluding Next internals and `/assets`). Routes listed in `middlewareAuth.unauthenticatedPaths` stay reachable without signing in (`/courses`, `/u/[username]`, `/login`, `/callback`, `/api/*`, etc.). Authenticated-only routes (`/settings/*`, `/learn/*`, `/account/*`, …) redirect guests to login. Admin UI routes rely on `(admin)` layout plus `adminProcedure` server-side (role check). Mutations that require identity use `protectedProcedure` in `src/server/api/trpc.ts`, which throws `UNAUTHORIZED` when `ctx.user` is null.
+AuthKit middleware (`src/middleware.ts`) runs on almost every route via a broad matcher (excluding Next internals and `/assets`). Routes listed in `middlewareAuth.unauthenticatedPaths` stay reachable without signing in (`/courses`, `/u/[username]`, `/login`, `/login/*`, `/signup`, `/signup/*`, `/auth/*`, `/callback`, `/api/*`, etc.). Authenticated-only routes (`/settings/*`, `/learn/*`, `/account/*`, …) redirect guests to login. **WorkOS dashboard Sign-in endpoint / initiate-login URI** should target **`/auth/workos/start`** (sets PKCE verifier), not `/login`. OAuth connections themselves are configured in WorkOS; tiles on `/login` come from `GET /api/auth/providers` and honor `NEXT_PUBLIC_AUTH_OAUTH_*` flags. Admin UI routes rely on `(admin)` layout plus `adminProcedure` server-side (role check). Mutations that require identity use `protectedProcedure` in `src/server/api/trpc.ts`, which throws `UNAUTHORIZED` when `ctx.user` is null.
 
 ---
 
@@ -274,9 +274,12 @@ coderoster/
         │   ├── (home)/               # Landing page route group
         │   │   ├── page.tsx          # Server component — prefetches tRPC data
         │   │   └── styles.module.scss
-        │   ├── (authentication)/     # WorkOS OAuth routes
-        │   │   ├── login/route.ts
-        │   │   └── callback/route.ts
+        │   ├── (authentication)/     # Custom login/signup UI + WorkOS session
+        │   │   ├── login/page.tsx      # Email step + OAuth tiles → `/auth/workos/start`
+        │   │   ├── login/password/, login/code/, forgot-password/, reset-password/
+        │   │   ├── signup/, signup/password/, signup/code/
+        │   │   └── callback/route.ts   # AuthKit `handleAuth`
+        │   ├── auth/workos/start/route.ts   # PKCE bootstrap → hosted AuthKit
         │   ├── (platform)/           # Authenticated / public-read platform pages
         │   │   ├── (standard)/       # Header + padded main + footer
         │   │   │   ├── layout.tsx

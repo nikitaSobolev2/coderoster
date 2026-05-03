@@ -68,6 +68,7 @@ import { AdminLanguagesRepository } from './admin/settings.repository'
 import { AdminAuditRepository } from './admin/audit.repository'
 import { AdminPlansRepository } from './admin/plans.repository'
 import { AdminAiCodeImproveRepository } from './admin/aiCodeImprove.repository'
+import { AdminContactMessagesRepository } from './admin/contactMessages.repository'
 
 export interface AdminRepositories {
   users: AdminUsersRepository
@@ -82,6 +83,7 @@ export interface AdminRepositories {
   audit: AdminAuditRepository
   plans: AdminPlansRepository
   aiCodeImprove: AdminAiCodeImproveRepository
+  contactMessages: AdminContactMessagesRepository
 }
 
 export interface AppRepositories {
@@ -110,7 +112,8 @@ const adminRepositories: AdminRepositories = {
   languages: new AdminLanguagesRepository(),
   audit: new AdminAuditRepository(),
   plans: new AdminPlansRepository(),
-  aiCodeImprove: new AdminAiCodeImproveRepository()
+  aiCodeImprove: new AdminAiCodeImproveRepository(),
+  contactMessages: new AdminContactMessagesRepository()
 }
 
 const fakeRepositories: AppRepositories = {

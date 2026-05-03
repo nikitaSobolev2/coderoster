@@ -22,7 +22,8 @@ coderoster/
 
 1. Copy `.env.example` to `.env` and fill in WorkOS credentials.
 2. `docker compose up --build` brings the whole stack online — first boot runs Prisma
-   migrations and seeds initial fixture data.
+   migrations and seeds initial fixture data. After you change `app/package-lock.json`, the next
+   container start runs `npm ci` automatically (dev images only); no need to `exec` into the app container for new npm packages.
 3. Open `http://localhost:3000`.
 
 ## Services

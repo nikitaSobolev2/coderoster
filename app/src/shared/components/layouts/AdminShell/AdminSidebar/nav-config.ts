@@ -5,6 +5,7 @@ import {
   faCommentSlash,
   faComments,
   faCrown,
+  faEnvelope,
   faFileLines,
   faGaugeHigh,
   faGraduationCap,
@@ -55,7 +56,7 @@ export const ADMIN_NAV: AdminNavGroup[] = [
     label: 'Люди',
     items: [
       { label: 'Пользователи', href: '/admin/users', icon: faUsers },
-      { label: 'Комментарии', href: '/admin/comments', icon: faCommentSlash },
+      { label: 'Сообщения', href: '/admin/messages', icon: faEnvelope },
       { label: 'Лидерборд', href: '/admin/leaderboard', icon: faTrophy }
     ]
   },

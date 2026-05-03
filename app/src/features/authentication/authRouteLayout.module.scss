@@ -1,0 +1,26 @@
+@use '~/shared/assets/styles/breakpoints' as bp;
+
+.authRouteRoot {
+  position: relative;
+  isolation: isolate;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  background: #000;
+
+  /* Top indigo glow — brighter than platform default so auth backdrop reads clearly. */
+  --platform-grid-vignette: radial-gradient(
+    ellipse 92% 68% at 50% 0%,
+    color-mix(in srgb, var(--platform-color-accent) 28%, transparent) 0%,
+    transparent 68%
+  );
+
+  /* Mobile: parallax grid is off — paint the same accent vignette on the route shell. */
+  @include bp.max-width(bp.$bp-nav) {
+    background-color: var(--color-bg);
+    background-image: var(--platform-grid-vignette);
+    background-size: 100% 100%;
+    background-position: center top;
+    background-repeat: no-repeat;
+    background-attachment: scroll;
+  }
+}

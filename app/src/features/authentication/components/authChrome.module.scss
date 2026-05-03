@@ -1,0 +1,128 @@
+.root {
+  box-sizing: border-box;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100dvh;
+  width: 100%;
+  padding-block: clamp(1rem, 3dvh, 2.5rem);
+  overflow-y: auto;
+  background: transparent;
+  color: #fafafa;
+}
+
+.chromeShell {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 520px;
+  margin-inline: auto;
+  min-width: min(100%, 440px);
+}
+
+.paper {
+  box-sizing: border-box;
+  width: 100%;
+  background: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.logoWrap {
+  color: #fff;
+}
+
+.inputMin {
+  min-height: 48px;
+}
+
+.btnPrimary {
+  min-height: 48px;
+  background: #fff !important;
+  color: #111 !important;
+  font-weight: 600;
+
+  &:hover {
+    background: #e8e8e8 !important;
+  }
+}
+
+.btnGhost {
+  min-height: 48px;
+  border-color: rgba(255, 255, 255, 0.35) !important;
+  color: #fafafa !important;
+  background: transparent !important;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease;
+
+  &:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.07) !important;
+    border-color: rgba(255, 255, 255, 0.55) !important;
+  }
+
+  &:focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.55);
+    outline-offset: 2px;
+  }
+
+  &:active:not(:disabled) {
+    background: rgba(255, 255, 255, 0.11) !important;
+  }
+
+  &:disabled {
+    opacity: 0.42;
+    cursor: not-allowed !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    color: rgba(250, 250, 250, 0.45) !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+  }
+}
+
+.oauthRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+  align-items: center;
+}
+
+.oauthIconBtn {
+  width: 48px;
+  height: 48px;
+  min-width: 48px !important;
+  min-height: 48px !important;
+  padding: 0 !important;
+  flex-shrink: 0;
+}
+
+.oauthIconWrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}
+
+.oauthSvgGithub {
+  width: 22px;
+  height: 22px;
+  color: #fafafa;
+}
+
+.oauthSvgGoogle {
+  width: 22px;
+  height: 22px;
+}
+
+.oauthFa {
+  font-size: 1.35rem;
+  vertical-align: middle;
+}
+
+.dividerLabel {
+  color: rgba(250, 250, 250, 0.55);
+  font-size: 0.8rem;
+}

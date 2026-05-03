@@ -2,6 +2,10 @@ import { redirect } from 'next/navigation'
 import { withAuth } from '@workos-inc/authkit-nextjs'
 import { env } from '~/env'
 import { isTruthyFlag } from '~/server/lib/featureFlags'
+import {
+  clearSignupAuthFlowCookie,
+  pendingSignupConsentForSync
+} from '~/server/auth/pendingSignupConsentSync'
 import { userSyncService } from '~/server/services/UserSyncService'
 import AdminShell from '~/shared/components/layouts/AdminShell'
 import type { AdminViewer } from '~/shared/components/layouts/AdminShell/AdminTopbar'
@@ -21,13 +25,18 @@ async function resolveAdminViewer(): Promise<AdminViewer | null> {
   if (!session.user) return null
   if (isTruthyFlag(env.USE_FAKE_DATA)) return null
 
-  const local = await userSyncService.syncFromSession({
-    id: session.user.id,
-    email: session.user.email,
-    firstName: session.user.firstName ?? null,
-    lastName: session.user.lastName ?? null,
-    profilePictureUrl: session.user.profilePictureUrl ?? null
-  })
+  const consentOpts = await pendingSignupConsentForSync(session.user.email)
+  const local = await userSyncService.syncFromSession(
+    {
+      id: session.user.id,
+      email: session.user.email,
+      firstName: session.user.firstName ?? null,
+      lastName: session.user.lastName ?? null,
+      profilePictureUrl: session.user.profilePictureUrl ?? null
+    },
+    consentOpts
+  )
+  if (consentOpts) await clearSignupAuthFlowCookie()
   if (local.role !== 'ADMIN') return null
   return {
     username: local.username,

@@ -1,0 +1,81 @@
+@use '~/shared/assets/styles/mixins' as *;
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.label {
+  font-size: var(--font-size-h6);
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.input,
+.textarea {
+  @include inputReset;
+  @include bluredBg;
+
+  width: 100%;
+  border-radius: 0.65rem;
+  border: var(--border-width-hair) solid var(--platform-color-border);
+  padding: 0.55rem 0.75rem;
+  color: var(--color-text);
+  background: var(--platform-glass-bg);
+  font-size: var(--font-size-default);
+  transition: border-color var(--transition-default);
+
+  &:focus-visible {
+    outline: none;
+    border-color: var(--platform-color-accent);
+  }
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 5.5rem;
+  font-family: inherit;
+  line-height: 1.45;
+}
+
+.submit {
+  @include buttonReset;
+
+  margin-top: 0.25rem;
+  align-self: flex-start;
+  min-height: 2.75rem;
+  padding: 0 1.15rem;
+  border-radius: 999px;
+  background: var(--color-cta-bg);
+  color: var(--color-cta-fg);
+  font-weight: 600;
+  font-size: var(--font-size-h6);
+  letter-spacing: 0.03em;
+  transition: opacity var(--transition-default);
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: progress;
+  }
+
+  &:hover:not(:disabled) {
+    opacity: 0.92;
+  }
+}
+
+.success {
+  font-size: var(--font-size-h6);
+  color: var(--color-positive);
+}
+
+.error {
+  font-size: var(--font-size-h6);
+  color: var(--color-negative);
+}

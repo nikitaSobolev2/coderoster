@@ -8,7 +8,7 @@ import type { IconDefinition } from '@fortawesome/fontawesome-svg-core'
 import Logo from '~/shared/components/common/Logo'
 import SectionHeader from '~/features/home/components/ui/SectionHeader'
 import InteractiveLink from '~/features/home/components/ui/InteractiveLink'
-import ContactForm from './ContactForm'
+import ContactMessageForm from '~/features/contact/components/ContactMessageForm'
 import { FOOTER_SECTION_ID } from '~/features/home/components/sections/section-ids'
 import { SITE_NAME } from '~/shared/constants/site'
 import { PLANS_FOOTER_LINK_LABEL, PLANS_PAGE_HREF } from '~/shared/constants/plansNav'
@@ -98,7 +98,7 @@ export default function FooterSection() {
             </ul>
           </div>
           <div className={styles.footer__form}>
-            <ContactForm />
+            <ContactMessageForm variant="home" />
           </div>
         </div>
         <div className={styles.footer__bottom}>

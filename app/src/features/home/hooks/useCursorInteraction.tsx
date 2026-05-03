@@ -161,6 +161,9 @@ export function useCursorInteraction(
       cancelAnimationFrame(rafId)
       ro?.disconnect()
       detachAllEvents(node, handleInteractionStart, handleInteraction, handleInteractionEnd)
+      if (isInteracting.current) {
+        handleInteractionEnd()
+      }
     }
   }, [
     elementRef,

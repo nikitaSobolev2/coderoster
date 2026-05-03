@@ -1,0 +1,20 @@
+/**
+ * Icon baseline — Font Awesome React emits `svg.svg-inline--fa` without depending on
+ * fontawesome-svg-core CSS; sizing via `em` ties icons to surrounding text and avoids CLS in buttons/nav.
+ */
+@mixin svgIconBaseline {
+  svg.svg-inline--fa {
+    display: inline-block;
+    height: 1em;
+    width: auto;
+    max-height: none;
+    vertical-align: -0.125em;
+    flex-shrink: 0;
+    overflow: visible;
+    box-sizing: content-box;
+  }
+
+  svg.lucide {
+    flex-shrink: 0;
+  }
+}

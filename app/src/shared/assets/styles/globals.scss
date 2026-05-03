@@ -1,5 +1,6 @@
 @use './mixins' as *;
 @use './breakpoints' as bp;
+@use './icons' as icons;
 
 *,
 *::before,
@@ -76,6 +77,8 @@ a {
   text-decoration: none;
   color: inherit;
 }
+
+@include icons.svgIconBaseline;
 
 @include bp.max-width(bp.$bp-nav) {
   main button:not([type='reset']),

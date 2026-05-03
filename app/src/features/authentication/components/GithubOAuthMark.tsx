@@ -3,7 +3,7 @@ import type { SVGProps } from 'react'
 /** GitHub mark (16×16 path scaled to 1024 space); fill follows `currentColor`. */
 export default function GithubOAuthMark(props: Readonly<SVGProps<SVGSVGElement>>) {
   return (
-    <svg viewBox="0 0 1024 1024" fill="none" aria-hidden {...props}>
+    <svg width={22} height={22} viewBox="0 0 1024 1024" fill="none" aria-hidden {...props}>
       <path
         fillRule="evenodd"
         clipRule="evenodd"

@@ -223,6 +223,16 @@ nano .env.prod
 
 Reference: [`.env.example`](../.env.example).
 
+**Build-time caveat (`NEXT_PUBLIC_WORKOS_REDIRECT_URI`):**  
+AuthKit uses this URL when **Next.js is built** — it becomes part of server and client bundles. If the image was built without your production `.env.prod` or Compose interpolated the wrong default, OAuth ends on **`https://localhost:3000/…`** even though users started on **`https://APP_DOMAIN`**. Changing `.env.prod` alone **does not** fix stale bundles — **rebuild** the stack image:
+
+```bash
+docker compose --env-file .env.prod -f docker-compose.vm-prod.yml build --pull
+docker compose --env-file .env.prod -f docker-compose.vm-prod.yml up -d
+```
+
+Use **`--env-file .env.prod` on both `build` and `up`** so `NEXT_PUBLIC_*` build args resolve to **`https://APP_DOMAIN/callback`**.
+
 Generate a secret on the server (optional):
 
 ```bash
@@ -377,13 +387,13 @@ On **app** container start, **`infra/docker/app-entrypoint.sh`** runs **`prisma 
 
 ## 16. Common failures
 
-| Symptom                            | Likely cause                                                              |
-| ---------------------------------- | ------------------------------------------------------------------------- |
-| 502 from Caddy                     | App down; `docker compose … ps` and `logs app`                            |
-| WorkOS redirect error              | Mismatch with dashboard; fix **`NEXT_PUBLIC_WORKOS_REDIRECT_URI`**        |
-| Upload / image broken              | **`S3_PUBLIC_URL`** unreachable; Caddy **`FILES_DOMAIN`** / MinIO         |
-| Code never finishes                | **worker-code-exec** or RabbitMQ; `logs worker-code-exec`                 |
-| Server Actions broken after deploy | **`NEXT_SERVER_ACTIONS_ENCRYPTION_KEY`** changed — restore previous value |
+| Symptom                             | Likely cause                                                                                                                                         |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 502 from Caddy                      | App down; `docker compose … ps` and `logs app`                                                                                                       |
+| WorkOS redirects to **`localhost`** | Image built without prod **`NEXT_PUBLIC_WORKOS_REDIRECT_URI`** → **rebuild** (see §6 caveat); dashboard must allow **`https://APP_DOMAIN/callback`** |
+| Upload / image broken               | **`S3_PUBLIC_URL`** unreachable; Caddy **`FILES_DOMAIN`** / MinIO                                                                                    |
+| Code never finishes                 | **worker-code-exec** or RabbitMQ; `logs worker-code-exec`                                                                                            |
+| Server Actions broken after deploy  | **`NEXT_SERVER_ACTIONS_ENCRYPTION_KEY`** changed — restore previous value                                                                            |
 
 ---
 

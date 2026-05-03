@@ -2,7 +2,11 @@
 # No bind mounts: runs the built image from infra/docker/app.Dockerfile (target prod).
 #
 # Usage:
-#   docker compose -f docker-compose.vm-prod.yml up -d --build
+#   docker compose --env-file .env.prod -f docker-compose.vm-prod.yml build --no-cache app && \
+#     docker compose --env-file .env.prod -f docker-compose.vm-prod.yml up -d
+#
+# Important: NEXT_PUBLIC_* (especially NEXT_PUBLIC_WORKOS_REDIRECT_URI) is baked at `next build`
+# inside the image. Changing .env.prod at runtime does not fix localhost redirects — rebuild app.
 #
 # Optional resource overlay:
 #   docker compose -f docker-compose.vm-prod.yml -f docker-compose.prod.yml up -d
@@ -15,7 +19,7 @@ x-app-build: &app_build
   dockerfile: infra/docker/app.Dockerfile
   target: prod
   args:
-    NEXT_PUBLIC_WORKOS_REDIRECT_URI: ${NEXT_PUBLIC_WORKOS_REDIRECT_URI:-http://localhost:3000/callback}
+    NEXT_PUBLIC_WORKOS_REDIRECT_URI: ${NEXT_PUBLIC_WORKOS_REDIRECT_URI:-https://codium.space/callback}
     NEXT_PUBLIC_USE_FAKE_DATA: ${NEXT_PUBLIC_USE_FAKE_DATA:-${USE_FAKE_DATA:-false}}
     NEXT_PUBLIC_SELF_SERVE_PLANS: ${NEXT_PUBLIC_SELF_SERVE_PLANS:-true}
 

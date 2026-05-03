@@ -52,7 +52,7 @@ export default function UserMenu({ user }: Props) {
           <span className={styles.dropdown__name}>{user.displayName}</span>
           <span className={styles.dropdown__handle}>@{user.username}</span>
         </div>
-        <Menu.Divider />
+        <Menu.Divider className={styles.dropdown__dividerAfterHeader} />
         <Menu.Item
           leftSection={<FontAwesomeIcon icon={faUser} />}
           component={Link}

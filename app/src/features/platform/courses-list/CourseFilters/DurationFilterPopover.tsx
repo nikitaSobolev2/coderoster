@@ -1,10 +1,11 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useMediaQuery } from '@mantine/hooks'
 import { ActionIcon, Button, Group, Popover, RangeSlider, Stack, Text } from '@mantine/core'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faXmark } from '@fortawesome/free-solid-svg-icons'
-import { DURATION_BOUNDS } from './courseFiltersConfig'
+import { COURSE_FILTERS_TOUCH_UI_MEDIA_QUERY, DURATION_BOUNDS } from './courseFiltersConfig'
 import type { CoursesQuery } from '~/server/repositories/types'
 import styles from './DurationFilterPopover.module.scss'
 
@@ -15,6 +16,7 @@ export interface Props {
 }
 
 export default function DurationFilterPopover({ filters, onApply, onClear }: Readonly<Props>) {
+  const touchUi = useMediaQuery(COURSE_FILTERS_TOUCH_UI_MEDIA_QUERY)
   const [opened, setOpened] = useState(false)
   const appliedRange: [number, number] = [
     filters.durationMin ?? DURATION_BOUNDS[0],
@@ -76,28 +78,36 @@ export default function DurationFilterPopover({ filters, onApply, onClear }: Rea
         </Button>
       </Popover.Target>
       <Popover.Dropdown>
-        <Stack gap="sm">
+        <Stack gap={touchUi ? 'md' : 'sm'}>
           <Text size="sm" fw={600}>
             Длительность, ч
           </Text>
-          <RangeSlider
-            min={DURATION_BOUNDS[0]}
-            max={DURATION_BOUNDS[1]}
-            step={1}
-            minRange={1}
-            value={draft}
-            onChange={setDraft}
-            marks={[
-              { value: 0, label: '0' },
-              { value: 25, label: '25' },
-              { value: 50, label: '50' }
-            ]}
-          />
-          <Group justify="flex-end" gap="xs">
-            <Button variant="subtle" size="xs" onClick={() => setOpened(false)}>
+          <div className={styles.sliderBlock}>
+            <RangeSlider
+              size={touchUi ? 'md' : 'sm'}
+              min={DURATION_BOUNDS[0]}
+              max={DURATION_BOUNDS[1]}
+              step={1}
+              minRange={1}
+              value={draft}
+              onChange={setDraft}
+              marks={[
+                { value: 0, label: '0' },
+                { value: 25, label: '25' },
+                { value: 50, label: '50' }
+              ]}
+            />
+          </div>
+          <Group
+            justify="flex-end"
+            gap={touchUi ? 'sm' : 'xs'}
+            wrap="nowrap"
+            className={styles.actionsRow}
+          >
+            <Button variant="subtle" size={touchUi ? 'sm' : 'xs'} onClick={() => setOpened(false)}>
               Отмена
             </Button>
-            <Button size="xs" onClick={applyFromDraft}>
+            <Button size={touchUi ? 'sm' : 'xs'} onClick={applyFromDraft}>
               ОК
             </Button>
           </Group>

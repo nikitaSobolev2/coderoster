@@ -1,11 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { Stack, Text } from '@mantine/core'
+import { Group, Stack, Text } from '@mantine/core'
 import type { CategoryRef, CoursesQuery } from '~/server/repositories/types'
 import type { CoursesGridDensity } from '../coursesGridDensity'
 import CourseFiltersDrawer from './CourseFiltersDrawer'
 import CourseFiltersToolbar from './CourseFiltersToolbar'
+import { catalogFiltersDirty } from './courseFiltersConfig'
 import styles from './styles.module.scss'
 
 export interface Props {
@@ -28,6 +29,7 @@ export default function CourseFilters({
   onGridDensityChange
 }: Readonly<Props>) {
   const [drawerOpened, setDrawerOpened] = useState(false)
+  const canResetFilters = catalogFiltersDirty(filters, defaults)
 
   return (
     <Stack className={styles.filters} gap="sm">
@@ -39,9 +41,25 @@ export default function CourseFilters({
         onGridDensityChange={onGridDensityChange}
         onOpenDrawer={() => setDrawerOpened(true)}
       />
-      <Text size="xs" c="dimmed" className={styles.filters__meta}>
-        Найдено: <strong>{total}</strong>
-      </Text>
+      <Group
+        justify="space-between"
+        align="center"
+        gap="sm"
+        wrap="wrap"
+        className={styles.filters__metaRow}
+      >
+        <Text size="xs" c="dimmed" className={styles.filters__meta}>
+          Найдено: <strong>{total}</strong>
+        </Text>
+        <button
+          type="button"
+          className={styles.filters__reset}
+          disabled={!canResetFilters}
+          onClick={() => onChange({ ...defaults })}
+        >
+          Сбросить фильтры
+        </button>
+      </Group>
       <CourseFiltersDrawer
         opened={drawerOpened}
         onClose={() => setDrawerOpened(false)}

@@ -2,17 +2,108 @@
 
 .dropdown {
   min-width: min(100vw - 1.5rem, 260px);
+  padding: 0.45rem 0.65rem 0.55rem;
   border-radius: var(--platform-card-radius);
   border: var(--border-width-hair) solid var(--platform-glass-border);
   background: var(--platform-color-surface-raised);
   backdrop-filter: var(--blur-effect-default);
 }
 
+.popoverCheckboxRoot {
+  &:global(.mantine-Checkbox-root) {
+    align-items: flex-start;
+  }
+
+  :global(.mantine-Checkbox-body) {
+    align-items: flex-start;
+  }
+}
+
+.popoverSwitchRoot {
+  &:global(.mantine-Switch-root) {
+    align-items: flex-start;
+  }
+}
+
+.popoverActions {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+@include bp.max-width(bp.$bp-nav) {
+  .dropdown {
+    padding: 0.75rem 0.9rem 0.85rem;
+  }
+
+  .popoverCheckboxStack {
+    gap: 0.35rem !important;
+  }
+
+  .popoverCheckboxRoot {
+    &:global(.mantine-Checkbox-root) {
+      align-items: center;
+      min-height: var(--min-tap-target);
+      padding-block: 0.2rem;
+    }
+
+    :global(.mantine-Checkbox-body) {
+      align-items: center;
+    }
+  }
+
+  .popoverSwitchStack {
+    gap: 0.25rem !important;
+  }
+
+  .popoverSwitchRoot {
+    &:global(.mantine-Switch-root) {
+      min-height: var(--min-tap-target);
+      align-items: center;
+      padding-block: 0.25rem;
+    }
+  }
+}
+
+.popoverActions {
+  margin-top: 0.25rem;
+  padding-top: 0.5rem;
+  border-top: var(--border-width-hair) solid var(--platform-color-divider);
+
+  :global(.mantine-Button-root) {
+    min-height: var(--min-tap-target);
+  }
+}
+
 .trigger {
   flex-shrink: 0;
+  max-width: 100%;
   min-height: 2.625rem;
   font-size: var(--font-size-default);
   line-height: 1.25;
+
+  &:global(.mantine-Button-root) {
+    align-items: center;
+  }
+
+  :global(.mantine-Button-inner) {
+    overflow: hidden;
+    align-items: center;
+    min-height: 0;
+  }
+
+  :global(.mantine-Button-label) {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    line-height: 1.25;
+    align-self: center;
+  }
+
+  :global(.mantine-Button-section) {
+    align-self: center;
+  }
 }
 
 @include bp.max-width(bp.$bp-sm) {

@@ -1,27 +1,18 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import {
-  ActionIcon,
-  Button,
-  Group,
-  Popover,
-  Stack,
-  Switch,
-  Text
-} from '@mantine/core'
+import { useMediaQuery } from '@mantine/hooks'
+import { ActionIcon, Button, Group, Popover, Stack, Switch, Text } from '@mantine/core'
 import { useAuth } from '@workos-inc/authkit-nextjs/components'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faXmark } from '@fortawesome/free-solid-svg-icons'
 import type { CoursesQuery } from '~/server/repositories/types'
+import { COURSE_FILTERS_TOUCH_UI_MEDIA_QUERY } from './courseFiltersConfig'
 import styles from './LevelFilterPopover.module.scss'
 
 export interface Props {
   filters: CoursesQuery
-  onApply: (patch: {
-    freeOnly: boolean | undefined
-    matchesMyPlan: boolean | undefined
-  }) => void
+  onApply: (patch: { freeOnly: boolean | undefined; matchesMyPlan: boolean | undefined }) => void
   onClear: () => void
 }
 
@@ -35,6 +26,7 @@ function summarize(filters: CoursesQuery): string {
 
 export default function TierPlanFilterPopover({ filters, onApply, onClear }: Readonly<Props>) {
   const { user } = useAuth()
+  const touchUi = useMediaQuery(COURSE_FILTERS_TOUCH_UI_MEDIA_QUERY)
   const [opened, setOpened] = useState(false)
   const appliedSummary = summarize(filters)
   const isFiltered = appliedSummary.length > 0
@@ -98,32 +90,43 @@ export default function TierPlanFilterPopover({ filters, onApply, onClear }: Rea
         </Button>
       </Popover.Target>
       <Popover.Dropdown>
-        <Stack gap="sm">
+        <Stack gap={touchUi ? 'md' : 'sm'}>
           <Text size="sm" fw={600}>
             Доступ к курсу
           </Text>
-          <Switch
-            label="Только бесплатные"
-            checked={freeDraft}
-            onChange={e => setFreeDraft(e.currentTarget.checked)}
-          />
-          <div>
+          <Stack gap={touchUi ? 'sm' : 'xs'} className={styles.popoverSwitchStack}>
             <Switch
-              label="Подходит для моего тарифа"
-              checked={myPlanDraft}
-              onChange={e => setMyPlanDraft(e.currentTarget.checked)}
+              label="Только бесплатные"
+              checked={freeDraft}
+              size={touchUi ? 'md' : 'sm'}
+              classNames={{ root: styles.popoverSwitchRoot }}
+              onChange={e => setFreeDraft(e.currentTarget.checked)}
             />
-            <Text size="xs" c="dimmed" mt={6}>
-              {user
-                ? 'Оставляем курсы, у которых порог не выше твоего текущего плана.'
-                : 'Без входа считается бесплатный план (тир 0). Войди — фильтр начнёт учитывать твою подписку.'}
-            </Text>
-          </div>
-          <Group justify="flex-end" gap="xs">
-            <Button variant="subtle" size="xs" onClick={() => setOpened(false)}>
+            <div>
+              <Switch
+                label="Подходит для моего тарифа"
+                checked={myPlanDraft}
+                size={touchUi ? 'md' : 'sm'}
+                classNames={{ root: styles.popoverSwitchRoot }}
+                onChange={e => setMyPlanDraft(e.currentTarget.checked)}
+              />
+              <Text size="xs" c="dimmed" mt={touchUi ? 8 : 6}>
+                {user
+                  ? 'Оставляем курсы, у которых порог не выше твоего текущего плана.'
+                  : 'Без входа считается бесплатный план (тир 0). Войди — фильтр начнёт учитывать твою подписку.'}
+              </Text>
+            </div>
+          </Stack>
+          <Group
+            justify="flex-end"
+            gap={touchUi ? 'sm' : 'xs'}
+            wrap="nowrap"
+            className={styles.popoverActions}
+          >
+            <Button variant="subtle" size={touchUi ? 'sm' : 'xs'} onClick={() => setOpened(false)}>
               Отмена
             </Button>
-            <Button size="xs" onClick={applyFromDraft}>
+            <Button size={touchUi ? 'sm' : 'xs'} onClick={applyFromDraft}>
               ОК
             </Button>
           </Group>

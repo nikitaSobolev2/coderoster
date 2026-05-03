@@ -100,11 +100,31 @@
 
 .checkboxStack {
   padding-bottom: 0.125rem;
+
+  @include bp.max-width(bp.$bp-nav) {
+    gap: 0.35rem !important;
+  }
 }
 
 .checkboxRoot {
   &:global(.mantine-Checkbox-root) {
     align-items: flex-start;
+
+    @include bp.max-width(bp.$bp-nav) {
+      align-items: center;
+      min-height: var(--min-tap-target);
+      padding-block: 0.2rem;
+    }
+  }
+}
+
+.drawerSwitchRoot {
+  &:global(.mantine-Switch-root) {
+    @include bp.max-width(bp.$bp-nav) {
+      min-height: var(--min-tap-target);
+      align-items: center;
+      padding-block: 0.2rem;
+    }
   }
 }
 
@@ -114,6 +134,11 @@
     line-height: 1.35;
     word-break: break-word;
     padding-left: 0.25rem;
+
+    @include bp.max-width(bp.$bp-nav) {
+      font-size: var(--font-size-default);
+      padding-block: 0.15rem;
+    }
   }
 }
 

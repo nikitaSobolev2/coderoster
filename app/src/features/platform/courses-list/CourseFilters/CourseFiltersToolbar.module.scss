@@ -167,9 +167,8 @@
   }
 
   .toolbar__pillRow {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 0.5rem;
     align-items: stretch;
     grid-column: 1 / -1;
@@ -178,16 +177,22 @@
   }
 
   .toolbar__durationSlot,
-  .toolbar__levelSlot {
+  .toolbar__levelSlot,
+  .toolbar__tierSlot {
     display: flex;
-    flex: 1 1 0;
     min-width: 0;
     align-items: stretch;
   }
 
   .toolbar__durationSlot :global(.mantine-Popover-root),
-  .toolbar__levelSlot :global(.mantine-Popover-root) {
+  .toolbar__levelSlot :global(.mantine-Popover-root),
+  .toolbar__tierSlot :global(.mantine-Popover-root) {
     display: block;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .toolbar__pillRow :global(.mantine-Button-root) {
     width: 100%;
     min-width: 0;
   }

@@ -1,15 +1,7 @@
 'use client'
 
 import { useMediaQuery } from '@mantine/hooks'
-import {
-  Button,
-  Checkbox,
-  Drawer,
-  ScrollArea,
-  Stack,
-  Switch,
-  Text
-} from '@mantine/core'
+import { Button, Checkbox, Drawer, ScrollArea, Stack, Switch, Text } from '@mantine/core'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCheck, faRotateLeft } from '@fortawesome/free-solid-svg-icons'
 import type { CategoryRef, CoursesQuery, Difficulty, Language } from '~/server/repositories/types'
@@ -85,7 +77,7 @@ export default function CourseFiltersDrawer({
                       label={category.title}
                       classNames={{ root: styles.checkboxRoot, label: styles.checkboxLabel }}
                       color="gray"
-                      size="sm"
+                      size="md"
                     />
                   ))}
                 </Stack>
@@ -112,7 +104,7 @@ export default function CourseFiltersDrawer({
                       label={option.label}
                       classNames={{ root: styles.checkboxRoot, label: styles.checkboxLabel }}
                       color="gray"
-                      size="sm"
+                      size="md"
                     />
                   ))}
                 </Stack>
@@ -139,7 +131,7 @@ export default function CourseFiltersDrawer({
                       label={option.label}
                       classNames={{ root: styles.checkboxRoot, label: styles.checkboxLabel }}
                       color="gray"
-                      size="sm"
+                      size="md"
                     />
                   ))}
                 </Stack>
@@ -153,11 +145,15 @@ export default function CourseFiltersDrawer({
               <Stack gap="md">
                 <Switch
                   label="Только бесплатные"
+                  size="md"
+                  classNames={{ root: styles.drawerSwitchRoot }}
                   checked={Boolean(filters.freeOnly)}
                   onChange={e => update({ freeOnly: e.currentTarget.checked ? true : undefined })}
                 />
                 <Switch
                   label="Подходит для моего тарифа"
+                  size="md"
+                  classNames={{ root: styles.drawerSwitchRoot }}
                   checked={Boolean(filters.matchesMyPlan)}
                   onChange={e =>
                     update({ matchesMyPlan: e.currentTarget.checked ? true : undefined })

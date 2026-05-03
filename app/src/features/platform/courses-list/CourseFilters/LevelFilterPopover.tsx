@@ -1,10 +1,11 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useMediaQuery } from '@mantine/hooks'
 import { ActionIcon, Button, Checkbox, Group, Popover, Stack, Text } from '@mantine/core'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faXmark } from '@fortawesome/free-solid-svg-icons'
-import { DIFFICULTY_OPTIONS } from './courseFiltersConfig'
+import { COURSE_FILTERS_TOUCH_UI_MEDIA_QUERY, DIFFICULTY_OPTIONS } from './courseFiltersConfig'
 import type { CoursesQuery, Difficulty } from '~/server/repositories/types'
 import styles from './LevelFilterPopover.module.scss'
 
@@ -27,6 +28,7 @@ function summarizeSelection(selected: Difficulty[]): string {
 }
 
 export default function LevelFilterPopover({ filters, onApply, onClear }: Readonly<Props>) {
+  const touchUi = useMediaQuery(COURSE_FILTERS_TOUCH_UI_MEDIA_QUERY)
   const [opened, setOpened] = useState(false)
   const applied = filters.difficulties ?? []
   const isFiltered = applied.length > 0
@@ -83,22 +85,33 @@ export default function LevelFilterPopover({ filters, onApply, onClear }: Readon
         </Button>
       </Popover.Target>
       <Popover.Dropdown>
-        <Stack gap="sm">
+        <Stack gap={touchUi ? 'md' : 'sm'}>
           <Text size="sm" fw={600}>
             Уровень сложности
           </Text>
           <Checkbox.Group value={draft} onChange={v => setDraft(v as Difficulty[])}>
-            <Stack gap="xs">
+            <Stack gap={touchUi ? 'sm' : 'xs'} className={styles.popoverCheckboxStack}>
               {DIFFICULTY_OPTIONS.map(option => (
-                <Checkbox key={option.value} value={option.value} label={option.label} />
+                <Checkbox
+                  key={option.value}
+                  value={option.value}
+                  label={option.label}
+                  size={touchUi ? 'md' : 'sm'}
+                  classNames={{ root: styles.popoverCheckboxRoot }}
+                />
               ))}
             </Stack>
           </Checkbox.Group>
-          <Group justify="flex-end" gap="xs">
-            <Button variant="subtle" size="xs" onClick={() => setOpened(false)}>
+          <Group
+            justify="flex-end"
+            gap={touchUi ? 'sm' : 'xs'}
+            wrap="nowrap"
+            className={styles.popoverActions}
+          >
+            <Button variant="subtle" size={touchUi ? 'sm' : 'xs'} onClick={() => setOpened(false)}>
               Отмена
             </Button>
-            <Button size="xs" onClick={applyFromDraft}>
+            <Button size={touchUi ? 'sm' : 'xs'} onClick={applyFromDraft}>
               ОК
             </Button>
           </Group>

@@ -42,9 +42,16 @@
 .dropdown {
   @include bluredBg;
 
+  border-radius: var(--platform-card-radius);
   border: var(--border-width-hair) solid var(--platform-color-border);
   box-shadow: var(--platform-shadow-popover);
   min-width: 220px;
+}
+
+.dropdown__dividerAfterHeader {
+  margin-top: 0.25rem;
+  padding-top: 0.5rem;
+  border-top: var(--border-width-hair) solid var(--platform-color-divider);
 }
 
 .dropdown__header {

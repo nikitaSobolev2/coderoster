@@ -83,24 +83,60 @@ function displayNameFor(i: number): string {
   return `${fn} ${ln}`
 }
 
-export async function seedBulkUsers(courses: SeedCourseMeta[]): Promise<void> {
+export interface SeedDemoLearnersOptions {
+  workosIdPrefix: string
+  usernamePrefix: string
+  count: number
+  /** Default free plan — enrollments / leaderboard realism for prod demo. */
+  planId?: string | null
+  heatmapAnchor?: string
+  heatmapSpanDays?: number
+  /** Key stored on `lesson.passed` activity payload (value = learner index). */
+  lessonActivityPayloadKey?: string
+  bioLine?: (index: number) => string
+}
+
+/**
+ * Synthetic learners: enrollments, task attempts, achievements, heatmap snapshots, sporadic activity.
+ * Idempotent per cohort via `deleteMany` on `workosIdPrefix`.
+ */
+export async function seedDemoLearnersForCourses(
+  courses: SeedCourseMeta[],
+  options: SeedDemoLearnersOptions
+): Promise<void> {
+  if (courses.length === 0) {
+    console.warn('[seed] seedDemoLearnersForCourses: no courses, skip')
+    return
+  }
+
+  const {
+    workosIdPrefix,
+    usernamePrefix,
+    count,
+    planId,
+    heatmapAnchor = '2026-01-01',
+    heatmapSpanDays = 50,
+    lessonActivityPayloadKey = 'seedBulk',
+    bioLine = i => `Сид-пользователь №${i}. Практикую Python и алгоритмы.`
+  } = options
+
   const achievements = await prisma.achievement.findMany({
     select: { id: true, slug: true, goal: true }
   })
 
   await prisma.user.deleteMany({
-    where: { workosUserId: { startsWith: 'seed-bulk-' } }
+    where: { workosUserId: { startsWith: workosIdPrefix } }
   })
 
-  for (let i = 1; i <= BULK_COUNT; i++) {
-    const workosUserId = `seed-bulk-${i}`
-    const username = `seedbulk${String(i).padStart(3, '0')}`
+  for (let i = 1; i <= count; i++) {
+    const workosUserId = `${workosIdPrefix}${i}`
+    const username = `${usernamePrefix}${String(i).padStart(3, '0')}`
     const email = seedEmail(username)
     const displayName = displayNameFor(i)
 
     const occupant = await prisma.user.findUnique({ where: { username } })
     if (occupant && occupant.workosUserId !== workosUserId) {
-      console.warn(`[seed] skip bulk user ${i}: username ${username} owned by another id`)
+      console.warn(`[seed] skip demo learner ${i}: username ${username} owned by another id`)
       continue
     }
 
@@ -114,11 +150,12 @@ export async function seedBulkUsers(courses: SeedCourseMeta[]): Promise<void> {
         username,
         email,
         displayName,
-        bio: `Сид-пользователь №${i}. Практикую Python и алгоритмы.`,
+        bio: bioLine(i),
         role: Role.LEARNER,
         totalXp,
         streakDays,
-        lastActiveDay
+        lastActiveDay,
+        ...(planId != null && planId !== '' ? { planId } : {})
       }
     })
 
@@ -193,17 +230,17 @@ export async function seedBulkUsers(courses: SeedCourseMeta[]): Promise<void> {
       })
     }
 
-    for (let d = 0; d < 50; d++) {
+    for (let d = 0; d < heatmapSpanDays; d++) {
       if ((i + d) % 2 === 0) {
         continue
       }
-      const date = addDaysIso('2026-01-01', d)
-      const count = ((i * 3 + d) % 8) + 1
-      const level = levelForActivityCount(count)
+      const date = addDaysIso(heatmapAnchor, d)
+      const activityCount = ((i * 3 + d) % 8) + 1
+      const level = levelForActivityCount(activityCount)
       await prisma.userActivitySnapshot.upsert({
         where: { userId_date: { userId: user.id, date } },
-        update: { count, level },
-        create: { userId: user.id, date, count, level }
+        update: { count: activityCount, level },
+        create: { userId: user.id, date, count: activityCount, level }
       })
     }
 
@@ -212,9 +249,17 @@ export async function seedBulkUsers(courses: SeedCourseMeta[]): Promise<void> {
         data: {
           userId: user.id,
           type: 'lesson.passed',
-          payload: { seedBulk: i }
+          payload: { [lessonActivityPayloadKey]: i }
         }
       })
     }
   }
+}
+
+export async function seedBulkUsers(courses: SeedCourseMeta[]): Promise<void> {
+  await seedDemoLearnersForCourses(courses, {
+    workosIdPrefix: 'seed-bulk-',
+    usernamePrefix: 'seedbulk',
+    count: BULK_COUNT
+  })
 }

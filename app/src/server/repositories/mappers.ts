@@ -39,6 +39,7 @@ import type {
   UserRole,
   UserSettings
 } from './types'
+import { inferCatalogPremiumTasksBadge } from '~/shared/lib/coursePremiumSignals'
 import { requiredTierForTask } from '~/shared/lib/planTier'
 import { normalizeStarterCodeMap, starterCodeForLanguage } from '~/shared/lib/taskStarterCodes'
 
@@ -103,7 +104,8 @@ export function toCourseDetail(course: CourseWithRelations): CourseDetail {
     .slice()
     .sort((a, b) => a.order - b.order)
     .map(toModuleSummary)
-  const hasPremiumTasks = (course.modules ?? []).some(mod => mod.tasks.some(t => t.isPremium))
+  const anyTaskMarkedPremium = (course.modules ?? []).some(mod => mod.tasks.some(t => t.isPremium))
+  const hasPremiumTasks = inferCatalogPremiumTasksBadge(course.tierRequired, anyTaskMarkedPremium)
   return {
     ...toCourseSummary(course),
     hasPremiumTasks,

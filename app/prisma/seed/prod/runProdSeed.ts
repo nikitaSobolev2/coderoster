@@ -12,12 +12,12 @@ import { prisma } from '../lib/client'
 import { upsertAlgoAuthor, upsertAuthor, upsertSecondaryAuthor } from '../lib/seedUser'
 
 import { assertProdCatalogIntegrity, PROD_COURSE_DEFS } from './index'
+import { seedProdDemoLearners } from './prodDemoUsers'
 
 /**
- * Полное наполнение каталога под прод (RU): тарифы Free/Pro/Pro+, 21 курс.
- * Не создаёт массовых пользователей и не вызывает сиды дейликов.
- * Существующих пользователей (в т.ч. реальный `nikareich` после входа через WorkOS) не создаём и не перезаписываем —
- * демо-ученик есть только в обычном `prisma/seed.ts`.
+ * Полное наполнение каталога под прод (RU): тарифы Free/Pro/Pro+, 21 курс,
+ * изолированные демо-ученики (`seed-prod-demo-*`) с активностью под heatmap/ачивки.
+ * Не вызывает сиды дейликов. Реальные WorkOS-аккаунты не трогаем.
  */
 export async function runProdSeed(): Promise<void> {
   assertProdCatalogIntegrity()
@@ -31,11 +31,13 @@ export async function runProdSeed(): Promise<void> {
 
   await seedAchievements()
   const leafMap = await seedCatalogCategories(author.id)
-  await seedAllCoursesFromDefs(
+  const { courses } = await seedAllCoursesFromDefs(
     PROD_COURSE_DEFS,
     { primary: author.id, secondary: secondary.id, algo: algo.id },
     leafMap
   )
+
+  await seedProdDemoLearners(courses, freePlan.id)
 
   await seedContentPages()
   await seedAppSettings()

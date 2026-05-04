@@ -178,18 +178,31 @@ const SEED_ROOT_BLOCKS: {
   }
 ]
 
+/**
+ * Привязка блоков `seed-root-*` к легаси-корням mega-menu (Python, Алгоритмы, …).
+ */
+const SEED_ROOT_LEGACY_PARENT_SLUG: Record<string, string> = {
+  'seed-root-env': 'python',
+  'seed-root-syntax': 'python',
+  'seed-root-algo': 'algorithms',
+  'seed-root-data': 'databases',
+  'seed-root-applied': 'web-development'
+}
+
 export type CatalogLeafMap = Record<string, string>
 
 export async function seedCatalogCategories(authorId: string): Promise<CatalogLeafMap> {
+  const legacyIdBySlug = new Map<string, string>()
   for (const definition of LEGACY_ROOTS) {
-    await prisma.courseCategory.upsert({
+    const row = await prisma.courseCategory.upsert({
       where: { slug: definition.slug },
       update: {
         title: definition.title,
         summary: definition.summary,
         iconKey: definition.iconKey,
         order: definition.order,
-        authorId
+        authorId,
+        parentCategoryId: null
       },
       create: {
         slug: definition.slug,
@@ -200,10 +213,14 @@ export async function seedCatalogCategories(authorId: string): Promise<CatalogLe
         authorId
       }
     })
+    legacyIdBySlug.set(definition.slug, row.id)
   }
 
   const leafIds: CatalogLeafMap = {}
   for (const block of SEED_ROOT_BLOCKS) {
+    const underLegacy = SEED_ROOT_LEGACY_PARENT_SLUG[block.slug]
+    const parentCategoryId = underLegacy ? (legacyIdBySlug.get(underLegacy) ?? null) : null
+
     const parent = await prisma.courseCategory.upsert({
       where: { slug: block.slug },
       update: {
@@ -212,7 +229,7 @@ export async function seedCatalogCategories(authorId: string): Promise<CatalogLe
         iconKey: block.iconKey,
         order: block.order,
         authorId,
-        parentCategoryId: null
+        parentCategoryId
       },
       create: {
         slug: block.slug,
@@ -220,7 +237,8 @@ export async function seedCatalogCategories(authorId: string): Promise<CatalogLe
         summary: block.summary,
         iconKey: block.iconKey,
         order: block.order,
-        authorId
+        authorId,
+        parentCategoryId
       }
     })
     for (const child of block.children) {

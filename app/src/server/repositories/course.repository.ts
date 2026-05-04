@@ -11,6 +11,7 @@ import type {
   CoursesQuery,
   CourseSummary
 } from './types'
+import { inferCatalogPremiumTasksBadge } from '~/shared/lib/coursePremiumSignals'
 import { findFakeCourseBySlug, getFakeCourseSummaries } from './fixtures'
 
 /** Resolved on the server from the signed-in user; defaults to `0` for guests. */
@@ -29,9 +30,7 @@ export interface CourseRepository {
 export class FakeCourseRepository implements CourseRepository {
   async list(query: CoursesQuery, context?: CourseListContext): Promise<CoursesPage> {
     const all = getFakeCourseSummaries()
-    const filtered = all.filter(course =>
-      matchesFakeQuery(course, query, context?.viewerTier ?? 0)
-    )
+    const filtered = all.filter(course => matchesFakeQuery(course, query, context?.viewerTier ?? 0))
     const sorted = applySort(filtered, query.sort)
     return { items: sorted, nextCursor: null, total: sorted.length }
   }
@@ -93,7 +92,10 @@ export class PrismaCourseRepository implements CourseRepository {
     return {
       items: sliced.map(row => ({
         ...toCourseSummary(row),
-        hasPremiumTasks: premiumByCourse.get(row.id) ?? false
+        hasPremiumTasks: inferCatalogPremiumTasksBadge(
+          row.tierRequired,
+          premiumByCourse.get(row.id) ?? false
+        )
       })),
       nextCursor,
       total
@@ -275,11 +277,7 @@ function buildOrderBy(sort: CoursesQuery['sort']): Prisma.CourseOrderByWithRelat
   }
 }
 
-function matchesFakeQuery(
-  course: CourseSummary,
-  query: CoursesQuery,
-  viewerTier: number
-): boolean {
+function matchesFakeQuery(course: CourseSummary, query: CoursesQuery, viewerTier: number): boolean {
   if (query.languages?.length && !query.languages.includes(course.language)) return false
   if (query.difficulties?.length && !query.difficulties.includes(course.difficulty)) return false
   if (

@@ -65,7 +65,10 @@ export interface CourseSummary {
   category: CategoryRef | null
   /** Minimum plan tier (`Plan.tierLevel`) to enroll. */
   tierRequired: number
-  /** At least one module task has `isPremium` (omit/`false` when not loaded). */
+  /**
+   * UI «Премиум-задачи»: any task `isPremium`, or course `tierRequired > 0`.
+   * Omit/`false` when not loaded (list uses repository merge).
+   */
   hasPremiumTasks?: boolean
 }
 

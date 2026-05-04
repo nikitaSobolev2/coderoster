@@ -10,6 +10,7 @@ import type {
   PublicProfile,
   UserSettings
 } from './types'
+import { inferCatalogPremiumTasksBadge } from '~/shared/lib/coursePremiumSignals'
 
 const NOW = new Date('2026-04-26T12:00:00Z')
 
@@ -260,8 +261,16 @@ const ALGORITHMS: CourseDetail = {
 
 const ALL_COURSES: CourseDetail[] = [PYTHON_BASICS, PHP_API, ALGORITHMS]
 
+function withCatalogPremiumBadge(detail: CourseDetail): CourseDetail {
+  const anyLessonPremium = detail.modules.some(m => m.lessons.some(l => l.isPremium))
+  return {
+    ...detail,
+    hasPremiumTasks: inferCatalogPremiumTasksBadge(detail.tierRequired, anyLessonPremium)
+  }
+}
+
 export function getFakeCourses(): CourseDetail[] {
-  return ALL_COURSES
+  return ALL_COURSES.map(withCatalogPremiumBadge)
 }
 
 export function getFakeCourseSummaries(): CourseSummary[] {
@@ -271,12 +280,14 @@ export function getFakeCourseSummaries(): CourseSummary[] {
 function stripCourseDetail(detail: CourseDetail): CourseSummary {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- removed from public summary shape
   const { longDescription, learningOutcomes, modules, ...summary } = detail
-  const hasPremiumTasks = modules.some(m => m.lessons.some(l => l.isPremium))
+  const anyLessonPremium = modules.some(m => m.lessons.some(l => l.isPremium))
+  const hasPremiumTasks = inferCatalogPremiumTasksBadge(summary.tierRequired, anyLessonPremium)
   return { ...summary, hasPremiumTasks }
 }
 
 export function findFakeCourseBySlug(slug: string): CourseDetail | null {
-  return ALL_COURSES.find(course => course.slug === slug) ?? null
+  const row = ALL_COURSES.find(course => course.slug === slug)
+  return row ? withCatalogPremiumBadge(row) : null
 }
 
 const LESSON_BODIES: Record<string, Pick<LessonDetail, 'body' | 'starterCode' | 'language'>> = {

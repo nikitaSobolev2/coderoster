@@ -10,6 +10,7 @@ import styles from './styles.module.scss'
 
 export interface Props {
   navGroups: AdminNavGroup[]
+  brandHref: string
 }
 
 /**
@@ -17,7 +18,7 @@ export interface Props {
  * `Drawer`. Re-uses the desktop sidebar component so admin nav structure
  * stays a single source of truth.
  */
-export default function AdminMobileMenu({ navGroups }: Props) {
+export default function AdminMobileMenu({ navGroups, brandHref }: Props) {
   const [opened, setOpened] = useState(false)
   const close = () => setOpened(false)
 
@@ -54,7 +55,7 @@ export default function AdminMobileMenu({ navGroups }: Props) {
           </button>
         </header>
         <div className={styles.drawer__nav}>
-          <AdminSidebar navGroups={navGroups} onNavigate={close} />
+          <AdminSidebar navGroups={navGroups} brandHref={brandHref} onNavigate={close} />
         </div>
       </Drawer>
     </>

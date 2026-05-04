@@ -1,9 +1,9 @@
 import { z } from 'zod'
-import { adminProcedure, authorStaffProcedure } from '~/server/api/procedures'
+import { adminProcedure, staffLanguagesListProcedure } from '~/server/api/procedures'
 import { createTRPCRouter } from '~/server/api/trpc'
 
 export const adminLanguagesRouter = createTRPCRouter({
-  list: authorStaffProcedure.query(({ ctx }) => ctx.repositories.admin.languages.list()),
+  list: staffLanguagesListProcedure.query(({ ctx }) => ctx.repositories.admin.languages.list()),
 
   update: adminProcedure
     .input(

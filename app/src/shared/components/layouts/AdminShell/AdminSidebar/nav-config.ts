@@ -150,7 +150,7 @@ export const ADMIN_NAV: AdminNavGroup[] = [
         label: 'Языки',
         href: '/admin/languages',
         icon: faLanguage,
-        roles: ['admin', 'author']
+        roles: ['admin']
       },
       {
         label: 'Чат',
@@ -173,4 +173,16 @@ export function filterAdminNavForRole(role: BackofficeRole): AdminNavGroup[] {
     ...group,
     items: group.items.filter(item => item.roles.includes(role))
   })).filter(group => group.items.length > 0)
+}
+
+/** Logo link target — avoids bouncing authors off `/admin` (dashboard is admin-only). */
+export function adminSidebarBrandHref(role: BackofficeRole): string {
+  switch (role) {
+    case 'author':
+      return '/admin/courses'
+    case 'moderator':
+      return '/admin/users'
+    default:
+      return '/admin'
+  }
 }

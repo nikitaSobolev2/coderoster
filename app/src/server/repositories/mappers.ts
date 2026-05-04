@@ -13,6 +13,7 @@ import type {
   UserAchievementTrack as PrismaUserAchievementTrack,
   UserActivitySnapshot as PrismaActivitySnapshot
 } from '@prisma/client'
+import { isBootstrapAdminEmail } from '~/server/auth/bootstrapAdminEmail'
 import type {
   Achievement,
   ActivityCell,
@@ -306,6 +307,7 @@ export function toUserSettings(user: PrismaUser): UserSettings {
     appearance,
     joinedAt: user.joinedAt,
     role: roleToDomain(user.role),
+    allowSelfRoleChange: isBootstrapAdminEmail(user.email),
     deletionRequestedAt: user.deletionRequestedAt
   }
 }

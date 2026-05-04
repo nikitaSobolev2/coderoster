@@ -6,7 +6,7 @@ import LanguagesPanel from '~/features/admin/system/LanguagesPanel'
 export const dynamic = 'force-dynamic'
 
 export default async function AdminLanguagesPage() {
-  await requireBackofficePageRole(['admin', 'author'])
+  await requireBackofficePageRole(['admin'])
   await api.admin.languages.list.prefetch()
   return (
     <>

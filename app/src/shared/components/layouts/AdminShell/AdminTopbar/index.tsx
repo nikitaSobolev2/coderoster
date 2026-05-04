@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons'
 import AdminMobileMenu from '../AdminMobileMenu'
 import type { AdminNavGroup } from '../AdminSidebar/nav-config'
+import { adminSidebarBrandHref } from '../AdminSidebar/nav-config'
 import { SITE_NAME } from '~/shared/constants/site'
 import type { BackofficeRole } from '~/shared/types/backoffice'
 import styles from './styles.module.scss'
@@ -42,10 +43,11 @@ function backofficeLabel(role: BackofficeRole): string {
 }
 
 export default function AdminTopbar({ viewer, navGroups }: Props) {
+  const brandHref = adminSidebarBrandHref(viewer.role)
   return (
     <header className={styles.topbar}>
       <div className={styles.topbar__left}>
-        <AdminMobileMenu navGroups={navGroups} />
+        <AdminMobileMenu navGroups={navGroups} brandHref={brandHref} />
         <span className={styles.topbar__label}>
           {SITE_NAME} · {backofficeLabel(viewer.role)}
         </span>

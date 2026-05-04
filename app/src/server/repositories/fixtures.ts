@@ -494,6 +494,7 @@ export const FAKE_USER_SETTINGS: UserSettings = {
   appearance: { colorScheme: 'dark' },
   joinedAt: FAKE_PROFILE.joinedAt,
   role: 'learner',
+  allowSelfRoleChange: false,
   deletionRequestedAt: null
 }
 

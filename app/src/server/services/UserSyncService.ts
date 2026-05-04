@@ -1,7 +1,7 @@
 import 'server-only'
 import type { User } from '@prisma/client'
 import { Role } from '@prisma/client'
-import { env } from '~/env'
+import { isBootstrapAdminEmail } from '~/server/auth/bootstrapAdminEmail'
 import { db } from '~/server/db'
 import { sanitizePlainText } from '~/server/lib/sanitize'
 
@@ -100,12 +100,6 @@ function buildDisplayName(workosUser: WorkosUserSnapshot): string {
 
 function normaliseUsername(value: string): string {
   return value.replace(/[^a-z0-9_]/gi, '_').slice(0, 32) || 'user'
-}
-
-function isBootstrapAdminEmail(email: string): boolean {
-  const target = env.ADMIN_BOOTSTRAP_EMAIL?.toLowerCase()
-  if (!target) return false
-  return email.toLowerCase() === target
 }
 
 export const userSyncService = new UserSyncService()

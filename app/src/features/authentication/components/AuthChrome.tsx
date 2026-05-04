@@ -24,7 +24,7 @@ export default function AuthChrome({
   return (
     <div className={styles.root}>
       <Container fluid className={styles.chromeShell} py={{ base: 'lg', sm: 'xl' }} px="md">
-        <Stack gap="md">
+        <Stack gap="lg">
           <Group justify="space-between" align="center" wrap="nowrap">
             {backHref ? (
               <Anchor
@@ -58,7 +58,7 @@ export default function AuthChrome({
             ) : null}
           </Stack>
 
-          <Paper className={styles.paper} p={{ base: 'md', sm: 'xl' }}>
+          <Paper className={styles.paper} radius="lg" shadow="md" p={{ base: 'lg', sm: 'xl' }}>
             {children}
           </Paper>
         </Stack>

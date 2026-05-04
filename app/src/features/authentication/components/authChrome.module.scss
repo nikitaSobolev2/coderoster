@@ -33,11 +33,14 @@
 .paper {
   box-sizing: border-box;
   width: 100%;
-  border: 1px solid var(--color-bg-el-border);
-  border-radius: var(--border-radius-el);
+  border: 1px solid color-mix(in srgb, var(--color-text) 22%, transparent);
+  border-radius: 14px;
   -webkit-backdrop-filter: var(--blur-effect-default);
   backdrop-filter: var(--blur-effect-default);
-  background: color-mix(in srgb, var(--color-text) 11%, transparent);
+  background: color-mix(in srgb, var(--color-text) 13%, transparent);
+  box-shadow:
+    0 18px 42px color-mix(in srgb, #000 42%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--color-text) 18%, transparent);
 }
 
 .logoWrap {
@@ -45,11 +48,11 @@
 }
 
 .inputMin {
-  min-height: 48px;
+  min-height: 52px;
 }
 
 .btnPrimary {
-  min-height: 48px;
+  min-height: 52px;
   background: var(--color-text) !important;
   color: var(--color-bg) !important;
   font-weight: 600;
@@ -60,7 +63,7 @@
 }
 
 .btnGhost {
-  min-height: 48px;
+  min-height: 52px;
   border-color: color-mix(in srgb, var(--color-text) 42%, transparent) !important;
   color: var(--color-text) !important;
   background: transparent !important;

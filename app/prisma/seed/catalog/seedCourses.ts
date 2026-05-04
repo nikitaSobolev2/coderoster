@@ -1,5 +1,7 @@
 import { CourseStatus } from '@prisma/client'
 import { prisma } from '../lib/client'
+import type { CourseDef } from './courseTypes'
+import type { CoursePrimaryLanguage } from './courseTypes'
 import { COURSE_DEFS } from './courseDefinitions'
 import { upsertModuleTask } from './taskFactory'
 import type { CatalogLeafMap } from './categories'
@@ -10,14 +12,15 @@ export interface SeedCourseMeta {
   taskIdsInOrder: string[]
 }
 
-export async function seedAllCourses(
+export async function seedAllCoursesFromDefs(
+  defs: CourseDef[],
   authors: { primary: string; secondary: string; algo: string },
   leafMap: CatalogLeafMap
 ): Promise<{ courses: SeedCourseMeta[]; taskSlugToId: Map<string, string> }> {
   const taskSlugToId = new Map<string, string>()
   const courses: SeedCourseMeta[] = []
 
-  for (const def of COURSE_DEFS) {
+  for (const def of defs) {
     const authorId =
       def.author === 'primary'
         ? authors.primary
@@ -28,6 +31,9 @@ export async function seedAllCourses(
     if (!categoryId) {
       throw new Error(`[seed] missing category leaf: ${def.categoryLeafSlug}`)
     }
+
+    const primaryLanguage: CoursePrimaryLanguage = def.primaryLanguage ?? 'python'
+    const tierRequired = def.tierRequired ?? 0
 
     const existing = await prisma.course.findUnique({ where: { slug: def.slug } })
     if (existing) {
@@ -41,7 +47,7 @@ export async function seedAllCourses(
         summary: def.summary,
         shortSummary: def.shortSummary,
         description: def.description,
-        language: 'python',
+        language: primaryLanguage,
         difficulty: def.difficulty,
         durationHours: def.durationHours,
         xpReward: def.xpReward,
@@ -49,7 +55,9 @@ export async function seedAllCourses(
         status: CourseStatus.PUBLISHED,
         publishedAt: new Date(),
         authorId,
-        categoryId
+        categoryId,
+        tierRequired,
+        coverImage: def.coverImage ?? undefined
       }
     })
 
@@ -66,7 +74,7 @@ export async function seedAllCourses(
       })
       for (let li = 0; li < mod.lessons.length; li++) {
         const les = mod.lessons[li]!
-        const task = await upsertModuleTask(courseModule.id, li + 1, les)
+        const task = await upsertModuleTask(courseModule.id, li + 1, les, primaryLanguage)
         taskIdsInOrder.push(task.id)
         taskSlugToId.set(les.slug, task.id)
       }
@@ -75,4 +83,11 @@ export async function seedAllCourses(
   }
 
   return { courses, taskSlugToId }
+}
+
+export async function seedAllCourses(
+  authors: { primary: string; secondary: string; algo: string },
+  leafMap: CatalogLeafMap
+): Promise<{ courses: SeedCourseMeta[]; taskSlugToId: Map<string, string> }> {
+  return seedAllCoursesFromDefs(COURSE_DEFS, authors, leafMap)
 }

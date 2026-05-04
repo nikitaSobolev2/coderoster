@@ -92,7 +92,8 @@ async function resolveViewer(): Promise<ViewerUser | null> {
         username,
         displayName,
         avatarUrl: session.user.profilePictureUrl ?? null,
-        hasBackofficeAccess: false
+        hasBackofficeAccess: false,
+        adminPanelHref: '/admin'
       }
     }
 
@@ -119,7 +120,13 @@ async function resolveViewer(): Promise<ViewerUser | null> {
       displayName: local.displayName,
       avatarUrl: local.avatarUrl,
       hasBackofficeAccess:
-        local.role === Role.ADMIN || local.role === Role.MODERATOR || local.role === Role.AUTHOR
+        local.role === Role.ADMIN || local.role === Role.MODERATOR || local.role === Role.AUTHOR,
+      adminPanelHref:
+        local.role === Role.AUTHOR
+          ? '/admin/courses'
+          : local.role === Role.MODERATOR
+            ? '/admin/users'
+            : '/admin'
     }
   } catch (error) {
     console.error('[header] resolveViewer failed', error)

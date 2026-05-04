@@ -60,7 +60,10 @@ export const env = createEnv({
      * WorkOS sync (and on `npm run db:seed`). Optional; safe to leave unset
      * after the bootstrap admin has been promoted.
      */
-    ADMIN_BOOTSTRAP_EMAIL: z.string().email().optional(),
+    ADMIN_BOOTSTRAP_EMAIL: z.preprocess(
+      val => (val === '' || val === undefined || val === null ? undefined : val),
+      z.string().email().optional()
+    ),
     /**
      * Object storage (MinIO in dev, S3 / R2 / Spaces in prod).
      * `S3_ENDPOINT` is the internal endpoint the server uses to sign PUT URLs;

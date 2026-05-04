@@ -248,6 +248,11 @@ export interface UserSettings {
   }
   joinedAt: Date
   role: UserRole
+  /**
+   * True only when `email` matches server env `ADMIN_BOOTSTRAP_EMAIL`.
+   * Lets that account switch platform role locally for dev/staging (WorkOS has no app-level roles).
+   */
+  allowSelfRoleChange: boolean
   deletionRequestedAt: Date | null
 }
 

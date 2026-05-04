@@ -89,21 +89,21 @@ export default function LoginPasswordClient({ email }: Readonly<LoginPasswordCli
   return (
     <AuthChrome title="Вход" subtitle="Введи пароль или выбери другой способ." backHref="/login">
       <form onSubmit={form.onSubmit(submit)}>
-        <Stack gap="md">
-          <TextInput label="Электронная почта" value={email} readOnly disabled size="md" />
+        <Stack gap="lg">
+          <TextInput label="Электронная почта" value={email} readOnly disabled size="lg" />
 
           <PasswordInput
             label="Пароль"
             placeholder="••••••••"
             required
             visibilityToggleButtonProps={{ 'aria-label': 'Показать пароль' }}
-            size="md"
+            size="lg"
             classNames={{ input: styles.inputMin }}
             {...form.getInputProps('password')}
           />
 
           <Group justify="space-between" gap="xs">
-            <Anchor component={Link} href="/login/forgot-password" size="sm" c="dimmed">
+            <Anchor component={Link} href="/login/forgot-password" size="md" c="dimmed" lh={1.5}>
               Забыл пароль
             </Anchor>
           </Group>

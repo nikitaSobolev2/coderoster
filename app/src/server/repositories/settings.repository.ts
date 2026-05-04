@@ -1,9 +1,11 @@
 import 'server-only'
 import type { Prisma } from '@prisma/client'
+import { Role } from '@prisma/client'
+import { isBootstrapAdminEmail } from '~/server/auth/bootstrapAdminEmail'
 import { db } from '~/server/db'
 import { sanitizePlainText } from '~/server/lib/sanitize'
 import { toUserSettings } from './mappers'
-import type { UserSettings } from './types'
+import type { UserRole, UserSettings } from './types'
 import { FAKE_USER_SETTINGS } from './fixtures'
 
 export interface SettingsUpdateInput {
@@ -18,22 +20,29 @@ export interface SettingsUpdateInput {
 export interface SettingsRepository {
   getMine(userId: string): Promise<UserSettings>
   update(userId: string, input: SettingsUpdateInput): Promise<UserSettings>
+  /** Bootstrap-email dev helper only; guarded in API layer. */
+  updatePlatformRole(userId: string, role: UserRole): Promise<UserSettings>
 }
 
 export class FakeSettingsRepository implements SettingsRepository {
-  private current: UserSettings = { ...FAKE_USER_SETTINGS }
+  private current: UserSettings = withBootstrapFlag({ ...FAKE_USER_SETTINGS })
 
   async getMine(_userId: string): Promise<UserSettings> {
-    return this.current
+    return withBootstrapFlag(this.current)
   }
 
   async update(_userId: string, input: SettingsUpdateInput): Promise<UserSettings> {
-    this.current = {
+    this.current = withBootstrapFlag({
       ...this.current,
       ...trimDefined(input, ['displayName', 'username', 'bio', 'avatarUrl']),
       socials: { ...this.current.socials, ...(input.socials ?? {}) },
       appearance: { ...this.current.appearance, ...(input.appearance ?? {}) }
-    }
+    })
+    return this.current
+  }
+
+  async updatePlatformRole(_userId: string, role: UserRole): Promise<UserSettings> {
+    this.current = withBootstrapFlag({ ...this.current, role })
     return this.current
   }
 }
@@ -67,6 +76,14 @@ export class PrismaSettingsRepository implements SettingsRepository {
     const updated = await db.user.update({ where: { id: userId }, data })
     return toUserSettings(updated)
   }
+
+  async updatePlatformRole(userId: string, role: UserRole): Promise<UserSettings> {
+    const updated = await db.user.update({
+      where: { id: userId },
+      data: { role: domainRoleToPrisma(role) }
+    })
+    return toUserSettings(updated)
+  }
 }
 
 function trimDefined<T, K extends keyof T>(input: T, keys: K[]): Partial<T> {
@@ -80,4 +97,24 @@ function trimDefined<T, K extends keyof T>(input: T, keys: K[]): Partial<T> {
 function mergeJson(current: unknown, patch: object): Prisma.InputJsonValue {
   const base = current && typeof current === 'object' ? (current as Record<string, unknown>) : {}
   return { ...base, ...patch } as Prisma.InputJsonValue
+}
+
+function withBootstrapFlag(settings: UserSettings): UserSettings {
+  return {
+    ...settings,
+    allowSelfRoleChange: isBootstrapAdminEmail(settings.email)
+  }
+}
+
+function domainRoleToPrisma(role: UserRole): Role {
+  switch (role) {
+    case 'author':
+      return Role.AUTHOR
+    case 'moderator':
+      return Role.MODERATOR
+    case 'admin':
+      return Role.ADMIN
+    default:
+      return Role.LEARNER
+  }
 }

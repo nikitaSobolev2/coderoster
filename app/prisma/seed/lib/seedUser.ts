@@ -1,5 +1,7 @@
-import { Role, type User } from '@prisma/client'
 import { prisma } from './client'
+
+/** Mirrors `Role` in `schema.prisma` — string literals avoid `@prisma/client` typings when generate is stale. */
+export type SeedRole = 'LEARNER' | 'AUTHOR' | 'MODERATOR' | 'ADMIN'
 
 export const SEED_DOMAIN = 'seed.local'
 export const seedEmail = (username: string) => `${username}@${SEED_DOMAIN}`
@@ -9,16 +11,16 @@ export interface SeedUser {
   username: string
   displayName: string
   bio?: string
-  role?: Role
+  role?: SeedRole
   socials?: Record<string, string>
 }
 
-export async function upsertSeedUser(input: SeedUser): Promise<User> {
+export async function upsertSeedUser(input: SeedUser) {
   const data = {
     email: seedEmail(input.username),
     displayName: input.displayName,
     bio: input.bio ?? '',
-    role: input.role ?? Role.LEARNER,
+    role: input.role ?? 'LEARNER',
     socials: input.socials ?? {}
   }
 
@@ -43,7 +45,7 @@ export async function upsertAuthor() {
     username: 'codenikita',
     displayName: 'Никита Соболев',
     bio: 'Учусь, ломаю, повторяю. Backend по любви, фронтенд по необходимости.',
-    role: Role.AUTHOR,
+    role: 'AUTHOR',
     socials: {
       github: 'https://github.com/nikitaSobolev2',
       website: 'https://t.me/sobolevNikitaWD'
@@ -56,7 +58,7 @@ export async function upsertSecondaryAuthor() {
     workosUserId: 'seed-php_pro',
     username: 'php_pro',
     displayName: 'Мария Лазарева',
-    role: Role.AUTHOR
+    role: 'AUTHOR'
   })
 }
 
@@ -65,7 +67,7 @@ export async function upsertAlgoAuthor() {
     workosUserId: 'seed-algo_dasha',
     username: 'algo_dasha',
     displayName: 'Даша Кравцова',
-    role: Role.AUTHOR
+    role: 'AUTHOR'
   })
 }
 
@@ -74,6 +76,6 @@ export async function upsertDemoLearnerNikareich() {
     workosUserId: 'seed-nikareich',
     username: 'nikareich',
     displayName: 'Ника Райх',
-    role: Role.LEARNER
+    role: 'LEARNER'
   })
 }

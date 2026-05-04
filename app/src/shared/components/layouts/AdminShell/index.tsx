@@ -2,7 +2,7 @@ import AdminBodyAttribute from './AdminBodyAttribute'
 import AdminSidebar from './AdminSidebar'
 import AdminTopbar, { type BackofficeShellViewer } from './AdminTopbar'
 import { BackofficeRoleProvider } from './BackofficeRoleContext'
-import { filterAdminNavForRole } from './AdminSidebar/nav-config'
+import { adminSidebarBrandHref, filterAdminNavForRole } from './AdminSidebar/nav-config'
 import styles from './styles.module.scss'
 
 export interface Props {
@@ -17,12 +17,13 @@ export interface Props {
  */
 export default function AdminShell({ children, viewer }: Readonly<Props>) {
   const navGroups = filterAdminNavForRole(viewer.role)
+  const brandHref = adminSidebarBrandHref(viewer.role)
   return (
     <BackofficeRoleProvider role={viewer.role}>
       <div className={styles.shell}>
         <AdminBodyAttribute />
         <div className={styles.shell__sidebar}>
-          <AdminSidebar navGroups={navGroups} />
+          <AdminSidebar navGroups={navGroups} brandHref={brandHref} />
         </div>
         <div className={styles.shell__main}>
           <AdminTopbar viewer={viewer} navGroups={navGroups} />

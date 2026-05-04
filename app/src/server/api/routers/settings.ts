@@ -3,7 +3,9 @@ import { TRPCError } from '@trpc/server'
 import { createTRPCRouter, protectedProcedure } from '~/server/api/trpc'
 import { idempotentProcedure } from '~/server/api/procedures'
 import { invalidateProfileCachesForUsername } from '~/server/cache/invalidateProfileCaches'
+import { isBootstrapAdminEmail } from '~/server/auth/bootstrapAdminEmail'
 import { userSyncService } from '~/server/services/UserSyncService'
+import type { UserRole } from '~/server/repositories/types'
 
 const socialsSchema = z
   .object({
@@ -13,6 +15,13 @@ const socialsSchema = z
     website: z.string().url().nullable().optional()
   })
   .partial()
+
+const platformRoleSchema = z.enum([
+  'learner',
+  'author',
+  'moderator',
+  'admin'
+]) satisfies z.ZodType<UserRole>
 
 const updateSchema = z.object({
   displayName: z.string().min(1).max(80).optional(),
@@ -59,7 +68,37 @@ export const settingsRouter = createTRPCRouter({
       }
       throw error
     }
-  })
+  }),
+
+  /**
+   * Dev/staging: user whose DB email matches `ADMIN_BOOTSTRAP_EMAIL` may set platform `Role`.
+   * Guarded by DB email + flag; does not change WorkOS directory metadata.
+   */
+  updateBootstrapSelfRole: idempotentProcedure
+    .input(z.object({ role: platformRoleSchema }))
+    .mutation(async ({ ctx, input }) => {
+      const row = await ctx.db.user.findUnique({
+        where: { id: ctx.user.id },
+        select: { email: true }
+      })
+      if (!row?.email || !isBootstrapAdminEmail(row.email)) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Смена роли доступна только для аккаунта из ADMIN_BOOTSTRAP_EMAIL.'
+        })
+      }
+      const previous = await ctx.repositories.settings.getMine(ctx.user.id)
+      if (!previous.allowSelfRoleChange) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Смена роли недоступна.'
+        })
+      }
+      const next = await ctx.repositories.settings.updatePlatformRole(ctx.user.id, input.role)
+      await invalidateUserCaches(previous.username)
+      await userSyncService.invalidate(ctx.user.id)
+      return next
+    })
 })
 
 async function invalidateUserCaches(username: string): Promise<void> {

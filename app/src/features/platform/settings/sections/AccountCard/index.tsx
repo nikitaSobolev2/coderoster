@@ -7,17 +7,12 @@ import {
   faShieldHalved
 } from '@fortawesome/free-solid-svg-icons'
 import type { UserSettings } from '~/server/repositories/types'
+import { PLATFORM_ROLE_LABEL } from '../../platformRoleLabels'
+import BootstrapRolePicker from './BootstrapRolePicker'
 import styles from './styles.module.scss'
 
 export interface Props {
   initial: UserSettings
-}
-
-const ROLE_LABEL: Record<UserSettings['role'], string> = {
-  learner: 'Учащийся',
-  author: 'Автор',
-  moderator: 'Модератор',
-  admin: 'Администратор'
 }
 
 export default function AccountCard({ initial }: Props) {
@@ -43,10 +38,12 @@ export default function AccountCard({ initial }: Props) {
             <FontAwesomeIcon icon={faCircleCheck} /> Роль
           </span>
           <Badge color="grape" variant="light">
-            {ROLE_LABEL[initial.role]}
+            {PLATFORM_ROLE_LABEL[initial.role]}
           </Badge>
         </li>
       </ul>
+
+      {initial.allowSelfRoleChange ? <BootstrapRolePicker settings={initial} /> : null}
 
       <Button
         component="a"

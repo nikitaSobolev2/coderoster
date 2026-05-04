@@ -17,6 +17,8 @@ export interface ViewerUser {
   displayName: string
   avatarUrl: string | null
   hasBackofficeAccess: boolean
+  /** Deep link for «Панель управления»; avoids `/admin` when dashboard is role-restricted. */
+  adminPanelHref: string
 }
 
 export interface Props {
@@ -83,7 +85,7 @@ export default function UserMenu({ user }: Readonly<Props>) {
             <Menu.Item
               leftSection={<FontAwesomeIcon icon={faShieldHalved} />}
               component={Link}
-              href="/admin"
+              href={user.adminPanelHref}
               prefetch={false}
             >
               Панель управления

@@ -56,3 +56,11 @@ export const moderatorProcedure = protectedProcedure
 export const authorStaffProcedure = protectedProcedure
   .use(withRequireRoles(['AUTHOR', 'ADMIN']))
   .use(withAuditLog())
+
+/**
+ * Read-only access to global allowed-language slugs for editors.
+ * `/admin/languages` settings UI stays `admin`-only; course/challenge editors still need `list`.
+ */
+export const staffLanguagesListProcedure = protectedProcedure.use(
+  withRequireRoles(['ADMIN', 'AUTHOR', 'MODERATOR'])
+)

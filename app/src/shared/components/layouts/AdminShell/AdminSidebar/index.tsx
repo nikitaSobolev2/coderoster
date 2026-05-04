@@ -11,6 +11,8 @@ export type { AdminNavGroup, AdminNavItem } from './nav-config'
 
 export interface Props {
   navGroups: AdminNavGroup[]
+  /** Sidebar logo target; authors default to `/admin/courses` so `/admin` dashboard redirect does not fire. */
+  brandHref?: string
   /** When provided, sidebar collapses below this viewport via Mantine `Drawer`. */
   onNavigate?: () => void
 }
@@ -20,12 +22,12 @@ export interface Props {
  * matching the platform aesthetic; no Mantine components used so the sidebar
  * stays SSR-friendly.
  */
-export default function AdminSidebar({ navGroups, onNavigate }: Props) {
+export default function AdminSidebar({ navGroups, brandHref = '/admin', onNavigate }: Props) {
   const pathname = usePathname()
   return (
     <aside className={styles.sidebar} aria-label="Админ-навигация">
       <div className={styles.sidebar__brand}>
-        <Link href="/admin" className={styles.sidebar__logo}>
+        <Link href={brandHref} className={styles.sidebar__logo}>
           <Logo />
         </Link>
         <span className={styles.sidebar__brand_label}>Панель управления</span>

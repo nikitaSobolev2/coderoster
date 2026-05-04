@@ -108,7 +108,7 @@ export async function seedAchievements() {
     {
       slug: 'premium-member',
       title: 'Статус Pro',
-      description: 'Оформил платный тариф',
+      description: 'Оформил тариф Про или Pro+',
       category: 'progression',
       rarity: 'rare',
       coverImage: 'star',
@@ -167,7 +167,7 @@ export async function seedPlans() {
   const free = await prisma.plan.upsert({
     where: { slug: 'free' },
     update: {
-      name: 'Free',
+      name: 'Бесплатный',
       shortDescription: 'Старт без оплаты — до трёх активных курсов.',
       marketingMarkdown:
         '**Старт без карты.** Три активных курса параллельно — достаточно, чтобы уверенно войти в ритм обучения.',
@@ -185,7 +185,7 @@ export async function seedPlans() {
     },
     create: {
       slug: 'free',
-      name: 'Free',
+      name: 'Бесплатный',
       shortDescription: 'Старт без оплаты — до трёх активных курсов.',
       marketingMarkdown:
         '**Старт без карты.** Три активных курса параллельно — достаточно, чтобы уверенно войти в ритм обучения.',
@@ -205,7 +205,7 @@ export async function seedPlans() {
   await prisma.plan.upsert({
     where: { slug: 'pro' },
     update: {
-      name: 'Pro',
+      name: 'Про',
       shortDescription: 'Безлимит курсов, бонус XP, ИИ-разбор кода.',
       marketingMarkdown:
         '**Для тех, кто хочет расти быстрее.** Без лимита курсов, усиленная выдача XP и ИИ-разбор кода по заданиям.',
@@ -224,7 +224,7 @@ export async function seedPlans() {
     },
     create: {
       slug: 'pro',
-      name: 'Pro',
+      name: 'Про',
       shortDescription: 'Безлимит курсов, бонус XP, ИИ-разбор кода.',
       marketingMarkdown:
         '**Для тех, кто хочет расти быстрее.** Без лимита курсов, усиленная выдача XP и ИИ-разбор кода по заданиям.',
@@ -238,6 +238,48 @@ export async function seedPlans() {
       tierLevel: 1,
       xpBonusPercent: 25,
       sortOrder: 1,
+      isDefaultFree: false,
+      maxActiveCourses: null
+    }
+  })
+  await prisma.plan.upsert({
+    where: { slug: 'pro-plus' },
+    update: {
+      name: 'Pro+',
+      shortDescription:
+        'Максимум практики: лаборатории уровня Pro+, усиленный бонус XP и расширенный доступ.',
+      marketingMarkdown:
+        '**Для углублённой траектории.** Всё из Pro, более высокий бонус XP и каталог продвинутых лабораторий с задачами уровня Pro+.',
+      marketingFeatures: [
+        { iconKey: 'infinity', text: 'Все возможности тарифа Pro' },
+        { iconKey: 'bolt', text: 'Бонус +40% к опыту (XP)' },
+        { iconKey: 'code', text: 'Лаборатории и курсы с доступом по уровню Pro+' },
+        { iconKey: 'star', text: 'Приоритетный доступ к экспериментальным материалам' }
+      ],
+      isBestseller: false,
+      tierLevel: 2,
+      xpBonusPercent: 40,
+      sortOrder: 2,
+      isDefaultFree: false,
+      maxActiveCourses: null
+    },
+    create: {
+      slug: 'pro-plus',
+      name: 'Pro+',
+      shortDescription:
+        'Максимум практики: лаборатории уровня Pro+, усиленный бонус XP и расширенный доступ.',
+      marketingMarkdown:
+        '**Для углублённой траектории.** Всё из Pro, более высокий бонус XP и каталог продвинутых лабораторий с задачами уровня Pro+.',
+      marketingFeatures: [
+        { iconKey: 'infinity', text: 'Все возможности тарифа Pro' },
+        { iconKey: 'bolt', text: 'Бонус +40% к опыту (XP)' },
+        { iconKey: 'code', text: 'Лаборатории и курсы с доступом по уровню Pro+' },
+        { iconKey: 'star', text: 'Приоритетный доступ к экспериментальным материалам' }
+      ],
+      isBestseller: false,
+      tierLevel: 2,
+      xpBonusPercent: 40,
+      sortOrder: 2,
       isDefaultFree: false,
       maxActiveCourses: null
     }

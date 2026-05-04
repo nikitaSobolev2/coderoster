@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Button, NativeSelect, Text } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { api } from '~/trpc/react'
@@ -14,10 +14,6 @@ export interface Props {
 
 export default function BootstrapRolePicker({ settings }: Props) {
   const [role, setRole] = useState<UserRole>(settings.role)
-
-  useEffect(() => {
-    setRole(settings.role)
-  }, [settings.role])
 
   const utils = api.useUtils()
   const mutation = api.settings.updateBootstrapSelfRole.useMutation({

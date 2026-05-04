@@ -12,7 +12,7 @@ import BootstrapRolePicker from './BootstrapRolePicker'
 import styles from './styles.module.scss'
 
 export interface Props {
-  initial: UserSettings
+  readonly initial: UserSettings
 }
 
 export default function AccountCard({ initial }: Props) {
@@ -43,7 +43,9 @@ export default function AccountCard({ initial }: Props) {
         </li>
       </ul>
 
-      {initial.allowSelfRoleChange ? <BootstrapRolePicker settings={initial} /> : null}
+      {initial.allowSelfRoleChange ? (
+        <BootstrapRolePicker key={initial.role} settings={initial} />
+      ) : null}
 
       <Button
         component="a"
@@ -55,10 +57,10 @@ export default function AccountCard({ initial }: Props) {
       </Button>
 
       {initial.deletionRequestedAt ? (
-        <div className={styles.card__pending} role="status">
+        <output className={styles.card__pending} aria-live="polite">
           Запрос на удаление отправлен {formatDate(initial.deletionRequestedAt)}. Окончательная
           очистка произойдёт в течение часа.
-        </div>
+        </output>
       ) : null}
     </div>
   )

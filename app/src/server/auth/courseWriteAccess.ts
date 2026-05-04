@@ -24,7 +24,7 @@ export async function assertCourseWritable(
     where: { id: courseId },
     select: { authorId: true }
   })
-  if (!row || row.authorId !== user.id) {
+  if (row?.authorId !== user.id) {
     throw new TRPCError({
       code: 'FORBIDDEN',
       message: 'Можно редактировать только свои курсы.'

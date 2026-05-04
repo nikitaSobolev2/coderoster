@@ -38,6 +38,8 @@
   }
 
   &__pending {
+    display: block;
+    margin: 0;
     padding: 0.875rem 1rem;
     border-radius: var(--platform-card-radius-sm);
     background: color-mix(in srgb, var(--color-negative) 15%, transparent);

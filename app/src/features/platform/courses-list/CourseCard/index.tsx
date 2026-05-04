@@ -4,9 +4,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faClock, faStar, faUsers } from '@fortawesome/free-solid-svg-icons'
 import CoursePreview from '~/shared/components/ui/CoursePreview'
 import type { CourseSummary } from '~/server/repositories/types'
-import {
-  formatPremiumCourseAccessLabel
-} from '~/shared/lib/premiumLabels'
+import { shouldShowPremiumTasksChip } from '~/shared/lib/coursePremiumSignals'
+import { formatPremiumCourseAccessLabel } from '~/shared/lib/premiumLabels'
 import styles from './styles.module.scss'
 
 const DIFFICULTY_LABELS: Record<CourseSummary['difficulty'], string> = {
@@ -21,8 +20,8 @@ const LANGUAGE_LABELS: Record<CourseSummary['language'], string> = {
 }
 
 function PremiumCatalogChips({ course }: { course: CourseSummary }) {
-  const premiumTasks = course.hasPremiumTasks === true
-  if (course.tierRequired <= 0 && !premiumTasks) return null
+  const tasksChip = shouldShowPremiumTasksChip(course)
+  if (course.tierRequired <= 0 && !tasksChip) return null
   return (
     <>
       {course.tierRequired > 0 ? (
@@ -30,7 +29,7 @@ function PremiumCatalogChips({ course }: { course: CourseSummary }) {
           {formatPremiumCourseAccessLabel(course.tierRequired)}
         </Badge>
       ) : null}
-      {premiumTasks ? (
+      {tasksChip ? (
         <Badge variant="outline" color="pink" radius="sm">
           Премиум-задачи
         </Badge>
@@ -231,7 +230,7 @@ export default function CourseCard({ course, variant = 'comfortable' }: Props) {
               {DIFFICULTY_LABELS[course.difficulty]}
             </Badge>
           </Link>
-              <PremiumCatalogChips course={course} />
+          <PremiumCatalogChips course={course} />
         </div>
         <h3 className={styles.card__title}>
           <Link

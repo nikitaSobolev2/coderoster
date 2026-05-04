@@ -10,6 +10,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 import CoursePreview from '~/shared/components/ui/CoursePreview'
 import type { CourseDetail } from '~/server/repositories/types'
+import { shouldShowPremiumTasksChip } from '~/shared/lib/coursePremiumSignals'
 import { formatPremiumCourseAccessLabel } from '~/shared/lib/premiumLabels'
 import styles from './styles.module.scss'
 
@@ -75,7 +76,7 @@ export default function CourseHeader({ course, canEdit = false }: Props) {
             {formatPremiumCourseAccessLabel(course.tierRequired)}
           </Badge>
         ) : null}
-        {course.hasPremiumTasks === true ? (
+        {shouldShowPremiumTasksChip(course) ? (
           <Badge variant="light" color="pink" radius="sm">
             Премиум-задачи
           </Badge>

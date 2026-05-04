@@ -66,8 +66,9 @@ export interface CourseSummary {
   /** Minimum plan tier (`Plan.tierLevel`) to enroll. */
   tierRequired: number
   /**
-   * UI «Премиум-задачи»: any task `isPremium`, or course `tierRequired > 0`.
-   * Omit/`false` when not loaded (list uses repository merge).
+   * Catalog signal: any task `isPremium`, or course `tierRequired > 0`.
+   * UI shows pink «Премиум-задачи» only when this is true and `tierRequired === 0`
+   * (`shouldShowPremiumTasksChip`). Tier-gated courses use «Премиум · Тир N» only.
    */
   hasPremiumTasks?: boolean
 }

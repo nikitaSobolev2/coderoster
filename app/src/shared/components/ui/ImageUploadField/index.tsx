@@ -253,7 +253,12 @@ function uploadWithProgress(
         reject(new Error(`Ошибка загрузки (HTTP ${xhr.status}).`))
       }
     }
-    xhr.onerror = () => reject(new Error('Сетевая ошибка во время загрузки.'))
+    xhr.onerror = () =>
+      reject(
+        new Error(
+          'Сетевая ошибка при загрузке в хранилище. Частая причина: CORS (исправляется на сервере при выдаче ссылки) или недоступный S3_PUBLIC_URL / смешанный HTTP и HTTPS.'
+        )
+      )
     xhr.send(file)
   })
 }

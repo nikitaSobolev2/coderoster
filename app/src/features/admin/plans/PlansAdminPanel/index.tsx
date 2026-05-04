@@ -317,6 +317,8 @@ function PlanFormModal(props: {
           onChange={setMarketingMarkdown}
           minRows={4}
           defaultMode="split"
+          withImageUpload
+          imageUploadKind="CONTENT_PAGE_INLINE"
         />
         <PlanMarketingBulletsEditor value={marketingFeatures} onChange={setMarketingFeatures} />
         <NumberInput

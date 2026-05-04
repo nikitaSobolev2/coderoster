@@ -5,6 +5,7 @@ import {
   HeadBucketCommand,
   CreateBucketCommand,
   PutBucketPolicyCommand,
+  PutBucketCorsCommand,
   PutObjectCommand,
   DeleteObjectCommand
 } from '@aws-sdk/client-s3'
@@ -99,6 +100,7 @@ export class StorageService {
 
   async presignPut({ kind, ownerId, contentType }: PresignInput): Promise<PresignedUpload> {
     await this.ensureBucket()
+    await this.ensureBrowserPutCors()
     const extension = EXTENSION_BY_CONTENT_TYPE[contentType]
     if (!extension) {
       throw new Error(`Unsupported image content type: ${contentType}`)
@@ -150,6 +152,29 @@ export class StorageService {
             }
           ]
         })
+      })
+    )
+  }
+
+  /**
+   * Applied on each presign (idempotent). Not folded into memoised `ensureBucket()` —
+   * otherwise long-lived Node processes that bootstrapped before CORS existed would never retry.
+   */
+  private async ensureBrowserPutCors(): Promise<void> {
+    await this.internalClient.send(
+      new PutBucketCorsCommand({
+        Bucket: this.bucket,
+        CORSConfiguration: {
+          CORSRules: [
+            {
+              AllowedHeaders: ['*'],
+              AllowedMethods: ['GET', 'PUT', 'HEAD'],
+              AllowedOrigins: ['*'],
+              ExposeHeaders: ['ETag'],
+              MaxAgeSeconds: 3600
+            }
+          ]
+        }
       })
     )
   }

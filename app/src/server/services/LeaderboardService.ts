@@ -50,7 +50,7 @@ export class LeaderboardService {
     if (input.window === 'allTime' && input.language === 'all') {
       return this.allTimeFromTotalXp(limit)
     }
-    return this.windowedXp(input, limit)
+    return this.rankFromCourseTaskAttempts(input, limit)
   }
 
   private async allTimeFromTotalXp(limit: number): Promise<LeaderboardEntry[]> {
@@ -78,24 +78,36 @@ export class LeaderboardService {
     }))
   }
 
-  private async windowedXp(
+  /**
+   * Rankings when filtering by period and/or course language.
+   * Uses successful **course** task attempts (module-backed tasks), not `Execution` rows —
+   * attempts are always written on pass (including seed data); executions may be missing offline.
+   */
+  private async rankFromCourseTaskAttempts(
     input: GlobalLeaderboardInput,
     limit: number
   ): Promise<LeaderboardEntry[]> {
     const since = startOfWindow(input.window)
-    const languageFilter = input.language === 'all' ? undefined : { language: input.language }
-    const grouped = await db.execution.groupBy({
+    const grouped = await db.courseTaskAttempt.groupBy({
       by: ['userId'],
       where: {
-        passed: true,
-        finishedAt: { gte: since },
-        ...(languageFilter ?? {})
+        status: 'SUCCESS',
+        ...(input.window === 'allTime' ? {} : { updatedAt: { gte: since } }),
+        task: {
+          moduleId: { not: null },
+          module: {
+            course: {
+              status: 'PUBLISHED',
+              ...(input.language === 'all' ? {} : { language: input.language })
+            }
+          }
+        }
       },
       _count: { _all: true }
     })
     const sorted = grouped
       .map(row => ({ userId: row.userId, count: row._count._all }))
-      .sort((a, b) => b.count - a.count)
+      .sort((a, b) => b.count - a.count || a.userId.localeCompare(b.userId))
       .slice(0, limit)
     if (sorted.length === 0) return []
     const users = await db.user.findMany({

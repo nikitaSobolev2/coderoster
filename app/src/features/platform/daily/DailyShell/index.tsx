@@ -171,6 +171,7 @@ function DailyTaskPanel({ task, attempt, taskIndex, isAuthenticated }: DailyTask
     onAbort: abortExecutionPoll
   })
 
+  /* eslint-disable react-hooks/set-state-in-effect -- fold terminal poll snapshot into execution UI state */
   useEffect(() => {
     const record = pollQuery.data
     if (!record || !isTerminal(record.status)) return
@@ -183,6 +184,7 @@ function DailyTaskPanel({ task, attempt, taskIndex, isAuthenticated }: DailyTask
       void utils.daily.getToday.invalidate()
     }
   }, [pollQuery.data, utils])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const isCleared = attempt?.status === 'SUCCESS'
 

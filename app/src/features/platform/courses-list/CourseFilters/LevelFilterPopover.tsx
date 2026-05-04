@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useMediaQuery } from '@mantine/hooks'
 import { ActionIcon, Button, Checkbox, Group, Popover, Stack, Text } from '@mantine/core'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -35,21 +35,22 @@ export default function LevelFilterPopover({ filters, onApply, onClear }: Readon
 
   const [draft, setDraft] = useState<Difficulty[]>(applied)
 
-  const appliedKey = [...applied].sort().join('|')
-
-  useEffect(() => {
-    if (opened) setDraft([...applied])
-  }, [opened, appliedKey])
+  const handleOpenedChange = (next: boolean) => {
+    if (next) {
+      setDraft([...applied])
+    }
+    setOpened(next)
+  }
 
   const applyFromDraft = () => {
     onApply(draft.length === 0 ? undefined : draft)
-    setOpened(false)
+    handleOpenedChange(false)
   }
 
   return (
     <Popover
       opened={opened}
-      onChange={setOpened}
+      onChange={handleOpenedChange}
       shadow="md"
       position="bottom-start"
       classNames={{ dropdown: styles.dropdown }}
@@ -61,7 +62,7 @@ export default function LevelFilterPopover({ filters, onApply, onClear }: Readon
           size="md"
           radius="xl"
           className={styles.trigger}
-          onClick={() => setOpened(o => !o)}
+          onClick={() => handleOpenedChange(!opened)}
           aria-expanded={opened}
           aria-haspopup="dialog"
           rightSection={
@@ -108,7 +109,11 @@ export default function LevelFilterPopover({ filters, onApply, onClear }: Readon
             wrap="nowrap"
             className={styles.popoverActions}
           >
-            <Button variant="subtle" size={touchUi ? 'sm' : 'xs'} onClick={() => setOpened(false)}>
+            <Button
+              variant="subtle"
+              size={touchUi ? 'sm' : 'xs'}
+              onClick={() => handleOpenedChange(false)}
+            >
               Отмена
             </Button>
             <Button size={touchUi ? 'sm' : 'xs'} onClick={applyFromDraft}>

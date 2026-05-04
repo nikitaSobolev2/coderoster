@@ -122,6 +122,8 @@ export default function LiveChatFloatingShell() {
     const stored = parseStored(
       typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : null
     )
+    // Client-only restore; avoid useState initializer (SSR/hydration mismatch).
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional post-mount localStorage hydrate
     setFrame(stored ?? defaultCenteredFrame())
   }, [])
 
@@ -159,7 +161,7 @@ export default function LiveChatFloatingShell() {
 
     ro.observe(el)
     return () => ro.disconnect()
-  }, [frame?.width, frame?.height])
+  }, [frame])
 
   const onPointerDownHeader = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
     if (event.button !== 0) return

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useMediaQuery } from '@mantine/hooks'
 import { ActionIcon, Button, Group, Popover, Stack, Switch, Text } from '@mantine/core'
 import { useAuth } from '@workos-inc/authkit-nextjs/components'
@@ -34,27 +34,26 @@ export default function TierPlanFilterPopover({ filters, onApply, onClear }: Rea
   const [freeDraft, setFreeDraft] = useState(Boolean(filters.freeOnly))
   const [myPlanDraft, setMyPlanDraft] = useState(Boolean(filters.matchesMyPlan))
 
-  const syncKey = `${filters.freeOnly}-${filters.matchesMyPlan}`
-
-  useEffect(() => {
-    if (opened) {
+  const handleOpenedChange = (next: boolean) => {
+    if (next) {
       setFreeDraft(Boolean(filters.freeOnly))
       setMyPlanDraft(Boolean(filters.matchesMyPlan))
     }
-  }, [opened, syncKey])
+    setOpened(next)
+  }
 
   const applyFromDraft = () => {
     onApply({
       freeOnly: freeDraft ? true : undefined,
       matchesMyPlan: myPlanDraft ? true : undefined
     })
-    setOpened(false)
+    handleOpenedChange(false)
   }
 
   return (
     <Popover
       opened={opened}
-      onChange={setOpened}
+      onChange={handleOpenedChange}
       shadow="md"
       position="bottom-start"
       classNames={{ dropdown: styles.dropdown }}
@@ -66,7 +65,7 @@ export default function TierPlanFilterPopover({ filters, onApply, onClear }: Rea
           size="md"
           radius="xl"
           className={styles.trigger}
-          onClick={() => setOpened(o => !o)}
+          onClick={() => handleOpenedChange(!opened)}
           aria-expanded={opened}
           aria-haspopup="dialog"
           rightSection={
@@ -123,7 +122,11 @@ export default function TierPlanFilterPopover({ filters, onApply, onClear }: Rea
             wrap="nowrap"
             className={styles.popoverActions}
           >
-            <Button variant="subtle" size={touchUi ? 'sm' : 'xs'} onClick={() => setOpened(false)}>
+            <Button
+              variant="subtle"
+              size={touchUi ? 'sm' : 'xs'}
+              onClick={() => handleOpenedChange(false)}
+            >
               Отмена
             </Button>
             <Button size={touchUi ? 'sm' : 'xs'} onClick={applyFromDraft}>

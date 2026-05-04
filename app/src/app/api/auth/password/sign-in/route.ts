@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
   }
 
   const flow = await getAuthFlowCookie()
-  if (!flow || flow.kind !== 'signin') {
+  if (flow?.kind !== 'signin') {
     return NextResponse.json({ error: 'Сессия шага истекла. Начни с email.' }, { status: 400 })
   }
 
@@ -36,7 +36,10 @@ export async function POST(req: NextRequest) {
 
   const parsed = bodySchema.safeParse(body)
   if (!parsed.success) {
-    return NextResponse.json({ error: 'Проверь поля', details: parsed.error.flatten() }, { status: 400 })
+    return NextResponse.json(
+      { error: 'Проверь поля', details: parsed.error.flatten() },
+      { status: 400 }
+    )
   }
 
   const emailLower = parsed.data.email.trim().toLowerCase()

@@ -2,7 +2,6 @@ import {
   faBolt,
   faCalendarDay,
   faClipboardList,
-  faCommentSlash,
   faComments,
   faCrown,
   faEnvelope,

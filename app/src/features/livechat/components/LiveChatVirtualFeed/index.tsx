@@ -35,6 +35,8 @@ export function LiveChatVirtualFeed({
   isNearBottomRef,
   prependBusyRef
 }: LiveChatVirtualFeedProps) {
+  // TanStack Virtual returns unstable function refs; compiler correctly skips memoizing this subtree.
+  // eslint-disable-next-line react-hooks/incompatible-library -- @tanstack/react-virtual useVirtualizer
   const virtualizer = useVirtualizer({
     count: messages.length,
     getScrollElement: () => viewportRef.current,

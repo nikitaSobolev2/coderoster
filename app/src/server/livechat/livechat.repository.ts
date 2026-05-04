@@ -1,6 +1,6 @@
 import 'server-only'
 
-import { LivechatAuthorKind, Role } from '@prisma/client'
+import { LivechatAuthorKind, type Role } from '@prisma/client'
 import { db } from '~/server/db'
 import {
   LIVECHAT_DEFAULT_USERNAME_COLOR,

@@ -269,6 +269,7 @@ export function getFakeCourseSummaries(): CourseSummary[] {
 }
 
 function stripCourseDetail(detail: CourseDetail): CourseSummary {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- removed from public summary shape
   const { longDescription, learningOutcomes, modules, ...summary } = detail
   const hasPremiumTasks = modules.some(m => m.lessons.some(l => l.isPremium))
   return { ...summary, hasPremiumTasks }

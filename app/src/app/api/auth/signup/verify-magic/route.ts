@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
   }
 
   const flow = await getAuthFlowCookie()
-  if (!flow || flow.kind !== 'signup') {
+  if (flow?.kind !== 'signup') {
     return NextResponse.json({ error: 'Сессия регистрации истекла.' }, { status: 400 })
   }
 

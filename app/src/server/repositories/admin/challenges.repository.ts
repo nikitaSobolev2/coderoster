@@ -1,5 +1,5 @@
 import 'server-only'
-import { TaskKind } from '@prisma/client'
+import type { TaskKind } from '@prisma/client'
 import { db } from '~/server/db'
 import {
   createAutotest as createAutotestHelper,

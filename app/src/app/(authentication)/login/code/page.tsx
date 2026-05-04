@@ -5,7 +5,7 @@ import { getAuthFlowCookie } from '~/server/auth/authFlowCookie'
 
 export default async function LoginCodePage() {
   const flow = await getAuthFlowCookie()
-  if (!flow || flow.kind !== 'signin' || !flow.verificationMode) {
+  if (flow?.kind !== 'signin' || !flow?.verificationMode) {
     redirect('/login')
   }
 

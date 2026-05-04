@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import {
   Button,
   Group,
@@ -94,9 +94,12 @@ export default function TaskEditor({ task, languageOptions, mutations, descripti
   const [isPremium, setIsPremium] = useState(task.isPremium)
   const [minPlanTier, setMinPlanTier] = useState<number>(task.minPlanTier)
 
-  useEffect(() => {
+  const starterRowsSyncKey = `${task.id}:${JSON.stringify(task.initialData)}`
+  const [starterRowsSyncKeyApplied, setStarterRowsSyncKeyApplied] = useState(starterRowsSyncKey)
+  if (starterRowsSyncKey !== starterRowsSyncKeyApplied) {
+    setStarterRowsSyncKeyApplied(starterRowsSyncKey)
     setStarterRows(normalizeStarterRows(task))
-  }, [task.id, JSON.stringify(task.initialData)])
+  }
 
   const submit = async () => {
     let parsedResult: Record<string, unknown> | null = null

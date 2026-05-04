@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import {
   Badge,
   Button,
@@ -171,7 +171,7 @@ export default function PlansAdminPanel() {
       </AdminCard>
 
       <PlanFormModal
-        formKey={creating ? 'create' : 'closed'}
+        key={creating ? 'plan-create-open' : 'plan-create-closed'}
         opened={creating}
         onClose={closeCreate}
         mode="create"
@@ -183,7 +183,7 @@ export default function PlansAdminPanel() {
 
       {editing ? (
         <PlanFormModal
-          formKey={editing.id}
+          key={editing.id}
           opened
           onClose={() => setEditing(null)}
           mode="edit"
@@ -199,55 +199,43 @@ export default function PlansAdminPanel() {
 }
 
 function PlanFormModal(props: {
-  formKey: string
   opened: boolean
   onClose: () => void
   mode: 'create' | 'edit'
   initial?: PlanRow
   onSaved: () => void | Promise<void>
 }) {
-  const { formKey, opened, onClose, mode, initial, onSaved } = props
+  const { opened, onClose, mode, initial, onSaved } = props
 
-  const [slug, setSlug] = useState('')
-  const [name, setName] = useState('')
-  const [shortDescription, setShortDescription] = useState('')
-  const [marketingMarkdown, setMarketingMarkdown] = useState('')
-  const [marketingFeatures, setMarketingFeatures] = useState<PlanMarketingBullet[]>([])
-  const [tierLevel, setTierLevel] = useState(0)
-  const [xpBonusPercent, setXpBonusPercent] = useState(0)
-  const [sortOrder, setSortOrder] = useState(0)
-  const [maxActiveCourses, setMaxActiveCourses] = useState<number | ''>('')
-  const [isDefaultFree, setIsDefaultFree] = useState(false)
-  const [isBestseller, setIsBestseller] = useState(false)
-
-  useEffect(() => {
-    if (!opened) return
-    if (mode === 'edit' && initial) {
-      setSlug(initial.slug)
-      setName(initial.name)
-      setShortDescription(initial.shortDescription)
-      setMarketingMarkdown(initial.marketingMarkdown)
-      setMarketingFeatures([...initial.marketingFeatures])
-      setTierLevel(initial.tierLevel)
-      setXpBonusPercent(initial.xpBonusPercent)
-      setSortOrder(initial.sortOrder)
-      setMaxActiveCourses(initial.maxActiveCourses ?? '')
-      setIsDefaultFree(initial.isDefaultFree)
-      setIsBestseller(initial.isBestseller)
-      return
-    }
-    setSlug('')
-    setName('')
-    setShortDescription('')
-    setMarketingMarkdown('')
-    setMarketingFeatures([])
-    setTierLevel(0)
-    setXpBonusPercent(0)
-    setSortOrder(0)
-    setMaxActiveCourses('')
-    setIsDefaultFree(false)
-    setIsBestseller(false)
-  }, [opened, mode, initial, formKey])
+  const [slug, setSlug] = useState(() => (mode === 'edit' && initial ? initial.slug : ''))
+  const [name, setName] = useState(() => (mode === 'edit' && initial ? initial.name : ''))
+  const [shortDescription, setShortDescription] = useState(() =>
+    mode === 'edit' && initial ? initial.shortDescription : ''
+  )
+  const [marketingMarkdown, setMarketingMarkdown] = useState(() =>
+    mode === 'edit' && initial ? initial.marketingMarkdown : ''
+  )
+  const [marketingFeatures, setMarketingFeatures] = useState<PlanMarketingBullet[]>(() =>
+    mode === 'edit' && initial ? [...initial.marketingFeatures] : []
+  )
+  const [tierLevel, setTierLevel] = useState(() =>
+    mode === 'edit' && initial ? initial.tierLevel : 0
+  )
+  const [xpBonusPercent, setXpBonusPercent] = useState(() =>
+    mode === 'edit' && initial ? initial.xpBonusPercent : 0
+  )
+  const [sortOrder, setSortOrder] = useState(() =>
+    mode === 'edit' && initial ? initial.sortOrder : 0
+  )
+  const [maxActiveCourses, setMaxActiveCourses] = useState<number | ''>(() =>
+    mode === 'edit' && initial ? (initial.maxActiveCourses ?? '') : ''
+  )
+  const [isDefaultFree, setIsDefaultFree] = useState(() =>
+    mode === 'edit' && initial ? initial.isDefaultFree : false
+  )
+  const [isBestseller, setIsBestseller] = useState(() =>
+    mode === 'edit' && initial ? initial.isBestseller : false
+  )
 
   const create = api.admin.plans.create.useMutation({
     onSuccess: async () => {
@@ -308,7 +296,12 @@ function PlanFormModal(props: {
   }
 
   return (
-    <Modal opened={opened} onClose={onClose} title={mode === 'create' ? 'Новый план' : 'План'} size="xl">
+    <Modal
+      opened={opened}
+      onClose={onClose}
+      title={mode === 'create' ? 'Новый план' : 'План'}
+      size="xl"
+    >
       <Stack>
         <TextInput label="Slug" value={slug} onChange={e => setSlug(e.target.value)} required />
         <TextInput label="Название" value={name} onChange={e => setName(e.target.value)} required />

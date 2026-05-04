@@ -1,5 +1,5 @@
 import 'server-only'
-import { Prisma, TaskKind } from '@prisma/client'
+import type { Prisma, TaskKind } from '@prisma/client'
 import { db } from '~/server/db'
 import { sanitizeMarkdown, sanitizePlainText } from '~/server/lib/sanitize'
 import {

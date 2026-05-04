@@ -137,6 +137,7 @@ function SubmitPanel({
 }) {
   const [panelTab, setPanelTab] = useState<PanelTab>('output')
 
+  /* eslint-disable react-hooks/set-state-in-effect -- auto-select results tab from run phase / outcome */
   useEffect(() => {
     if (state === 'running') {
       setPanelTab('output')
@@ -161,6 +162,7 @@ function SubmitPanel({
     else if (testsFailedSubmit) setPanelTab('tests')
     else setPanelTab('output')
   }, [state, errorMessage, result, gradingMode])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const infraFlag = Boolean(errorMessage?.trim())
   const progErrFlag = Boolean(result?.stderr?.trim())

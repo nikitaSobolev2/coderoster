@@ -115,25 +115,18 @@ export default function LiveChatPanel({
   const composerInputRef = useRef<HTMLInputElement>(null)
 
   const [feedBootstrapped, setFeedBootstrapped] = useState(false)
-  /** Bumps when list snapshot hydrates so bootstrap scroll runs after DOM matches query rows. */
-  const [feedHydrationTick, setFeedHydrationTick] = useState(0)
+
   useEffect(() => {
     void fetch('/api/livechat/guest-session', { method: 'POST', credentials: 'include' })
   }, [])
 
-  useEffect(() => {
-    if (!listQuery.isFetched) return
-    setFeedHydrationTick(t => t + 1)
-  }, [listQuery.isFetched, listQuery.dataUpdatedAt])
+  if (listQuery.isLoading && feedBootstrapped) {
+    setFeedBootstrapped(false)
+  }
 
   /** First paint after snapshot hydrates: scroll to bottom (instant), then reveal feed (hide Loader). */
   useEffect(() => {
-    if (listQuery.isLoading) {
-      setFeedBootstrapped(false)
-      return
-    }
-
-    if (!listQuery.isFetched) return
+    if (listQuery.isLoading || !listQuery.isFetched) return
 
     let cancelled = false
     requestAnimationFrame(() => {
@@ -150,7 +143,7 @@ export default function LiveChatPanel({
     return () => {
       cancelled = true
     }
-  }, [listQuery.isLoading, listQuery.isFetched, feedHydrationTick])
+  }, [listQuery.isLoading, listQuery.isFetched, listQuery.dataUpdatedAt])
 
   useEffect(() => {
     let es: EventSource | null = null
@@ -216,6 +209,10 @@ export default function LiveChatPanel({
 
   const policies = policiesQuery.data
 
+  if (policies?.isAuthenticated === false && settingsOpen) {
+    setSettingsOpen(false)
+  }
+
   const needsConsent = useMemo(() => {
     if (!policies) return false
     if (policies.isAuthenticated && policies.authNeedsConsent) return true
@@ -250,11 +247,16 @@ export default function LiveChatPanel({
     LIVECHAT_DEFAULT_USERNAME_COLOR
   )
 
-  useEffect(() => {
-    if (policies?.preferredUsernameColor) {
-      setPendingColor(policies.preferredUsernameColor)
+  const serverPreferredColor = policies?.preferredUsernameColor
+  const [appliedServerPreferredColor, setAppliedServerPreferredColor] = useState<
+    LivechatUsernameColorToken | undefined
+  >(serverPreferredColor)
+  if (serverPreferredColor !== appliedServerPreferredColor) {
+    setAppliedServerPreferredColor(serverPreferredColor)
+    if (serverPreferredColor) {
+      setPendingColor(serverPreferredColor)
     }
-  }, [policies?.preferredUsernameColor])
+  }
 
   const trimmedDraftLen = draft.trim().length
   const draftTooLong = trimmedDraftLen > LIVECHAT_MESSAGE_BODY_MAX_CHARS
@@ -282,11 +284,6 @@ export default function LiveChatPanel({
       ),
     [theme]
   )
-
-  useEffect(() => {
-    /** Only close when we know user is guest; `undefined` during loading/refetch must not snap closed. */
-    if (policies?.isAuthenticated === false) setSettingsOpen(false)
-  }, [policies?.isAuthenticated])
 
   /** Focus composer when composing becomes allowed (desktop only — mobile avoids keyboard covering feed). */
   useEffect(() => {

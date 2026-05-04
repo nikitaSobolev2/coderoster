@@ -100,6 +100,7 @@ export function usePerLanguageDraftPersistence(
     { enabled: canPersistRemote, staleTime: 60_000 }
   )
 
+  /* eslint-disable react-hooks/set-state-in-effect -- reset local drafts when lesson starters change */
   useEffect(() => {
     setDrafts(() => {
       const fromLocal = readLocalDraftsMap(lessonId)
@@ -130,6 +131,7 @@ export function usePerLanguageDraftPersistence(
     starters,
     allowedLanguages
   ])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
     writeLocalDraftsMap(lessonId, drafts)

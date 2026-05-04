@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useSyncExternalStore } from 'react'
 
 export type CoursesGridDensity = 'list' | 'comfortable' | 'compact'
 
@@ -27,20 +27,54 @@ function readDensity(): CoursesGridDensity {
   return DEFAULT_COURSES_GRID_DENSITY
 }
 
-export function useCoursesGridDensity() {
-  // Same initial value on server + client first paint — localStorage applied after mount (see useEffect).
-  const [density, setDensityState] = useState<CoursesGridDensity>(DEFAULT_COURSES_GRID_DENSITY)
+const densityListeners = new Set<() => void>()
 
-  useEffect(() => {
-    setDensityState(readDensity())
-  }, [])
+function emitDensityChange() {
+  for (const listener of densityListeners) listener()
+}
 
-  const setDensity = (next: CoursesGridDensity) => {
-    setDensityState(next)
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(COURSES_GRID_DENSITY_STORAGE_KEY, next)
+function subscribeDensity(onStoreChange: () => void) {
+  densityListeners.add(onStoreChange)
+  const onStorage = (event: StorageEvent) => {
+    if (event.key === COURSES_GRID_DENSITY_STORAGE_KEY || event.key === null) {
+      onStoreChange()
     }
   }
+  if (typeof window !== 'undefined') {
+    window.addEventListener('storage', onStorage)
+  }
+  return () => {
+    densityListeners.delete(onStoreChange)
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('storage', onStorage)
+    }
+  }
+}
+
+function getDensitySnapshot(): CoursesGridDensity {
+  if (typeof window === 'undefined') return DEFAULT_COURSES_GRID_DENSITY
+  return readDensity()
+}
+
+function getDensityServerSnapshot(): CoursesGridDensity {
+  return DEFAULT_COURSES_GRID_DENSITY
+}
+
+/**
+ * Reads grid density from localStorage after hydration without mount-only `useEffect` sync.
+ */
+export function useCoursesGridDensity() {
+  const density = useSyncExternalStore(
+    subscribeDensity,
+    getDensitySnapshot,
+    getDensityServerSnapshot
+  )
+
+  const setDensity = useCallback((next: CoursesGridDensity) => {
+    if (typeof window === 'undefined') return
+    window.localStorage.setItem(COURSES_GRID_DENSITY_STORAGE_KEY, next)
+    emitDensityChange()
+  }, [])
 
   return [density, setDensity] as const
 }

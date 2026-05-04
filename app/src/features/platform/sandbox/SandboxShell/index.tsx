@@ -89,6 +89,7 @@ export default function SandboxShell({ isAuthenticated }: Props) {
     onAbort: abortExecutionPoll
   })
 
+  /* eslint-disable react-hooks/set-state-in-effect -- fold terminal poll snapshot into execution UI state */
   useEffect(() => {
     const record = pollQuery.data
     if (!record || !isTerminal(record.status)) return
@@ -97,6 +98,7 @@ export default function SandboxShell({ isAuthenticated }: Props) {
     setExecutionError(errorMessage)
     setExecutionState('done')
   }, [pollQuery.data])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   function handleRun() {
     if (!isAuthenticated) {

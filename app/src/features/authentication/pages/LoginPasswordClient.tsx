@@ -2,16 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import {
-  Anchor,
-  Button,
-  Divider,
-  Group,
-  PasswordInput,
-  Stack,
-  Text,
-  TextInput
-} from '@mantine/core'
+import { Anchor, Button, Divider, Group, PasswordInput, Stack, TextInput } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import Link from 'next/link'
 

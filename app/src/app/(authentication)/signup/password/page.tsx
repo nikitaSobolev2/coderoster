@@ -5,7 +5,7 @@ import { getAuthFlowCookie } from '~/server/auth/authFlowCookie'
 
 export default async function SignupPasswordPage() {
   const flow = await getAuthFlowCookie()
-  if (!flow || flow.kind !== 'signup') {
+  if (flow?.kind !== 'signup') {
     redirect('/signup')
   }
 

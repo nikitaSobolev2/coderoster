@@ -49,15 +49,16 @@ export function useLivechatFeed(
   const isNearBottomRef = useRef<boolean>(true)
   const prevScrollYRef = useRef<number | null>(null)
 
-  const snapshotRows = listQuery.data?.items
   useEffect(() => {
     if (!listQuery.isFetched) return
-    const rows = snapshotRows ?? []
+    const rows = listQuery.data?.items ?? []
+    /* eslint-disable react-hooks/set-state-in-effect -- TRPC snapshot hydrates paginated/stream-merged feed */
     setMessages(rows.map(row => toLivechatFeedMessage(row)))
     const nc = listQuery.data?.nextCursorOlder ?? null
     nextOlderCursorRef.current = nc
     setCursorForUi(nc)
-  }, [snapshotRows, listQuery.data?.nextCursorOlder, listQuery.isFetched])
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, [listQuery.isFetched, listQuery.data])
 
   const fetchOlder = useCallback(async () => {
     const cursor = nextOlderCursorRef.current
@@ -104,15 +105,12 @@ export function useLivechatFeed(
       if (viewport) {
         const viewportHeight = viewport.clientHeight
         const threshold = Math.max(STICK_BOTTOM_PX, viewportHeight * 0.12)
-        isNearBottomRef.current =
-          viewport.scrollHeight - viewportHeight - y <= threshold
+        isNearBottomRef.current = viewport.scrollHeight - viewportHeight - y <= threshold
       }
       const prev = prevScrollYRef.current
       prevScrollYRef.current = y
       const crossedIntoTopPrefetchBand =
-        prev !== null &&
-        prev > LOAD_OLDER_SCROLL_TOP_PX &&
-        y <= LOAD_OLDER_SCROLL_TOP_PX
+        prev !== null && prev > LOAD_OLDER_SCROLL_TOP_PX && y <= LOAD_OLDER_SCROLL_TOP_PX
       if (crossedIntoTopPrefetchBand && nextOlderCursorRef.current !== null && !loadingOlder) {
         void fetchOlder()
       }

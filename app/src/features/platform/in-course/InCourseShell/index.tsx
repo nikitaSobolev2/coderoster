@@ -269,6 +269,7 @@ export default function InCourseShell({
   /** At least one allowed language has a completed ИИ-разбор with code (DB or latest DONE job). */
   const taskHasAnyGeneratedAiResponse = taskHasAnySavedImprovement || liveAiHasUsableImprovement
 
+  /* eslint-disable react-hooks/set-state-in-effect -- reset per-lesson UI when navigating */
   useEffect(() => {
     setAiJobId(null)
     setAiNextNudgePopoverOpened(false)
@@ -279,6 +280,7 @@ export default function InCourseShell({
     setAiJobTargetLanguage(null)
     lastImprovedScratchSyncKeyByLang.current = {}
     setImprovedScratchByLang({})
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- reset on navigation; avoid thrash on allowedLanguages ref churn
   }, [lesson.id])
 
   useEffect(() => {
@@ -286,6 +288,7 @@ export default function InCourseShell({
       setAiNextNudgePopoverOpened(false)
     }
   }, [attemptIsSuccess, viewerTier, viewerIsAdmin])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const isTerminal = (status: ExecutionRecord['status']): boolean =>
     status !== 'queued' && status !== 'running'
@@ -388,12 +391,14 @@ export default function InCourseShell({
     staleAfterMs: 180_000
   })
 
+  /* eslint-disable react-hooks/set-state-in-effect -- applyExecutionRecord updates run UX atomically */
   useEffect(() => {
     const record = pollQuery.data
     if (!record || !isTerminal(record.status)) return
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     applyExecutionRecord(record)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- imperative handler; re-run only when poll payload changes
   }, [pollQuery.data])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const completeMutation = api.progress.markComplete.useMutation({
     onSuccess: () => {
@@ -482,6 +487,7 @@ export default function InCourseShell({
 
   const canShowVariantSwitch = showTaskAiChrome
 
+  /* eslint-disable react-hooks/set-state-in-effect -- coerce variant when AI chrome hidden */
   useEffect(() => {
     if (!canShowVariantSwitch && solutionVariant === 'improved') {
       setSolutionVariant('draft')
@@ -507,6 +513,7 @@ export default function InCourseShell({
     lesson.id,
     utils.codeImprove.latestForTask
   ])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   function dispatchExecution(mode: Mode) {
     if (!canUseEditor) {

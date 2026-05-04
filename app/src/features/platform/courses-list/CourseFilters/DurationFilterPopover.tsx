@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useMediaQuery } from '@mantine/hooks'
 import { ActionIcon, Button, Group, Popover, RangeSlider, Stack, Text } from '@mantine/core'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -26,9 +26,12 @@ export default function DurationFilterPopover({ filters, onApply, onClear }: Rea
 
   const [draft, setDraft] = useState<[number, number]>(appliedRange)
 
-  useEffect(() => {
-    if (opened) setDraft(appliedRange)
-  }, [opened, appliedRange[0], appliedRange[1]])
+  const handleOpenedChange = (next: boolean) => {
+    if (next) {
+      setDraft(appliedRange)
+    }
+    setOpened(next)
+  }
 
   const applyFromDraft = () => {
     const [min, max] = draft
@@ -36,13 +39,13 @@ export default function DurationFilterPopover({ filters, onApply, onClear }: Rea
       min === DURATION_BOUNDS[0] ? undefined : min,
       max === DURATION_BOUNDS[1] ? undefined : max
     )
-    setOpened(false)
+    handleOpenedChange(false)
   }
 
   return (
     <Popover
       opened={opened}
-      onChange={setOpened}
+      onChange={handleOpenedChange}
       shadow="md"
       position="bottom-start"
       classNames={{ dropdown: styles.dropdown }}
@@ -54,7 +57,7 @@ export default function DurationFilterPopover({ filters, onApply, onClear }: Rea
           size="md"
           radius="xl"
           className={styles.trigger}
-          onClick={() => setOpened(o => !o)}
+          onClick={() => handleOpenedChange(!opened)}
           aria-expanded={opened}
           aria-haspopup="dialog"
           rightSection={
@@ -104,7 +107,11 @@ export default function DurationFilterPopover({ filters, onApply, onClear }: Rea
             wrap="nowrap"
             className={styles.actionsRow}
           >
-            <Button variant="subtle" size={touchUi ? 'sm' : 'xs'} onClick={() => setOpened(false)}>
+            <Button
+              variant="subtle"
+              size={touchUi ? 'sm' : 'xs'}
+              onClick={() => handleOpenedChange(false)}
+            >
               Отмена
             </Button>
             <Button size={touchUi ? 'sm' : 'xs'} onClick={applyFromDraft}>

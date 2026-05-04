@@ -45,6 +45,19 @@ export interface PresignedUpload {
 
 const PRESIGN_TTL_SECONDS = 5 * 60
 
+/** Browser PUT sends `Content-Type`; it must be included in SigV4 signed headers or many S3-compat servers error (MinIO: “functionality that is not implemented”). */
+const PRESIGN_SIGNABLE_HEADERS = new Set(['content-type'])
+
+/**
+ * Strip flexible checksum middleware so presigned URLs stay UNSIGNED-PAYLOAD without
+ * `x-amz-checksum-*` / `x-amz-sdk-checksum-algorithm` (unsupported by many MinIO builds).
+ * Also avoids `AWS_REQUEST_CHECKSUM_CALCULATION=WHEN_SUPPORTED` overriding client config.
+ */
+function stripPresignFlexibleChecksumMiddleware(client: S3Client): void {
+  client.middlewareStack.remove('flexibleChecksumsMiddleware')
+  client.middlewareStack.remove('flexibleChecksumsInputMiddleware')
+}
+
 /**
  * Single source of truth for uploading user-supplied images to S3-compatible
  * storage (MinIO in dev, S3/R2/Spaces in prod). Browser code never sees
@@ -76,12 +89,18 @@ export class StorageService {
       forcePathStyle: env.S3_FORCE_PATH_STYLE,
       credentials
     })
+    /**
+     * Optional checksum defaults (`WHEN_SUPPORTED`) add headers/query params browsers cannot
+     * reproduce on PUT; MinIO often rejects those with “functionality not implemented”.
+     */
     this.presignClient = new S3Client({
       region: env.S3_REGION,
       endpoint: extractOrigin(env.S3_PUBLIC_URL),
       forcePathStyle: env.S3_FORCE_PATH_STYLE,
-      credentials
+      credentials,
+      requestChecksumCalculation: 'WHEN_REQUIRED'
     })
+    stripPresignFlexibleChecksumMiddleware(this.presignClient)
     this.bucket = env.S3_BUCKET
     this.publicBase = env.S3_PUBLIC_URL.replace(/\/+$/, '')
   }
@@ -112,7 +131,8 @@ export class StorageService {
       ContentType: contentType
     })
     const putUrl = await getSignedUrl(this.presignClient, command, {
-      expiresIn: PRESIGN_TTL_SECONDS
+      expiresIn: PRESIGN_TTL_SECONDS,
+      signableHeaders: PRESIGN_SIGNABLE_HEADERS
     })
     return {
       key,
@@ -121,6 +141,33 @@ export class StorageService {
       headers: { 'Content-Type': contentType },
       expiresInSeconds: PRESIGN_TTL_SECONDS
     }
+  }
+
+  /**
+   * Server-side PutObject via `internalClient` (`S3_ENDPOINT`). Used for browser uploads
+   * through `/api/uploads/image` when presigned PUT is rejected by the storage backend.
+   */
+  async putImageBody(params: {
+    kind: UploadKind
+    ownerId: string
+    contentType: string
+    body: Uint8Array
+  }): Promise<{ key: string; publicUrl: string }> {
+    await this.ensureBucket()
+    const extension = EXTENSION_BY_CONTENT_TYPE[params.contentType]
+    if (!extension) {
+      throw new Error(`Unsupported image content type: ${params.contentType}`)
+    }
+    const key = `${KIND_PREFIX[params.kind]}/${params.ownerId}/${randomUUID()}.${extension}`
+    await this.internalClient.send(
+      new PutObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+        Body: params.body,
+        ContentType: params.contentType
+      })
+    )
+    return { key, publicUrl: this.publicUrlFor(key) }
   }
 
   publicUrlFor(key: string): string {

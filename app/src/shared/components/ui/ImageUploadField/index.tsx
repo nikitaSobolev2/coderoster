@@ -8,7 +8,6 @@ import { Dropzone, IMAGE_MIME_TYPE, type FileWithPath } from '@mantine/dropzone'
 import { notifications } from '@mantine/notifications'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowUpFromBracket, faCircleXmark, faRotate } from '@fortawesome/free-solid-svg-icons'
-import { api } from '~/trpc/react'
 import styles from './styles.module.scss'
 
 export type UploadKind = 'AVATAR' | 'COURSE_COVER' | 'ACHIEVEMENT_COVER' | 'CONTENT_PAGE_INLINE'
@@ -45,9 +44,8 @@ function isAcceptedContentType(value: string): value is AcceptedContentType {
 }
 
 /**
- * Drop-or-click image picker that uploads directly to S3-compatible storage
- * via a tRPC-issued presigned PUT URL. The form only ever sees the resulting
- * public URL string, so existing mutations keep working unchanged.
+ * Drop-or-click image picker that uploads via `POST /api/uploads/image` (multipart).
+ * Server writes to object storage; caller only receives the public URL string.
  */
 export default function ImageUploadField({
   value,
@@ -62,7 +60,6 @@ export default function ImageUploadField({
   error
 }: Props) {
   const [progress, setProgress] = useState<number | null>(null)
-  const createIntent = api.upload.createIntent.useMutation()
   const limitMb = maxSizeMb ?? DEFAULT_MAX_MB_BY_KIND[kind]
 
   const upload = async (file: FileWithPath) => {
@@ -75,13 +72,8 @@ export default function ImageUploadField({
     }
     try {
       setProgress(0)
-      const intent = await createIntent.mutateAsync({
-        kind,
-        contentType: file.type,
-        contentLength: file.size
-      })
-      await uploadWithProgress(intent.putUrl, intent.headers, file, setProgress)
-      onChange(intent.publicUrl)
+      const { publicUrl } = await postImageMultipartWithProgress(kind, file, setProgress)
+      onChange(publicUrl)
       notifications.show({ color: 'teal', message: 'Файл загружен.' })
     } catch (cause) {
       const message = cause instanceof Error ? cause.message : 'Не удалось загрузить файл.'
@@ -231,34 +223,40 @@ function DropzonePrompt({ state, limitMb, variant }: PromptProps) {
   )
 }
 
-function uploadWithProgress(
-  url: string,
-  headers: Record<string, string>,
+function postImageMultipartWithProgress(
+  kind: UploadKind,
   file: File,
   onProgress: (percent: number) => void
-): Promise<void> {
+): Promise<{ publicUrl: string }> {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest()
-    xhr.open('PUT', url)
-    Object.entries(headers).forEach(([name, value]) => xhr.setRequestHeader(name, value))
+    xhr.open('POST', '/api/uploads/image')
+    xhr.withCredentials = true
     xhr.upload.onprogress = event => {
       if (!event.lengthComputable) return
       onProgress((event.loaded / event.total) * 100)
     }
     xhr.onload = () => {
-      if (xhr.status >= 200 && xhr.status < 300) {
-        onProgress(100)
-        resolve()
-      } else {
-        reject(new Error(`Ошибка загрузки (HTTP ${xhr.status}).`))
+      let body: unknown
+      try {
+        body = xhr.responseText ? JSON.parse(xhr.responseText) : {}
+      } catch {
+        reject(new Error('Некорректный ответ сервера.'))
+        return
       }
+      const parsed = body as { publicUrl?: string; error?: string }
+      if (xhr.status >= 200 && xhr.status < 300 && parsed.publicUrl) {
+        onProgress(100)
+        resolve({ publicUrl: parsed.publicUrl })
+        return
+      }
+      reject(new Error(parsed.error ?? `Ошибка загрузки (HTTP ${xhr.status}).`))
     }
     xhr.onerror = () =>
-      reject(
-        new Error(
-          'Сетевая ошибка при загрузке в хранилище. Частая причина: CORS (исправляется на сервере при выдаче ссылки) или недоступный S3_PUBLIC_URL / смешанный HTTP и HTTPS.'
-        )
-      )
-    xhr.send(file)
+      reject(new Error('Сетевая ошибка при загрузке. Проверь подключение и попробуй снова.'))
+    const formData = new FormData()
+    formData.append('kind', kind)
+    formData.append('file', file)
+    xhr.send(formData)
   })
 }

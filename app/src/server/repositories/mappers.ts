@@ -226,7 +226,7 @@ export function toLessonDetail(input: LessonDetailInput): LessonDetail {
       : false
   const emptyStarters: Partial<Record<Language, string>> = Object.fromEntries(
     allowedLanguages.map(lang => [lang, ''])
-  ) as Partial<Record<Language, string>>
+  )
   const redactedBody = userCanAccess ? input.task.description : ''
   const redactedStarterCodes = userCanAccess ? starterCodes : emptyStarters
   const redactedStarterCode = userCanAccess ? starterCode : ''

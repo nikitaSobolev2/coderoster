@@ -224,6 +224,17 @@
     height: 100%;
     min-height: 140px;
   }
+
+  /* Intrinsic cover image: natural height, no stretch */
+  &:has(img) {
+    align-self: flex-start;
+
+    & > div,
+    & > * {
+      height: auto;
+      min-height: 0;
+    }
+  }
 }
 
 .cardList__content {
@@ -311,6 +322,11 @@
     & > div,
     & > * {
       min-height: 180px;
+    }
+
+    &:has(img) > div,
+    &:has(img) > * {
+      min-height: 0;
     }
   }
 

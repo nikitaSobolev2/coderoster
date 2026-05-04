@@ -24,6 +24,18 @@
   gap: 1.25rem;
   padding: 1.5rem 1.75rem;
   overflow-y: auto;
+  position: relative;
+}
+
+.pane__tierLockWrap {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  pointer-events: auto;
 }
 
 .pane__head {

@@ -1,23 +1,11 @@
 'use client'
 
-import Link from 'next/link'
-import {
-  Button,
-  Group,
-  Paper,
-  Popover,
-  SegmentedControl,
-  Stack,
-  Text,
-  Title,
-  Tooltip
-} from '@mantine/core'
+import { Button, Group, Popover, SegmentedControl, Stack, Text, Tooltip } from '@mantine/core'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faArrowRight,
   faCircleCheck,
   faFlagCheckered,
-  faLock,
   faPlay,
   faRobot,
   faRotateLeft
@@ -25,6 +13,7 @@ import {
 import clsx from 'clsx'
 import type { ReactNode } from 'react'
 import type { CourseDetail, Language, LessonDetail } from '~/server/repositories/types'
+import LessonTierLockOverlay from '../LessonTierLockOverlay'
 import MobileTaskNavTrigger from '../TaskNav/MobileTaskNavTrigger'
 import taskPaneStyles from '../TaskPane/styles.module.scss'
 import CodeImproveHeaderTrigger from './CodeImproveHeaderTrigger'
@@ -136,21 +125,9 @@ export function InCourseWorkspaceSection({
       )}
     >
       {canUseEditor ? null : (
-        <Paper className={styles.workspace__lock} radius="md" shadow="sm">
-          <Stack align="center" gap="md">
-            <FontAwesomeIcon icon={faLock} className={styles.workspace__lockIcon} />
-            <Title order={3} ta="center" className={styles.workspace__lockTitle}>
-              Урок по тарифу выше
-            </Title>
-            <Text size="sm" c="dimmed" ta="center" maw={360}>
-              Нужен план минимум уровня {lesson.requiredPlanTier}. Оформи подписку и вернись —
-              прогресс и черновики сохранятся.
-            </Text>
-            <Button component={Link} href="/plans" variant="default">
-              Смотреть тарифы
-            </Button>
-          </Stack>
-        </Paper>
+        <div className={styles.workspace__lock}>
+          <LessonTierLockOverlay requiredPlanTier={lesson.requiredPlanTier} />
+        </div>
       )}
 
       <header className={styles.workspace__head}>

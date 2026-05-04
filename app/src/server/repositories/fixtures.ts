@@ -391,6 +391,12 @@ export function getFakeLessonDetail(
     body: '## ' + current.lesson.title
   }
 
+  const requiredPlanTier = current.lesson.isPremium
+    ? Math.max(course.tierRequired, current.lesson.minPlanTier)
+    : course.tierRequired
+  const userCanAccess =
+    viewerTier !== null && viewerTier !== undefined ? viewerTier >= requiredPlanTier : true
+
   return {
     ...current.lesson,
     courseSlug: course.slug,
@@ -398,9 +404,9 @@ export function getFakeLessonDetail(
     moduleId: current.module.id,
     moduleTitle: current.module.title,
     order: index + 1,
-    body: body.body,
-    starterCode: body.starterCode,
-    starterCodes: { [body.language]: body.starterCode },
+    body: userCanAccess ? body.body : '',
+    starterCode: userCanAccess ? body.starterCode : '',
+    starterCodes: userCanAccess ? { [body.language]: body.starterCode } : { [body.language]: '' },
     language: body.language,
     allowedLanguages: [body.language],
     tests: [
@@ -410,16 +416,8 @@ export function getFakeLessonDetail(
     previousLessonId: previous,
     nextLessonId: next,
     courseTierRequired: course.tierRequired,
-    requiredPlanTier: current.lesson.isPremium
-      ? Math.max(course.tierRequired, current.lesson.minPlanTier)
-      : course.tierRequired,
-    userCanAccess:
-      viewerTier !== null && viewerTier !== undefined
-        ? viewerTier >=
-          (current.lesson.isPremium
-            ? Math.max(course.tierRequired, current.lesson.minPlanTier)
-            : course.tierRequired)
-        : true
+    requiredPlanTier,
+    userCanAccess
   }
 }
 

@@ -75,12 +75,23 @@ function localDiffersFromStarters(
 /**
  * Per-language course task drafts: `localStorage` + debounced `progress.saveDraft` + `getDrafts` hydrate.
  */
+export interface UsePerLanguageDraftPersistenceOptions {
+  /**
+   * When false (tier-locked lesson), skips localStorage + remote draft load/save so starter/task
+   * text never hydrates the editor from persisted drafts.
+   */
+  allowDraftPersistence?: boolean
+}
+
 export function usePerLanguageDraftPersistence(
   lessonId: string,
   starterCodes: Partial<Record<Language, string>>,
   allowedLanguages: Language[],
-  isAuthenticated: boolean
+  isAuthenticated: boolean,
+  options?: UsePerLanguageDraftPersistenceOptions
 ) {
+  const allowDraftPersistence = options?.allowDraftPersistence ?? true
+
   const starters = useMemo(
     () => defaultDraftsFromStarters(starterCodes, allowedLanguages),
     [starterCodes, allowedLanguages]
@@ -88,6 +99,7 @@ export function usePerLanguageDraftPersistence(
 
   const { user, loading: authLoading } = useAuth()
   const [drafts, setDrafts] = useState<Partial<Record<Language, string>>>(() => {
+    if (!allowDraftPersistence) return { ...starters }
     const fromLocal = readLocalDraftsMap(lessonId)
     return fromLocal ?? { ...starters }
   })
@@ -97,19 +109,20 @@ export function usePerLanguageDraftPersistence(
 
   const draftsQuery = api.progress.getDrafts.useQuery(
     { lessonId, languages: allowedLanguages },
-    { enabled: canPersistRemote, staleTime: 60_000 }
+    { enabled: canPersistRemote && allowDraftPersistence, staleTime: 60_000 }
   )
 
   /* eslint-disable react-hooks/set-state-in-effect -- reset local drafts when lesson starters change */
   useEffect(() => {
     setDrafts(() => {
+      if (!allowDraftPersistence) return { ...starters }
       const fromLocal = readLocalDraftsMap(lessonId)
       return fromLocal ?? { ...starters }
     })
-  }, [lessonId, starters])
+  }, [lessonId, starters, allowDraftPersistence])
 
   useEffect(() => {
-    if (!canPersistRemote || !draftsQuery.isSuccess) return
+    if (!allowDraftPersistence || !canPersistRemote || !draftsQuery.isSuccess) return
     const server = draftsQuery.data ?? {}
     const local = readLocalDraftsMap(lessonId)
     if (localDiffersFromStarters(local, starters, allowedLanguages)) return
@@ -129,11 +142,13 @@ export function usePerLanguageDraftPersistence(
     draftsQuery.data,
     lessonId,
     starters,
-    allowedLanguages
+    allowedLanguages,
+    allowDraftPersistence
   ])
   /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
+    if (!allowDraftPersistence) return
     writeLocalDraftsMap(lessonId, drafts)
     if (!canPersistRemote) return
     const handle = setTimeout(() => {
@@ -145,7 +160,7 @@ export function usePerLanguageDraftPersistence(
       }
     }, REMOTE_SAVE_DEBOUNCE_MS)
     return () => clearTimeout(handle)
-  }, [drafts, lessonId, canPersistRemote, saveDraft, allowedLanguages])
+  }, [drafts, lessonId, canPersistRemote, saveDraft, allowedLanguages, allowDraftPersistence])
 
   const setDraftForLanguage = useCallback((language: Language, code: string) => {
     setDrafts(prev => ({ ...prev, [language]: code }))

@@ -6,6 +6,7 @@ import type { LessonDetail } from '~/server/repositories/types'
 import Markdown from '~/shared/components/ui/Markdown'
 import VerticalCaption from '../components/VerticalCaption'
 import LessonMarkdown from '../LessonMarkdown'
+import LessonTierLockOverlay from '../LessonTierLockOverlay'
 import styles from './styles.module.scss'
 
 export type TaskPaneTab = 'assignment' | 'explanation'
@@ -101,6 +102,11 @@ export default function TaskPane({
         </section>
       ) : (
         <section className={styles.pane}>
+          {!lesson.userCanAccess ? (
+            <div className={styles.pane__tierLockWrap}>
+              <LessonTierLockOverlay requiredPlanTier={lesson.requiredPlanTier} />
+            </div>
+          ) : null}
           <header className={styles.pane__head}>
             <span className={styles.pane__module}>
               {lesson.moduleTitle} · Урок {lesson.order}

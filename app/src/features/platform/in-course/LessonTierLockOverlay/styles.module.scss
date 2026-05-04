@@ -1,0 +1,19 @@
+@use '~/shared/assets/styles/mixins' as *;
+
+.panel {
+  max-width: min(28rem, 100%);
+  margin-inline: auto;
+  padding: 1.25rem 1.5rem;
+  @include bluredBg;
+  border: var(--border-width-hair) solid var(--platform-glass-border);
+  box-shadow: var(--platform-glass-shadow);
+}
+
+.icon {
+  font-size: 2rem;
+  color: color-mix(in srgb, var(--color-text-secondary) 70%, var(--platform-color-accent));
+}
+
+.title {
+  font-family: var(--font-family-headings);
+}

@@ -123,14 +123,15 @@ export default function InCourseShell({
     completeMutation
   } = shellTrpc
 
+  const canUseEditor = lesson.userCanAccess
+
   const { drafts, setDraftForLanguage, resetLanguage } = usePerLanguageDraftPersistence(
     lesson.id,
     lesson.starterCodes,
     lesson.allowedLanguages,
-    isAuthenticated
+    isAuthenticated,
+    { allowDraftPersistence: canUseEditor }
   )
-
-  const canUseEditor = lesson.userCanAccess
 
   const d = deriveInCourseLessonWorkspaceModel({
     lesson,

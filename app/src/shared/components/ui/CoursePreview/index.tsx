@@ -7,6 +7,11 @@ export interface Props {
   title: string
   coverImage: string | null
   size?: 'card' | 'hero'
+  /**
+   * `aspectCrop`: fixed 16:9 (card) / 21:9 (hero), image cropped with `object-fit: cover`.
+   * `intrinsic`: width 100%, height auto — natural image proportions (catalog cards).
+   */
+  coverLayout?: 'aspectCrop' | 'intrinsic'
   /** Optional aria-hidden override when the title is rendered nearby. */
   decorative?: boolean
 }
@@ -21,11 +26,38 @@ export default function CoursePreview({
   title,
   coverImage,
   size = 'card',
+  coverLayout = 'aspectCrop',
   decorative = false
 }: Props) {
-  const className = clsx(styles.preview, size === 'hero' && styles.preview_hero)
+  const className = clsx(
+    styles.preview,
+    size === 'hero' && styles.preview_hero,
+    coverImage && coverLayout === 'intrinsic' && styles.preview_intrinsic
+  )
 
   if (coverImage) {
+    const sizes =
+      size === 'hero'
+        ? '(max-width: 1024px) 100vw, min(1200px, 100vw)'
+        : '(max-width: 640px) 100vw, (max-width: 1200px) 50vw, 400px'
+
+    if (coverLayout === 'intrinsic') {
+      return (
+        <div className={className}>
+          <Image
+            className={styles.preview__image_intrinsic}
+            src={coverImage}
+            alt={decorative ? '' : title}
+            width={0}
+            height={0}
+            sizes={sizes}
+            style={{ width: '100%', height: 'auto' }}
+            aria-hidden={decorative || undefined}
+          />
+        </div>
+      )
+    }
+
     return (
       <div className={className}>
         <Image
@@ -33,11 +65,7 @@ export default function CoursePreview({
           src={coverImage}
           alt={decorative ? '' : title}
           fill
-          sizes={
-            size === 'hero'
-              ? '(max-width: 1024px) 100vw, min(1200px, 100vw)'
-              : '(max-width: 640px) 100vw, (max-width: 1200px) 50vw, 400px'
-          }
+          sizes={sizes}
           aria-hidden={decorative || undefined}
         />
       </div>

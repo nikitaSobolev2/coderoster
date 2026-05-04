@@ -224,6 +224,12 @@ export function toLessonDetail(input: LessonDetailInput): LessonDetail {
     input.viewerTier !== null && input.viewerTier !== undefined
       ? input.viewerTier >= requiredPlanTier
       : false
+  const emptyStarters: Partial<Record<Language, string>> = Object.fromEntries(
+    allowedLanguages.map(lang => [lang, ''])
+  ) as Partial<Record<Language, string>>
+  const redactedBody = userCanAccess ? input.task.description : ''
+  const redactedStarterCodes = userCanAccess ? starterCodes : emptyStarters
+  const redactedStarterCode = userCanAccess ? starterCode : ''
   return {
     ...toLessonSummary(input.task),
     courseSlug: input.course.slug,
@@ -231,9 +237,9 @@ export function toLessonDetail(input: LessonDetailInput): LessonDetail {
     moduleId: input.module.id,
     moduleTitle: input.module.title,
     order: input.order,
-    body: input.task.description,
-    starterCode,
-    starterCodes,
+    body: redactedBody,
+    starterCode: redactedStarterCode,
+    starterCodes: redactedStarterCodes,
     language,
     allowedLanguages,
     tests: input.testNames,

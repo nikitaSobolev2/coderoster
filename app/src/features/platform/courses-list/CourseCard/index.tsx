@@ -55,6 +55,7 @@ export default function CourseCard({ course, variant = 'comfortable' }: Props) {
             title={course.title}
             coverImage={course.thumbnail}
             size="card"
+            coverLayout="intrinsic"
             decorative
           />
         </div>
@@ -97,6 +98,7 @@ export default function CourseCard({ course, variant = 'comfortable' }: Props) {
             title={course.title}
             coverImage={course.thumbnail}
             size="card"
+            coverLayout="intrinsic"
             decorative
           />
         </div>
@@ -197,6 +199,7 @@ export default function CourseCard({ course, variant = 'comfortable' }: Props) {
         title={course.title}
         coverImage={course.thumbnail}
         size="card"
+        coverLayout="intrinsic"
         decorative
       />
       <header className={styles.card__head}>

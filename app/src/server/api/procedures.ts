@@ -1,6 +1,12 @@
 import 'server-only'
 import { protectedProcedure, publicProcedure } from './trpc'
-import { withAuditLog, withIdempotency, withRateLimit, withRequireAdmin } from './middlewares'
+import {
+  withAuditLog,
+  withIdempotency,
+  withRateLimit,
+  withRequireAdmin,
+  withRequireRoles
+} from './middlewares'
 
 /**
  * Mutations that should be replayable by clients. Reads `idempotency-key`
@@ -40,3 +46,13 @@ export const searchProcedure = publicProcedure.use(withRateLimit('search', 30, 6
  * `app/src/server/api/routers/admin/`.
  */
 export const adminProcedure = protectedProcedure.use(withRequireAdmin()).use(withAuditLog())
+
+/** Moderation / challenges: `MODERATOR` or `ADMIN`, audit mutations. */
+export const moderatorProcedure = protectedProcedure
+  .use(withRequireRoles(['MODERATOR', 'ADMIN']))
+  .use(withAuditLog())
+
+/** Teacher catalog & course editor: `AUTHOR` or `ADMIN`, audit mutations. */
+export const authorStaffProcedure = protectedProcedure
+  .use(withRequireRoles(['AUTHOR', 'ADMIN']))
+  .use(withAuditLog())

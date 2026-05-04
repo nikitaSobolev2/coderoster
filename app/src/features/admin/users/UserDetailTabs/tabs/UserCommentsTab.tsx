@@ -10,21 +10,29 @@ import AdminCard from '~/features/admin/_shared/AdminCard'
 
 export interface Props {
   userId: string
+  variant?: 'admin' | 'moderation'
 }
 
 /**
  * Comments authored by a single user, listed across every Thread. Reuses
  * `admin.comments.delete` so moderation actions live in one router.
  */
-export default function UserCommentsTab({ userId }: Props) {
+export default function UserCommentsTab({ userId, variant = 'admin' }: Props) {
   const [cursor, setCursor] = useState<string | null>(null)
   const utils = api.useUtils()
-  const query = api.admin.users.listComments.useQuery({ id: userId, cursor })
+  const query =
+    variant === 'moderation'
+      ? api.admin.users.moderationListComments.useQuery({ id: userId, cursor })
+      : api.admin.users.listComments.useQuery({ id: userId, cursor })
 
   const remove = api.admin.comments.delete.useMutation({
     onSuccess: async () => {
       notifications.show({ color: 'teal', message: 'Комментарий удалён.' })
-      await utils.admin.users.listComments.invalidate({ id: userId })
+      if (variant === 'moderation') {
+        await utils.admin.users.moderationListComments.invalidate({ id: userId })
+      } else {
+        await utils.admin.users.listComments.invalidate({ id: userId })
+      }
     },
     onError: error => notifications.show({ color: 'red', message: error.message })
   })

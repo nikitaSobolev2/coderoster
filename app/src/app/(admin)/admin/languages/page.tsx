@@ -1,10 +1,12 @@
 import { api, HydrateClient } from '~/trpc/server'
+import { requireBackofficePageRole } from '~/server/auth/requireBackofficeRole'
 import AdminPageHeader from '~/features/admin/_shared/AdminPageHeader'
 import LanguagesPanel from '~/features/admin/system/LanguagesPanel'
 
 export const dynamic = 'force-dynamic'
 
 export default async function AdminLanguagesPage() {
+  await requireBackofficePageRole(['admin', 'author'])
   await api.admin.languages.list.prefetch()
   return (
     <>

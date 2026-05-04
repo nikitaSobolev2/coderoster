@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { adminProcedure } from '~/server/api/procedures'
+import { adminProcedure, moderatorProcedure } from '~/server/api/procedures'
 import { createTRPCRouter } from '~/server/api/trpc'
 
 export const adminLeaderboardRouter = createTRPCRouter({
@@ -16,7 +16,7 @@ export const adminLeaderboardRouter = createTRPCRouter({
 })
 
 export const adminCommentsRouter = createTRPCRouter({
-  list: adminProcedure
+  list: moderatorProcedure
     .input(
       z
         .object({
@@ -28,7 +28,7 @@ export const adminCommentsRouter = createTRPCRouter({
     )
     .query(({ ctx, input }) => ctx.repositories.admin.comments.list(input ?? {})),
 
-  delete: adminProcedure
+  delete: moderatorProcedure
     .input(z.object({ id: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
       await ctx.repositories.admin.comments.delete(input.id)

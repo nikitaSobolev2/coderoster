@@ -14,8 +14,9 @@ import { adminAiCodeImproveRouter } from './aiCodeImprove'
 import { adminContactMessagesRouter } from './contactMessages'
 
 /**
- * `admin.*` namespace. Every procedure inside is `adminProcedure`-gated and
- * audit-logged. Sub-routers map 1:1 to admin pages under `app/src/app/(admin)`.
+ * `admin.*` namespace: procedures use `adminProcedure`, `moderatorProcedure`, or
+ * `authorStaffProcedure` per route — see [`procedures.ts`](./procedures.ts). UI nav
+ * filters by role; server remains authoritative.
  */
 export const adminRouter = createTRPCRouter({
   users: adminUsersRouter,

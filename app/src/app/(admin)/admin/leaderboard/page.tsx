@@ -1,10 +1,12 @@
 import { api, HydrateClient } from '~/trpc/server'
+import { requireBackofficePageRole } from '~/server/auth/requireBackofficeRole'
 import AdminPageHeader from '~/features/admin/_shared/AdminPageHeader'
 import LeaderboardPanel from '~/features/admin/moderation/LeaderboardPanel'
 
 export const dynamic = 'force-dynamic'
 
 export default async function AdminLeaderboardPage() {
+  await requireBackofficePageRole(['admin'])
   await api.admin.leaderboard.list.prefetch()
   return (
     <>

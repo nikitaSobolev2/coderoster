@@ -66,10 +66,11 @@ Auth column legend:
 
 ### Course catalog (`course.*`)
 
-| Procedure          | Auth   | Input                                                                                                                                                | Output                                                                  | Used in                                                                                                                                                                                                                        |
-| ------------------ | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `course.list`      | public | `{ q?, language?: 'python' \| 'php', difficulty?: 'beginner'\|'intermediate'\|'advanced', sort?: 'popular'\|'newest'\|'shortest', cursor?, limit? }` | `{ items: CourseSummary[], nextCursor: string \| null, total: number }` | [`features/platform/courses-list/CoursesList`](src/features/platform/courses-list/CoursesList/index.tsx), prefetched in [`app/(platform)/(standard)/courses/page.tsx`](src/app/%28platform%29/%28standard%29/courses/page.tsx) |
-| `course.getBySlug` | public | `{ slug: string }`                                                                                                                                   | `CourseDetail \| null`                                                  | [`app/(platform)/(standard)/courses/[slug]/page.tsx`](src/app/%28platform%29/%28standard%29/courses/%5Bslug%5D/page.tsx)                                                                                                       |
+| Procedure                | Auth      | Input                                                                                                                                                | Output                                                                  | Used in                                                                                                                                                                                                                        |
+| ------------------------ | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `course.list`            | public    | `{ q?, language?: 'python' \| 'php', difficulty?: 'beginner'\|'intermediate'\|'advanced', sort?: 'popular'\|'newest'\|'shortest', cursor?, limit? }` | `{ items: CourseSummary[], nextCursor: string \| null, total: number }` | [`features/platform/courses-list/CoursesList`](src/features/platform/courses-list/CoursesList/index.tsx), prefetched in [`app/(platform)/(standard)/courses/page.tsx`](src/app/%28platform%29/%28standard%29/courses/page.tsx) |
+| `course.getBySlug`       | public    | `{ slug: string }`                                                                                                                                   | `CourseDetail \| null`                                                  | [`app/(platform)/(standard)/courses/[slug]/page.tsx`](src/app/%28platform%29/%28standard%29/courses/%5Bslug%5D/page.tsx)                                                                                                       |
+| `course.canManageBySlug` | protected | `{ slug: string }`                                                                                                                                   | `{ canEdit: boolean, courseId: string \| null }`                        | Course detail page — editor link when user is `ADMIN` or `AUTHOR` of course                                                                                                                                                    |
 
 ### Lessons (`lesson.*`)
 
@@ -164,30 +165,41 @@ the UI.
 
 ### Admin (`admin.*`)
 
-Every procedure under `admin.*` is gated by `adminProcedure` (=
-`protectedProcedure` + `withRequireAdmin()` + `withAuditLog()`). Non-admin callers
-get `FORBIDDEN`; mutations write to `AuditLog` on success. Sub-namespaces map 1:1
-to admin pages under [`src/app/(admin)`](src/app/%28admin%29).
+Procedures use role-specific builders in
+[`src/server/api/procedures.ts`](src/server/api/procedures.ts):
 
-| Namespace                  | Key procedures                                                                                                                                              |
-| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `admin.users`              | `list`, `get`, `update`, `ban`, `unban`, `grantAchievement`, `revokeAchievement`, `listAchievementStatus`, `listActivity`, `deleteActivity`, `listComments` |
-| `admin.catalog.categories` | `list`, `create`, `update`, `delete`, `reorder`                                                                                                             |
-| `admin.catalog.courses`    | `list`, `create`, `delete`, `setStatus`, `reorder`                                                                                                          |
-| `admin.courseEditor`       | `get`, `updateCourse`, `module.{create,update,delete,reorder}`, `task.{create,update,delete,reorder}`, `autotest.{create,update,delete,reorder}`            |
-| `admin.contentPages`       | `list`, `get`, `create`, `update`, `delete`, `setPublished`, `reorder`                                                                                      |
-| `admin.achievements`       | `list`, `get`, `create`, `update`, `delete`                                                                                                                 |
-| `admin.challenges.daily`   | `list`, `upsert`, `delete`                                                                                                                                  |
-| `admin.challenges.weekly`  | `list`, `upsert`, `delete`                                                                                                                                  |
-| `admin.leaderboard`        | `list`, `setExclusion`                                                                                                                                      |
-| `admin.comments`           | `list`, `delete`                                                                                                                                            |
-| `admin.languages`          | `list`, `update`                                                                                                                                            |
-| `admin.audit`              | `list`                                                                                                                                                      |
+- **`adminProcedure`** — `ADMIN` only (+ audit on mutations).
+- **`moderatorProcedure`** — `MODERATOR` or `ADMIN` (+ audit where composed).
+- **`authorStaffProcedure`** — `AUTHOR` or `ADMIN` (+ audit where composed).
 
-Admin entry point lives under route group `(admin)` and is reachable at
-`/admin`. `PlatformHeader.UserMenu` renders the "Админ-панель" link only when
-`role === 'ADMIN'`. Banned users hit a `/banned` page; both are wired through
-`src/middleware.ts`.
+Namespaces still map to pages under [`src/app/(admin)`](src/app/%28admin%29); each
+`page.tsx` calls `requireBackofficePageRole` for defense in depth.
+
+| Namespace                  | Typical gate        | Key procedures                                                                                                                                                               |
+| -------------------------- | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `admin.users`              | admin / moderator\* | `list`, `get`, `update`, `ban`, …; **`moderationList`**, **`moderationGet`**, **`moderationChatMute`**, **`moderationChatUnmute`**, **`moderationListComments`** (moderator) |
+| `admin.catalog.categories` | admin               | `list`, `create`, `update`, `delete`, `reorder`                                                                                                                              |
+| `admin.catalog.courses`    | admin / author†     | `list`, `create`, `delete`, `setStatus`, `reorder` (`reorder` admin-only)                                                                                                    |
+| `admin.courseEditor`       | author / admin‡     | `get`, `updateCourse`, modules/tasks/autotests                                                                                                                               |
+| `admin.contentPages`       | admin               | `list`, `get`, `create`, `update`, `delete`, `setPublished`, `reorder`                                                                                                       |
+| `admin.achievements`       | admin               | `list`, `get`, `create`, `update`, `delete`                                                                                                                                  |
+| `admin.challenges.daily`   | moderator           | `list`, `upsert`, `delete`                                                                                                                                                   |
+| `admin.challenges.weekly`  | moderator           | `list`, `upsert`, `delete`                                                                                                                                                   |
+| `admin.leaderboard`        | admin               | `list`, `setExclusion`                                                                                                                                                       |
+| `admin.comments`           | moderator           | `list`, `delete`                                                                                                                                                             |
+| `admin.languages`          | author / admin      | `list`, `update`                                                                                                                                                             |
+| `admin.audit`              | admin               | `list`                                                                                                                                                                       |
+
+\*Full user CRUD remains `adminProcedure`; moderators use `moderation*` only.
+
+†Authors see only own courses in `list`; writes check `Course.authorId`.
+
+‡Each mutating call validates course ownership via `assertCourseWritable`.
+
+Entry: `/admin`. `PlatformHeader.UserMenu` shows **«Панель управления»** when
+`role ∈ { ADMIN, MODERATOR, AUTHOR }`. Course page offers **«Редактировать курс»**
+when `course.canManageBySlug` returns `canEdit: true`. Banned users hit `/banned`;
+both wired through `src/middleware.ts`.
 
 ## Broker contracts
 

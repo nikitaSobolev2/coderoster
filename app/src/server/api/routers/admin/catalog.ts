@@ -1,6 +1,7 @@
 import { z } from 'zod'
-import { adminProcedure } from '~/server/api/procedures'
+import { adminProcedure, authorStaffProcedure } from '~/server/api/procedures'
 import { createTRPCRouter } from '~/server/api/trpc'
+import { assertCourseWritable } from '~/server/auth/courseWriteAccess'
 
 const slug = z
   .string()
@@ -18,9 +19,21 @@ const categoryUpsert = {
   order: z.number().int().min(0).max(10_000).optional()
 }
 
+const courseListInput = z
+  .object({
+    q: z.string().max(120).optional(),
+    status: z.enum(['DRAFT', 'PUBLISHED', 'HIDDEN']).optional(),
+    categoryId: z.string().optional(),
+    cursor: z.string().optional(),
+    limit: z.number().int().min(1).max(60).optional(),
+    /** Optional scope; authors always get theirs forced server-side. */
+    authorId: z.string().optional()
+  })
+  .optional()
+
 export const adminCatalogRouter = createTRPCRouter({
   categories: createTRPCRouter({
-    list: adminProcedure.query(({ ctx }) => ctx.repositories.admin.catalog.listCategories()),
+    list: authorStaffProcedure.query(({ ctx }) => ctx.repositories.admin.catalog.listCategories()),
 
     create: adminProcedure
       .input(z.object(categoryUpsert))
@@ -51,21 +64,15 @@ export const adminCatalogRouter = createTRPCRouter({
   }),
 
   courses: createTRPCRouter({
-    list: adminProcedure
-      .input(
-        z
-          .object({
-            q: z.string().max(120).optional(),
-            status: z.enum(['DRAFT', 'PUBLISHED', 'HIDDEN']).optional(),
-            categoryId: z.string().optional(),
-            cursor: z.string().optional(),
-            limit: z.number().int().min(1).max(60).optional()
-          })
-          .optional()
-      )
-      .query(({ ctx, input }) => ctx.repositories.admin.catalog.listCourses(input ?? {})),
+    list: authorStaffProcedure.input(courseListInput).query(({ ctx, input }) => {
+      const params = { ...(input ?? {}) }
+      if (ctx.user.role === 'author') {
+        params.authorId = ctx.user.id
+      }
+      return ctx.repositories.admin.catalog.listCourses(params)
+    }),
 
-    create: adminProcedure
+    create: authorStaffProcedure
       .input(z.object({ slug, title: z.string().min(1).max(160) }))
       .mutation(({ ctx, input }) =>
         ctx.repositories.admin.catalog.createCourse({
@@ -75,14 +82,15 @@ export const adminCatalogRouter = createTRPCRouter({
         })
       ),
 
-    delete: adminProcedure
+    delete: authorStaffProcedure
       .input(z.object({ id: z.string().min(1) }))
       .mutation(async ({ ctx, input }) => {
+        await assertCourseWritable(ctx.user, input.id)
         await ctx.repositories.admin.catalog.deleteCourse(input.id)
         return { ok: true as const }
       }),
 
-    setStatus: adminProcedure
+    setStatus: authorStaffProcedure
       .input(
         z.object({
           id: z.string().min(1),
@@ -90,6 +98,7 @@ export const adminCatalogRouter = createTRPCRouter({
         })
       )
       .mutation(async ({ ctx, input }) => {
+        await assertCourseWritable(ctx.user, input.id)
         await ctx.repositories.admin.catalog.setStatus(input.id, input.status)
         return { ok: true as const }
       }),

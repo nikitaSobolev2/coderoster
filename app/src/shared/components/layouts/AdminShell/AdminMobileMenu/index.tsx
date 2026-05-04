@@ -5,14 +5,19 @@ import { Drawer } from '@mantine/core'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faBars, faXmark } from '@fortawesome/free-solid-svg-icons'
 import AdminSidebar from '../AdminSidebar'
+import type { AdminNavGroup } from '../AdminSidebar/nav-config'
 import styles from './styles.module.scss'
+
+export interface Props {
+  navGroups: AdminNavGroup[]
+}
 
 /**
  * Mobile-only burger trigger that hosts the admin sidebar inside a Mantine
  * `Drawer`. Re-uses the desktop sidebar component so admin nav structure
  * stays a single source of truth.
  */
-export default function AdminMobileMenu() {
+export default function AdminMobileMenu({ navGroups }: Props) {
   const [opened, setOpened] = useState(false)
   const close = () => setOpened(false)
 
@@ -49,7 +54,7 @@ export default function AdminMobileMenu() {
           </button>
         </header>
         <div className={styles.drawer__nav}>
-          <AdminSidebar onNavigate={close} />
+          <AdminSidebar navGroups={navGroups} onNavigate={close} />
         </div>
       </Drawer>
     </>

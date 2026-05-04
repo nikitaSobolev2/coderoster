@@ -1,5 +1,7 @@
+import { Role } from '@prisma/client'
 import { z } from 'zod'
-import { createTRPCRouter, publicProcedure } from '~/server/api/trpc'
+import { createTRPCRouter, protectedProcedure, publicProcedure } from '~/server/api/trpc'
+import { db } from '~/server/db'
 import { planService } from '~/server/services/PlanService'
 
 const languageSchema = z.enum(['python', 'php'])
@@ -38,6 +40,36 @@ export const courseRouter = createTRPCRouter({
   getBySlug: publicProcedure
     .input(z.object({ slug: z.string().min(1).max(120) }))
     .query(({ ctx, input }) => ctx.repositories.course.getBySlug(input.slug)),
+
+  /** Whether the signed-in user may open the back-office editor for this course. */
+  canManageBySlug: protectedProcedure
+    .input(z.object({ slug: z.string().min(1).max(120) }))
+    .query(async ({ ctx, input }) => {
+      const course = await db.course.findUnique({
+        where: { slug: input.slug },
+        select: { id: true, authorId: true }
+      })
+      if (!course) {
+        return { canEdit: false, courseId: null as string | null }
+      }
+      const fresh = await db.user.findUnique({
+        where: { id: ctx.user.id },
+        select: { role: true, bannedUntil: true }
+      })
+      if (!fresh) {
+        return { canEdit: false, courseId: course.id }
+      }
+      if (fresh.bannedUntil && fresh.bannedUntil > new Date()) {
+        return { canEdit: false, courseId: course.id }
+      }
+      if (fresh.role === Role.ADMIN) {
+        return { canEdit: true, courseId: course.id }
+      }
+      if (fresh.role === Role.AUTHOR && course.authorId === ctx.user.id) {
+        return { canEdit: true, courseId: course.id }
+      }
+      return { canEdit: false, courseId: course.id }
+    }),
 
   listCategories: publicProcedure.query(({ ctx }) => ctx.repositories.course.listCategories())
 })

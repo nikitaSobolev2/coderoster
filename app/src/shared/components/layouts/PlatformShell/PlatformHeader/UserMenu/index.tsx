@@ -16,7 +16,7 @@ export interface ViewerUser {
   username: string
   displayName: string
   avatarUrl: string | null
-  isAdmin: boolean
+  hasBackofficeAccess: boolean
 }
 
 export interface Props {
@@ -77,7 +77,7 @@ export default function UserMenu({ user }: Readonly<Props>) {
         >
           Настройки
         </Menu.Item>
-        {user.isAdmin ? (
+        {user.hasBackofficeAccess ? (
           <>
             <Menu.Divider />
             <Menu.Item
@@ -86,7 +86,7 @@ export default function UserMenu({ user }: Readonly<Props>) {
               href="/admin"
               prefetch={false}
             >
-              Админ&#8209;панель
+              Панель управления
             </Menu.Item>
           </>
         ) : null}

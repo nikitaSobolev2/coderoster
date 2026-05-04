@@ -3,7 +3,9 @@ import { Avatar } from '@mantine/core'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons'
 import AdminMobileMenu from '../AdminMobileMenu'
+import type { AdminNavGroup } from '../AdminSidebar/nav-config'
 import { SITE_NAME } from '~/shared/constants/site'
+import type { BackofficeRole } from '~/shared/types/backoffice'
 import styles from './styles.module.scss'
 
 export interface AdminViewer {
@@ -12,8 +14,13 @@ export interface AdminViewer {
   avatarUrl: string | null
 }
 
+export interface BackofficeShellViewer extends AdminViewer {
+  role: BackofficeRole
+}
+
 export interface Props {
-  viewer: AdminViewer
+  viewer: BackofficeShellViewer
+  navGroups: AdminNavGroup[]
 }
 
 /**
@@ -21,12 +28,27 @@ export interface Props {
  * and a one-click "Open as user" jump back to the public profile so admins
  * can verify how their changes land for learners.
  */
-export default function AdminTopbar({ viewer }: Props) {
+function backofficeLabel(role: BackofficeRole): string {
+  switch (role) {
+    case 'admin':
+      return 'Админ-панель'
+    case 'moderator':
+      return 'Модерация'
+    case 'author':
+      return 'Мои курсы'
+    default:
+      return 'Панель'
+  }
+}
+
+export default function AdminTopbar({ viewer, navGroups }: Props) {
   return (
     <header className={styles.topbar}>
       <div className={styles.topbar__left}>
-        <AdminMobileMenu />
-        <span className={styles.topbar__label}>{SITE_NAME} · Admin</span>
+        <AdminMobileMenu navGroups={navGroups} />
+        <span className={styles.topbar__label}>
+          {SITE_NAME} · {backofficeLabel(viewer.role)}
+        </span>
       </div>
       <div className={styles.topbar__right}>
         <Link href={`/u/${viewer.username}`} className={styles.topbar__viewAs}>

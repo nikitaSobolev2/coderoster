@@ -1,5 +1,6 @@
 import 'server-only'
 
+import { type Role } from '@prisma/client'
 import { withAuth } from '@workos-inc/authkit-nextjs'
 
 import { env } from '~/env'
@@ -10,12 +11,28 @@ import {
 import { normalizeWorkosSessionEmail } from '~/server/auth/workosSessionEmail'
 import { isTruthyFlag } from '~/server/lib/featureFlags'
 import { userSyncService } from '~/server/services/UserSyncService'
-import type { AdminViewer } from '~/shared/components/layouts/AdminShell/AdminTopbar'
+import type { BackofficeShellViewer } from '~/shared/components/layouts/AdminShell/AdminTopbar'
+import type { BackofficeRole } from '~/shared/types/backoffice'
+
+const STAFF_PRISMA_ROLES: Role[] = ['ADMIN', 'MODERATOR', 'AUTHOR']
+
+function prismaRoleToBackoffice(role: Role): BackofficeRole | null {
+  switch (role) {
+    case 'ADMIN':
+      return 'admin'
+    case 'MODERATOR':
+      return 'moderator'
+    case 'AUTHOR':
+      return 'author'
+    default:
+      return null
+  }
+}
 
 /**
- * Loads WorkOS session, syncs to local DB, validates admin gate. Caller owns redirect/UI.
+ * WorkOS session → local `User` row → gate for `(admin)` layout (ADMIN, MODERATOR, AUTHOR).
  */
-export async function resolveAdminViewer(): Promise<AdminViewer | null> {
+export async function resolveBackofficeViewer(): Promise<BackofficeShellViewer | null> {
   const session = await withAuth()
   const workosUser = session.user
   if (!workosUser) return null
@@ -35,10 +52,13 @@ export async function resolveAdminViewer(): Promise<AdminViewer | null> {
     consentOpts
   )
   if (consentOpts) await clearSignupAuthFlowCookie()
-  if (local.role !== 'ADMIN') return null
+  if (!STAFF_PRISMA_ROLES.includes(local.role)) return null
+  const role = prismaRoleToBackoffice(local.role)
+  if (!role) return null
   return {
     username: local.username,
     displayName: local.displayName,
-    avatarUrl: local.avatarUrl
+    avatarUrl: local.avatarUrl,
+    role
   }
 }

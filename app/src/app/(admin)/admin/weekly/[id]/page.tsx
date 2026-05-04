@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import { api, HydrateClient } from '~/trpc/server'
+import { requireBackofficePageRole } from '~/server/auth/requireBackofficeRole'
 import AdminPageHeader from '~/features/admin/_shared/AdminPageHeader'
 import WeeklyChallengeEditor from '~/features/admin/challenges/WeeklyChallengeEditor'
 
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export default async function AdminWeeklyEditorPage({ params }: Props) {
+  await requireBackofficePageRole(['admin', 'moderator'])
   const { id } = await params
   const [detail, languages] = await Promise.all([
     api.admin.challenges.weekly.get({ id }).catch(() => null),

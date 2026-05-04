@@ -11,6 +11,8 @@ export interface AdminUserListQuery {
   banned?: 'all' | 'banned' | 'active'
   cursor?: string
   limit?: number
+  /** Hide admins from lists (moderator catalogue). */
+  hideAdmins?: boolean
 }
 
 export interface AdminUserPlanRef {
@@ -39,6 +41,34 @@ export interface AdminUserListResult {
   items: AdminUserSummary[]
   nextCursor: string | null
   total: number
+}
+
+/** Trimmed user row for moderators (no email, plan, XP, etc.). */
+export interface ModerationUserSummary {
+  id: string
+  username: string
+  displayName: string
+  avatarUrl: string | null
+  role: AdminUserRoleInput
+  bannedUntil: Date | null
+  banReason: string | null
+  chatBannedUntil: Date | null
+  chatBanReason: string | null
+  joinedAt: Date
+}
+
+export interface ModerationUserListResult {
+  items: ModerationUserSummary[]
+  nextCursor: string | null
+  total: number
+}
+
+export interface ModerationUserDetail extends ModerationUserSummary {
+  bio: string
+  counts: {
+    comments: number
+    activities: number
+  }
 }
 
 export interface AdminUserDetail extends AdminUserSummary {
@@ -133,6 +163,73 @@ export class AdminUsersRepository {
       items: sliced.map(toSummary),
       nextCursor: hasMore ? (sliced[sliced.length - 1]?.id ?? null) : null,
       total
+    }
+  }
+
+  async listForModeration(query: AdminUserListQuery): Promise<ModerationUserListResult> {
+    const where = buildModerationListWhere(query)
+    const limit = clampLimit(query.limit)
+    const [rows, total] = await Promise.all([
+      db.user.findMany({
+        where,
+        take: limit + 1,
+        cursor: query.cursor ? { id: query.cursor } : undefined,
+        skip: query.cursor ? 1 : 0,
+        orderBy: { joinedAt: 'desc' },
+        select: {
+          id: true,
+          username: true,
+          displayName: true,
+          avatarUrl: true,
+          role: true,
+          bannedUntil: true,
+          banReason: true,
+          chatBannedUntil: true,
+          chatBanReason: true,
+          joinedAt: true
+        }
+      }),
+      db.user.count({ where })
+    ])
+    const hasMore = rows.length > limit
+    const sliced = hasMore ? rows.slice(0, limit) : rows
+    return {
+      items: sliced.map(toModerationSummary),
+      nextCursor: hasMore ? (sliced[sliced.length - 1]?.id ?? null) : null,
+      total
+    }
+  }
+
+  async getForModeration(id: string): Promise<ModerationUserDetail> {
+    const user = await db.user.findUniqueOrThrow({
+      where: { id },
+      select: {
+        id: true,
+        username: true,
+        displayName: true,
+        avatarUrl: true,
+        role: true,
+        bio: true,
+        bannedUntil: true,
+        banReason: true,
+        chatBannedUntil: true,
+        chatBanReason: true,
+        joinedAt: true,
+        _count: {
+          select: {
+            comments: true,
+            activities: true
+          }
+        }
+      }
+    })
+    return {
+      ...toModerationSummary(user),
+      bio: user.bio,
+      counts: {
+        comments: user._count.comments,
+        activities: user._count.activities
+      }
     }
   }
 
@@ -366,6 +463,60 @@ function buildListWhere(query: AdminUserListQuery): Prisma.UserWhereInput {
     ]
   }
   return where
+}
+
+function buildModerationListWhere(query: AdminUserListQuery): Prisma.UserWhereInput {
+  const where: Prisma.UserWhereInput = {}
+  if (query.role) where.role = query.role
+  if (query.hideAdmins) {
+    where.AND = [
+      ...(Array.isArray(where.AND) ? where.AND : where.AND ? [where.AND] : []),
+      { NOT: { role: 'ADMIN' } }
+    ]
+  }
+  if (query.banned === 'banned') where.bannedUntil = { gt: new Date() }
+  if (query.banned === 'active') {
+    where.OR = [{ bannedUntil: null }, { bannedUntil: { lte: new Date() } }]
+  }
+  if (query.q && query.q.length > 0) {
+    const q = query.q
+    where.AND = [
+      ...(Array.isArray(where.AND) ? where.AND : where.AND ? [where.AND] : []),
+      {
+        OR: [
+          { username: { contains: q, mode: 'insensitive' } },
+          { displayName: { contains: q, mode: 'insensitive' } }
+        ]
+      }
+    ]
+  }
+  return where
+}
+
+function toModerationSummary(user: {
+  id: string
+  username: string
+  displayName: string
+  avatarUrl: string | null
+  role: Role
+  bannedUntil: Date | null
+  banReason: string | null
+  chatBannedUntil: Date | null
+  chatBanReason: string | null
+  joinedAt: Date
+}): ModerationUserSummary {
+  return {
+    id: user.id,
+    username: user.username,
+    displayName: user.displayName,
+    avatarUrl: user.avatarUrl,
+    role: user.role,
+    bannedUntil: user.bannedUntil,
+    banReason: user.banReason,
+    chatBannedUntil: user.chatBannedUntil,
+    chatBanReason: user.chatBanReason,
+    joinedAt: user.joinedAt
+  }
 }
 
 function toSummary(user: {

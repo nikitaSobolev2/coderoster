@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { adminProcedure } from '~/server/api/procedures'
+import { moderatorProcedure } from '~/server/api/procedures'
 import { createTRPCRouter } from '~/server/api/trpc'
 
 const dateString = z.string().regex(/^\d{4}-\d{2}-\d{2}$/)
@@ -38,17 +38,17 @@ const autotestPatch = z
  */
 export const adminChallengesRouter = createTRPCRouter({
   daily: createTRPCRouter({
-    list: adminProcedure.query(({ ctx }) => ctx.repositories.admin.challenges.listDaily()),
+    list: moderatorProcedure.query(({ ctx }) => ctx.repositories.admin.challenges.listDaily()),
 
-    get: adminProcedure
+    get: moderatorProcedure
       .input(z.object({ id: z.string().min(1) }))
       .query(({ ctx, input }) => ctx.repositories.admin.challenges.getDaily(input.id)),
 
-    create: adminProcedure
+    create: moderatorProcedure
       .input(z.object({ date: dateString }))
       .mutation(({ ctx, input }) => ctx.repositories.admin.challenges.createDaily(input.date)),
 
-    delete: adminProcedure
+    delete: moderatorProcedure
       .input(z.object({ id: z.string().min(1) }))
       .mutation(async ({ ctx, input }) => {
         await ctx.repositories.admin.challenges.deleteDaily(input.id)
@@ -56,7 +56,7 @@ export const adminChallengesRouter = createTRPCRouter({
       }),
 
     task: createTRPCRouter({
-      create: adminProcedure
+      create: moderatorProcedure
         .input(
           z.object({
             dailyChallengeId: z.string().min(1),
@@ -71,21 +71,21 @@ export const adminChallengesRouter = createTRPCRouter({
           })
         ),
 
-      update: adminProcedure
+      update: moderatorProcedure
         .input(z.object({ taskId: z.string().min(1), patch: taskUpsertPatch }))
         .mutation(async ({ ctx, input }) => {
           await ctx.repositories.admin.challenges.updateChallengeTask(input.taskId, input.patch)
           return { ok: true as const }
         }),
 
-      delete: adminProcedure
+      delete: moderatorProcedure
         .input(z.object({ taskId: z.string().min(1) }))
         .mutation(async ({ ctx, input }) => {
           await ctx.repositories.admin.challenges.deleteChallengeTask(input.taskId)
           return { ok: true as const }
         }),
 
-      reorder: adminProcedure
+      reorder: moderatorProcedure
         .input(
           z.object({
             dailyChallengeId: z.string().min(1),
@@ -103,17 +103,17 @@ export const adminChallengesRouter = createTRPCRouter({
   }),
 
   weekly: createTRPCRouter({
-    list: adminProcedure.query(({ ctx }) => ctx.repositories.admin.challenges.listWeekly()),
+    list: moderatorProcedure.query(({ ctx }) => ctx.repositories.admin.challenges.listWeekly()),
 
-    get: adminProcedure
+    get: moderatorProcedure
       .input(z.object({ id: z.string().min(1) }))
       .query(({ ctx, input }) => ctx.repositories.admin.challenges.getWeekly(input.id)),
 
-    create: adminProcedure
+    create: moderatorProcedure
       .input(z.object({ isoWeek: isoWeekString }))
       .mutation(({ ctx, input }) => ctx.repositories.admin.challenges.createWeekly(input.isoWeek)),
 
-    delete: adminProcedure
+    delete: moderatorProcedure
       .input(z.object({ id: z.string().min(1) }))
       .mutation(async ({ ctx, input }) => {
         await ctx.repositories.admin.challenges.deleteWeekly(input.id)
@@ -121,7 +121,7 @@ export const adminChallengesRouter = createTRPCRouter({
       }),
 
     task: createTRPCRouter({
-      create: adminProcedure
+      create: moderatorProcedure
         .input(
           z.object({
             weeklyChallengeId: z.string().min(1),
@@ -136,21 +136,21 @@ export const adminChallengesRouter = createTRPCRouter({
           })
         ),
 
-      update: adminProcedure
+      update: moderatorProcedure
         .input(z.object({ taskId: z.string().min(1), patch: taskUpsertPatch }))
         .mutation(async ({ ctx, input }) => {
           await ctx.repositories.admin.challenges.updateChallengeTask(input.taskId, input.patch)
           return { ok: true as const }
         }),
 
-      delete: adminProcedure
+      delete: moderatorProcedure
         .input(z.object({ taskId: z.string().min(1) }))
         .mutation(async ({ ctx, input }) => {
           await ctx.repositories.admin.challenges.deleteChallengeTask(input.taskId)
           return { ok: true as const }
         }),
 
-      reorder: adminProcedure
+      reorder: moderatorProcedure
         .input(
           z.object({
             weeklyChallengeId: z.string().min(1),
@@ -172,7 +172,7 @@ export const adminChallengesRouter = createTRPCRouter({
    * the same `CourseTaskAutotest` table, so a single sub-router serves both.
    */
   autotest: createTRPCRouter({
-    create: adminProcedure
+    create: moderatorProcedure
       .input(
         z.object({
           taskId: z.string().min(1),
@@ -191,21 +191,21 @@ export const adminChallengesRouter = createTRPCRouter({
         })
       ),
 
-    update: adminProcedure
+    update: moderatorProcedure
       .input(z.object({ autotestId: z.string().min(1), patch: autotestPatch }))
       .mutation(async ({ ctx, input }) => {
         await ctx.repositories.admin.challenges.updateAutotest(input.autotestId, input.patch)
         return { ok: true as const }
       }),
 
-    delete: adminProcedure
+    delete: moderatorProcedure
       .input(z.object({ autotestId: z.string().min(1) }))
       .mutation(async ({ ctx, input }) => {
         await ctx.repositories.admin.challenges.deleteAutotest(input.autotestId)
         return { ok: true as const }
       }),
 
-    reorder: adminProcedure
+    reorder: moderatorProcedure
       .input(
         z.object({
           taskId: z.string().min(1),

@@ -1,7 +1,13 @@
 import Link from 'next/link'
-import { Avatar, Badge } from '@mantine/core'
+import { Avatar, Badge, Button } from '@mantine/core'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faClock, faGraduationCap, faStar, faUsers } from '@fortawesome/free-solid-svg-icons'
+import {
+  faClock,
+  faGraduationCap,
+  faPenToSquare,
+  faStar,
+  faUsers
+} from '@fortawesome/free-solid-svg-icons'
 import CoursePreview from '~/shared/components/ui/CoursePreview'
 import type { CourseDetail } from '~/server/repositories/types'
 import { formatPremiumCourseAccessLabel } from '~/shared/lib/premiumLabels'
@@ -20,9 +26,11 @@ const LANGUAGE_LABELS: Record<CourseDetail['language'], string> = {
 
 export interface Props {
   course: CourseDetail
+  /** True when signed-in user is ADMIN or AUTHOR of this course. */
+  canEdit?: boolean
 }
 
-export default function CourseHeader({ course }: Props) {
+export default function CourseHeader({ course, canEdit = false }: Props) {
   return (
     <header className={styles.header}>
       <CoursePreview
@@ -85,6 +93,23 @@ export default function CourseHeader({ course }: Props) {
       </div>
       <h1 className={styles.header__title}>{course.title}</h1>
       <p className={styles.header__lead}>{course.description}</p>
+
+      {canEdit ? (
+        <div className={styles.header__editRow}>
+          <Button
+            component={Link}
+            href={`/admin/courses/${course.id}`}
+            prefetch={false}
+            variant="default"
+            radius="md"
+            size="sm"
+            bd="1px solid light-dark(var(--mantine-color-gray-4), var(--platform-glass-border))"
+            leftSection={<FontAwesomeIcon icon={faPenToSquare} />}
+          >
+            Редактировать курс
+          </Button>
+        </div>
+      ) : null}
 
       <div className={styles.header__author}>
         <Avatar src={course.author.avatarUrl ?? undefined} radius="xl" size={36}>

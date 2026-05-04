@@ -1,7 +1,7 @@
 import 'server-only'
 import { TRPCError } from '@trpc/server'
 import { createHash } from 'crypto'
-import { Prisma } from '@prisma/client'
+import { Prisma, type Role } from '@prisma/client'
 import { db } from '~/server/db'
 import { RateLimiter } from '~/server/rateLimit'
 import { t, type TRPCContext } from './trpc'
@@ -100,10 +100,11 @@ export function withIdempotency() {
 }
 
 /**
- * Gate procedure to admin role only. Re-checks DB on every call so a freshly
- * revoked admin loses access immediately (no stale ctx).
+ * Gate procedure to one of the given Prisma `Role` values. Re-checks DB every
+ * call so role downgrades apply immediately (no stale ctx).
  */
-export function withRequireAdmin() {
+export function withRequireRoles(allowed: readonly Role[]) {
+  const allowedSet = new Set<Role>(allowed)
   return trpcMiddleware(async ({ ctx, next }) => {
     if (!ctx.user) {
       throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Sign in required.' })
@@ -112,11 +113,25 @@ export function withRequireAdmin() {
       where: { id: ctx.user.id },
       select: { role: true, bannedUntil: true }
     })
-    if (fresh?.role !== 'ADMIN') {
-      throw new TRPCError({ code: 'FORBIDDEN', message: 'Admin access required.' })
+    if (!fresh) {
+      throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Sign in required.' })
+    }
+    if (fresh.bannedUntil && fresh.bannedUntil > new Date()) {
+      throw new TRPCError({ code: 'FORBIDDEN', message: 'Account suspended.' })
+    }
+    if (!allowedSet.has(fresh.role)) {
+      throw new TRPCError({ code: 'FORBIDDEN', message: 'Access denied.' })
     }
     return next()
   })
+}
+
+/**
+ * Gate procedure to admin role only. Re-checks DB on every call so a freshly
+ * revoked admin loses access immediately (no stale ctx).
+ */
+export function withRequireAdmin() {
+  return withRequireRoles(['ADMIN'])
 }
 
 /**

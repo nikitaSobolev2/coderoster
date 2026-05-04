@@ -96,25 +96,31 @@ A public page summarising a learner's journey:
 
 A protected back-office for platform management. **Live** — lives under the
 `(admin)` route group, gated by [`AdminLayout`](src/app/%28admin%29/layout.tsx) at
-the page level and `adminProcedure` (in [`src/server/api/procedures.ts`](src/server/api/procedures.ts))
-at the API level. Every admin mutation is recorded in `AuditLog`.
+the page level with **`requireBackofficePageRole`** on each route. tRPC uses
+`adminProcedure`, **`moderatorProcedure`**, and **`authorStaffProcedure`** (see
+[`src/server/api/procedures.ts`](src/server/api/procedures.ts)); **`AUTHOR` =
+teacher** owns courses via `Course.authorId`. Mutations that pass through audit
+middleware still write **`AuditLog`**.
 
 - **Dashboard** — counts of users, courses, tasks, content pages, achievements, comments
-- **Users** — list with search/role/ban filters; per-user tabs (Профиль, Роль и бан, Достижения, Активность, Комментарии). Admin can change role, totalXp/streak, exclude from leaderboard, ban (temporary or permanent), grant/revoke achievements, delete activity rows or comments
-- **Каталог: курсы и категории** — list + reorder + create + status (DRAFT / PUBLISHED / HIDDEN); category tree with `parentCategoryId`. Course metadata includes `tierRequired` for catalog gating; task editor can mark premium tasks and `minPlanTier`
-- **Course editor** (flagship UX) — three-pane shell at `/admin/courses/[id]`: tree on the left, metadata + tab-based task editor in the centre, live markdown preview side-by-side. Optional / nullable fields (test stdin, result JSON) are gated behind `<OptionalFieldToggle>` so the surface stays uncluttered. Drag-equivalent reorder via up/down buttons works with keyboard + touch
+- **Users** — **Admin:** full list with search/role/ban filters; per-user tabs (Профиль, Роль и бан, Достижения, Активность, Комментарии); role / XP / plan / achievements / activity delete. **Moderator:** slim list (admins hidden); user detail with chat mute/unmute and global comments only — no email/plan/XP surfaces; cannot act on `ADMIN` targets
+- **Каталог: курсы и категории** — **Admin:** full. **Author:** own courses only in list; create/delete/status; **no** global `reorderCourses`. Categories remain admin-only for tree editing
+- **Course editor** (flagship UX) — `/admin/courses/[id]` for **admin** or **author** of that course; server checks ownership on every write
 - **Контент-страницы** — Markdown CMS for `/p/[slug]`; published rows with `placement = FOOTER` automatically render as link columns in `PlatformFooter`. Includes side-by-side markdown preview
 - **Достижения** — caталог CRUD: title / description / category / rarity / goal / hidden / coverImage
-- **Дейлики и спидраны** — date-keyed `DailyChallenge` (3 tasks/day) and ISO-week-keyed `WeeklyChallenge` (5 tasks/week)
+- **Дейлики и спидраны** — **admin + moderator:** date-keyed `DailyChallenge` (3 tasks/day) and ISO-week-keyed `WeeklyChallenge` (5 tasks/week)
 - **Лидерборд** — sortable list with per-user toggle "Исключить из рейтинга" → `User.excludedFromLeaderboard`
-- **Комментарии** — global moderation table; one-click delete on any thread (profile, course, etc.)
+- **Комментарии** — **admin + moderator:** global moderation table; one-click delete on any thread (profile, course, etc.)
+- **Сообщения с сайта** — **admin + moderator:** contact form inbox (`ContactMessage`)
 - **Тарифы** — CRUD for `Plan` (tier level, XP bonus %, optional active-enrollment cap); users get default free plan in seed
 - **ИИ: разбор кода** — `/admin/ai-code-improve` edits `AppSetting('ai_code_improve')` JSON (OpenAI-compatible `model`); воркер **`code-improve-worker`** (Go, см. `workers/code-improve`) читает очередь `ai.code_improve.requested`
-- **Языки** — global allowed languages stored in `AppSetting('allowed_languages')`. Used by `CourseTask.allowedLanguages` per-task overrides
+- **Языки** — **admin + author:** read/update `AppSetting('allowed_languages')`. Used by `CourseTask.allowedLanguages` per-task overrides
 - **Живой чат** — toggle «гости могут писать» (`AppSetting('livechat_guest_policy')`); модерация чата на вкладке пользователя «Роль и бан»
 - **Аудит** — append-only `AuditLog` viewer with filters by actor / target
 
-Admin entry: header `UserMenu` shows "Админ-панель" only when `role === 'ADMIN'`.
+Staff entry: header `UserMenu` shows **«Панель управления»** when
+`User.role ∈ { ADMIN, MODERATOR, AUTHOR }`. Public course page shows **«Редактировать курс»**
+when `course.canManageBySlug` is true. Wrong-role deep links redirect inside `(admin)`.
 Banned users (any non-admin with `bannedUntil > now()`) are redirected to a
 public `/banned` page by `protectedProcedure` and the platform middleware.
 
@@ -172,13 +178,13 @@ Browser Request
 
 ### Route groups
 
-| Group                   | Status | Description                                                                      |
-| ----------------------- | ------ | -------------------------------------------------------------------------------- |
-| `(home)`                | Live   | Public marketing / landing page — no auth required                               |
+| Group                   | Status | Description                                                                                                                                                                    |
+| ----------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `(home)`                | Live   | Public marketing / landing page — no auth required                                                                                                                             |
 | `(authentication)`      | Live   | Custom Mantine auth UI (`/login`, `/signup`, magic link, password reset) + WorkOS User Management APIs; hosted PKCE entry `GET /auth/workos/start`; `/callback` finishes OAuth |
-| `(platform)/(standard)` | Live   | Platform shell: courses list/detail, public profile, settings, coming-soon stubs |
-| `(platform)/(focus)`    | Live   | Full-viewport in-course experience: 3-pane code editor + tasks + execution       |
-| `(admin)`               | Live   | Admin panel — role-gated layout + `adminProcedure` + audit log                   |
+| `(platform)/(standard)` | Live   | Platform shell: courses list/detail, public profile, settings, coming-soon stubs                                                                                               |
+| `(platform)/(focus)`    | Live   | Full-viewport in-course experience: 3-pane code editor + tasks + execution                                                                                                     |
+| `(admin)`               | Live   | Admin panel — role-gated layout + `adminProcedure` + audit log                                                                                                                 |
 
 ### Data flow rules
 

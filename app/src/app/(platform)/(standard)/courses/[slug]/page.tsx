@@ -30,16 +30,19 @@ export default async function CourseDetailPage({ params }: PageProps) {
   let enrollment = null
   let isAuthenticated = false
   let viewerTier = 0
+  let canEditCourse = false
   try {
     const session = await withAuth()
     if (session.user) {
       isAuthenticated = true
-      const [mine, plan] = await Promise.all([
+      const [mine, plan, manage] = await Promise.all([
         api.enrollment.getMine({ courseSlug: slug }),
-        api.plan.getMine()
+        api.plan.getMine(),
+        api.course.canManageBySlug({ slug })
       ])
       enrollment = mine
       viewerTier = plan?.tierLevel ?? 0
+      canEditCourse = manage.canEdit
     }
   } catch {
     isAuthenticated = false
@@ -49,7 +52,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
     <HydrateClient>
       <article className={styles.page}>
         <div className={styles.page__main}>
-          <CourseHeader course={course} />
+          <CourseHeader course={course} canEdit={canEditCourse} />
           <CourseOutcomes
             longDescription={course.longDescription}
             outcomes={course.learningOutcomes}

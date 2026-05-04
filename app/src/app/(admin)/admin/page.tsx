@@ -1,4 +1,5 @@
 import { db } from '~/server/db'
+import { requireBackofficePageRole } from '~/server/auth/requireBackofficeRole'
 import AdminPageHeader from '~/features/admin/_shared/AdminPageHeader'
 import AdminStatGrid from '~/features/admin/dashboard/AdminStatGrid'
 
@@ -7,6 +8,7 @@ import AdminStatGrid from '~/features/admin/dashboard/AdminStatGrid'
  * and avoids a tRPC roundtrip for what is effectively a static-shape page.
  */
 export default async function AdminDashboardPage() {
+  await requireBackofficePageRole(['admin'])
   const stats = await loadStats()
   return (
     <>

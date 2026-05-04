@@ -1,10 +1,10 @@
 import { z } from 'zod'
 
-import { adminProcedure } from '~/server/api/procedures'
+import { moderatorProcedure } from '~/server/api/procedures'
 import { createTRPCRouter } from '~/server/api/trpc'
 
 export const adminContactMessagesRouter = createTRPCRouter({
-  list: adminProcedure
+  list: moderatorProcedure
     .input(
       z
         .object({

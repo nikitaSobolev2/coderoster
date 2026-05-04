@@ -1,6 +1,12 @@
 import { z } from 'zod'
-import { adminProcedure } from '~/server/api/procedures'
+import { TRPCError } from '@trpc/server'
+import { authorStaffProcedure } from '~/server/api/procedures'
 import { createTRPCRouter } from '~/server/api/trpc'
+import {
+  assertCourseModuleTaskWritable,
+  assertCourseWritable,
+  assertModuleWritable
+} from '~/server/auth/courseWriteAccess'
 
 const taskKindEnum = z.enum(['THEORY', 'TASK', 'QUIZ'])
 
@@ -51,19 +57,23 @@ const autotestPatch = z
   .partial()
 
 export const adminCourseEditorRouter = createTRPCRouter({
-  get: adminProcedure
+  get: authorStaffProcedure
     .input(z.object({ courseId: z.string().min(1) }))
-    .query(({ ctx, input }) => ctx.repositories.admin.courseEditor.getTree(input.courseId)),
+    .query(async ({ ctx, input }) => {
+      await assertCourseWritable(ctx.user, input.courseId)
+      return ctx.repositories.admin.courseEditor.getTree(input.courseId)
+    }),
 
-  updateCourse: adminProcedure
+  updateCourse: authorStaffProcedure
     .input(z.object({ courseId: z.string().min(1), patch: courseUpdatePatch }))
     .mutation(async ({ ctx, input }) => {
+      await assertCourseWritable(ctx.user, input.courseId)
       await ctx.repositories.admin.courseEditor.updateCourse(input.courseId, input.patch)
       return { ok: true as const }
     }),
 
   module: createTRPCRouter({
-    create: adminProcedure
+    create: authorStaffProcedure
       .input(
         z.object({
           courseId: z.string().min(1),
@@ -71,14 +81,15 @@ export const adminCourseEditorRouter = createTRPCRouter({
           description: z.string().max(800).optional()
         })
       )
-      .mutation(({ ctx, input }) =>
-        ctx.repositories.admin.courseEditor.createModule(input.courseId, {
+      .mutation(async ({ ctx, input }) => {
+        await assertCourseWritable(ctx.user, input.courseId)
+        return ctx.repositories.admin.courseEditor.createModule(input.courseId, {
           title: input.title,
           description: input.description
         })
-      ),
+      }),
 
-    update: adminProcedure
+    update: authorStaffProcedure
       .input(
         z.object({
           moduleId: z.string().min(1),
@@ -89,18 +100,20 @@ export const adminCourseEditorRouter = createTRPCRouter({
         })
       )
       .mutation(async ({ ctx, input }) => {
+        await assertModuleWritable(ctx.user, input.moduleId)
         await ctx.repositories.admin.courseEditor.updateModule(input.moduleId, input.patch)
         return { ok: true as const }
       }),
 
-    delete: adminProcedure
+    delete: authorStaffProcedure
       .input(z.object({ moduleId: z.string().min(1) }))
       .mutation(async ({ ctx, input }) => {
+        await assertModuleWritable(ctx.user, input.moduleId)
         await ctx.repositories.admin.courseEditor.deleteModule(input.moduleId)
         return { ok: true as const }
       }),
 
-    reorder: adminProcedure
+    reorder: authorStaffProcedure
       .input(
         z.object({
           courseId: z.string().min(1),
@@ -108,13 +121,14 @@ export const adminCourseEditorRouter = createTRPCRouter({
         })
       )
       .mutation(async ({ ctx, input }) => {
+        await assertCourseWritable(ctx.user, input.courseId)
         await ctx.repositories.admin.courseEditor.reorderModules(input.courseId, input.orderedIds)
         return { ok: true as const }
       })
   }),
 
   task: createTRPCRouter({
-    create: adminProcedure
+    create: authorStaffProcedure
       .input(
         z.object({
           moduleId: z.string().min(1),
@@ -122,28 +136,31 @@ export const adminCourseEditorRouter = createTRPCRouter({
           kind: taskKindEnum.optional()
         })
       )
-      .mutation(({ ctx, input }) =>
-        ctx.repositories.admin.courseEditor.createTask(input.moduleId, {
+      .mutation(async ({ ctx, input }) => {
+        await assertModuleWritable(ctx.user, input.moduleId)
+        return ctx.repositories.admin.courseEditor.createTask(input.moduleId, {
           title: input.title,
           kind: input.kind
         })
-      ),
+      }),
 
-    update: adminProcedure
+    update: authorStaffProcedure
       .input(z.object({ taskId: z.string().min(1), patch: taskUpsertPatch }))
       .mutation(async ({ ctx, input }) => {
+        await assertCourseModuleTaskWritable(ctx.user, input.taskId)
         await ctx.repositories.admin.courseEditor.updateTask(input.taskId, input.patch)
         return { ok: true as const }
       }),
 
-    delete: adminProcedure
+    delete: authorStaffProcedure
       .input(z.object({ taskId: z.string().min(1) }))
       .mutation(async ({ ctx, input }) => {
+        await assertCourseModuleTaskWritable(ctx.user, input.taskId)
         await ctx.repositories.admin.courseEditor.deleteTask(input.taskId)
         return { ok: true as const }
       }),
 
-    reorder: adminProcedure
+    reorder: authorStaffProcedure
       .input(
         z.object({
           moduleId: z.string().min(1),
@@ -151,13 +168,14 @@ export const adminCourseEditorRouter = createTRPCRouter({
         })
       )
       .mutation(async ({ ctx, input }) => {
+        await assertModuleWritable(ctx.user, input.moduleId)
         await ctx.repositories.admin.courseEditor.reorderTasks(input.moduleId, input.orderedIds)
         return { ok: true as const }
       })
   }),
 
   autotest: createTRPCRouter({
-    create: adminProcedure
+    create: authorStaffProcedure
       .input(
         z.object({
           taskId: z.string().min(1),
@@ -167,30 +185,43 @@ export const adminCourseEditorRouter = createTRPCRouter({
           hidden: z.boolean().optional()
         })
       )
-      .mutation(({ ctx, input }) =>
-        ctx.repositories.admin.courseEditor.createAutotest(input.taskId, {
+      .mutation(async ({ ctx, input }) => {
+        await assertCourseModuleTaskWritable(ctx.user, input.taskId)
+        return ctx.repositories.admin.courseEditor.createAutotest(input.taskId, {
           name: input.name,
           input: input.input ?? null,
           expected: input.expected,
           hidden: input.hidden
         })
-      ),
+      }),
 
-    update: adminProcedure
+    update: authorStaffProcedure
       .input(z.object({ autotestId: z.string().min(1), patch: autotestPatch }))
       .mutation(async ({ ctx, input }) => {
+        const row = await ctx.db.courseTaskAutotest.findUnique({
+          where: { id: input.autotestId },
+          select: { courseTaskId: true }
+        })
+        if (!row) throw new TRPCError({ code: 'NOT_FOUND', message: 'Автотест не найден.' })
+        await assertCourseModuleTaskWritable(ctx.user, row.courseTaskId)
         await ctx.repositories.admin.courseEditor.updateAutotest(input.autotestId, input.patch)
         return { ok: true as const }
       }),
 
-    delete: adminProcedure
+    delete: authorStaffProcedure
       .input(z.object({ autotestId: z.string().min(1) }))
       .mutation(async ({ ctx, input }) => {
+        const row = await ctx.db.courseTaskAutotest.findUnique({
+          where: { id: input.autotestId },
+          select: { courseTaskId: true }
+        })
+        if (!row) throw new TRPCError({ code: 'NOT_FOUND', message: 'Автотест не найден.' })
+        await assertCourseModuleTaskWritable(ctx.user, row.courseTaskId)
         await ctx.repositories.admin.courseEditor.deleteAutotest(input.autotestId)
         return { ok: true as const }
       }),
 
-    reorder: adminProcedure
+    reorder: authorStaffProcedure
       .input(
         z.object({
           taskId: z.string().min(1),
@@ -198,6 +229,7 @@ export const adminCourseEditorRouter = createTRPCRouter({
         })
       )
       .mutation(async ({ ctx, input }) => {
+        await assertCourseModuleTaskWritable(ctx.user, input.taskId)
         await ctx.repositories.admin.courseEditor.reorderAutotests(input.taskId, input.orderedIds)
         return { ok: true as const }
       })

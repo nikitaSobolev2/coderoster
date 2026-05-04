@@ -1,8 +1,9 @@
 import { z } from 'zod'
 import { TRPCError } from '@trpc/server'
-import { adminProcedure } from '~/server/api/procedures'
+import { adminProcedure, moderatorProcedure } from '~/server/api/procedures'
 import { createTRPCRouter } from '~/server/api/trpc'
 import { db } from '~/server/db'
+import type { AuthenticatedUser } from '~/server/repositories/types'
 import {
   invalidatePlanRelatedCaches,
   invalidateProfileCachesForUserId
@@ -59,6 +60,23 @@ const cursorInput = z.object({
   id: z.string().min(1),
   cursor: z.string().nullable().optional()
 })
+
+async function assertModeratorMayAccessUser(
+  actor: AuthenticatedUser,
+  targetUserId: string
+): Promise<void> {
+  if (actor.role === 'admin') return
+  const target = await db.user.findUnique({
+    where: { id: targetUserId },
+    select: { role: true }
+  })
+  if (target?.role === 'ADMIN') {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'Нельзя открыть или менять пользователя с ролью администратора.'
+    })
+  }
+}
 
 export const adminUsersRouter = createTRPCRouter({
   list: adminProcedure
@@ -172,5 +190,40 @@ export const adminUsersRouter = createTRPCRouter({
     .input(cursorInput)
     .query(({ ctx, input }) =>
       ctx.repositories.admin.users.listComments(input.id, input.cursor ?? null)
-    )
+    ),
+
+  moderationList: moderatorProcedure.input(listInput).query(({ ctx, input }) =>
+    ctx.repositories.admin.users.listForModeration({
+      ...(input ?? {}),
+      hideAdmins: ctx.user.role !== 'admin'
+    })
+  ),
+
+  moderationGet: moderatorProcedure.input(userIdInput).query(async ({ ctx, input }) => {
+    await assertModeratorMayAccessUser(ctx.user, input.id)
+    return ctx.repositories.admin.users.getForModeration(input.id)
+  }),
+
+  moderationChatMute: moderatorProcedure.input(banInput).mutation(async ({ ctx, input }) => {
+    if (input.id === ctx.user.id) {
+      throw new TRPCError({ code: 'BAD_REQUEST', message: 'Нельзя заблокировать себя в чате.' })
+    }
+    await assertModeratorMayAccessUser(ctx.user, input.id)
+    await ctx.repositories.admin.users.chatMute(input.id, {
+      until: input.until,
+      reason: input.reason
+    })
+    return ctx.repositories.admin.users.getForModeration(input.id)
+  }),
+
+  moderationChatUnmute: moderatorProcedure.input(userIdInput).mutation(async ({ ctx, input }) => {
+    await assertModeratorMayAccessUser(ctx.user, input.id)
+    await ctx.repositories.admin.users.chatUnmute(input.id)
+    return ctx.repositories.admin.users.getForModeration(input.id)
+  }),
+
+  moderationListComments: moderatorProcedure.input(cursorInput).query(async ({ ctx, input }) => {
+    await assertModeratorMayAccessUser(ctx.user, input.id)
+    return ctx.repositories.admin.users.listComments(input.id, input.cursor ?? null)
+  })
 })

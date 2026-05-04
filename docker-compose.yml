@@ -1,17 +1,19 @@
 name: coderoster
 
+# Default image stage is `dev` (root user; works with bind-mounted `./app` on Windows/macOS).
+# Set `APP_ENV=prod` when building a production image (non-root `app` user, `next start`).
 x-app-build: &app_build
   context: .
   dockerfile: infra/docker/app.Dockerfile
-  target: ${APP_ENV:-prod}
+  target: ${APP_ENV:-dev}
   args:
     NEXT_PUBLIC_WORKOS_REDIRECT_URI: ${NEXT_PUBLIC_WORKOS_REDIRECT_URI:-http://localhost:3000/callback}
     NEXT_PUBLIC_USE_FAKE_DATA: ${NEXT_PUBLIC_USE_FAKE_DATA:-${USE_FAKE_DATA:-false}}
     NEXT_PUBLIC_SELF_SERVE_PLANS: ${NEXT_PUBLIC_SELF_SERVE_PLANS:-true}
 
-# `./app:/app` bind-mounts sources; `app_node_modules` shadows host node_modules (Windows perf).
-# Entrypoint runs `npm ci` when package-lock.json changes vs stamp inside that volume — no manual install after adding deps.
-# One named volume is shared by app + workers so they stay in sync. If boots stall, remove stale `/app/.coderoster-npm-ci-lock` on the host app folder.
+# `./app:/app` bind-mounts sources; `app_node_modules` holds Linux node_modules (shared by app + Node workers).
+# One-shot `app-prepare` runs `npm ci` + Prisma when lockfile/volume is stale — no entrypoint, no cross-container locks.
+# After bad installs: `docker compose down` and `docker volume rm …_app_node_modules`.
 x-app-volumes: &app_volumes
   - ./app:/app
   - app_node_modules:/app/node_modules
@@ -126,6 +128,17 @@ services:
       retries: 12
     networks: [ coderoster ]
 
+  app-prepare:
+    build: *app_build
+    restart: "no"
+    volumes: *app_volumes
+    environment:
+      <<: *app_env
+    depends_on:
+      db: { condition: service_healthy }
+    command: [ "/usr/local/bin/app-dev-prepare.sh" ]
+    networks: [ coderoster ]
+
   app:
     build: *app_build
     restart: unless-stopped
@@ -142,6 +155,7 @@ services:
       - "3000:3000"
     volumes: *app_volumes
     depends_on:
+      app-prepare: { condition: service_completed_successfully }
       db: { condition: service_healthy }
       redis: { condition: service_healthy }
       rabbitmq: { condition: service_healthy }
@@ -160,9 +174,9 @@ services:
       ]
     environment:
       <<: *app_env
-      SKIP_MIGRATIONS: "true"
     volumes: *app_volumes
     depends_on:
+      app-prepare: { condition: service_completed_successfully }
       db: { condition: service_healthy }
       rabbitmq: { condition: service_healthy }
     networks: [ coderoster ]
@@ -179,9 +193,9 @@ services:
       ]
     environment:
       <<: *app_env
-      SKIP_MIGRATIONS: "true"
     volumes: *app_volumes
     depends_on:
+      app-prepare: { condition: service_completed_successfully }
       db: { condition: service_healthy }
       rabbitmq: { condition: service_healthy }
       redis: { condition: service_healthy }
@@ -219,9 +233,9 @@ services:
       ]
     environment:
       <<: *app_env
-      SKIP_MIGRATIONS: "true"
     volumes: *app_volumes
     depends_on:
+      app-prepare: { condition: service_completed_successfully }
       db: { condition: service_healthy }
       rabbitmq: { condition: service_healthy }
       redis: { condition: service_healthy }
@@ -239,9 +253,9 @@ services:
       ]
     environment:
       <<: *app_env
-      SKIP_MIGRATIONS: "true"
     volumes: *app_volumes
     depends_on:
+      app-prepare: { condition: service_completed_successfully }
       db: { condition: service_healthy }
     networks: [ coderoster ]
 

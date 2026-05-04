@@ -53,6 +53,8 @@ export interface AdminCourseListQuery {
   q?: string
   status?: CourseStatus
   categoryId?: string
+  /** When set, only courses by this author (teachers pass self). */
+  authorId?: string
   cursor?: string
   limit?: number
 }
@@ -131,6 +133,7 @@ export class AdminCatalogRepository {
     const where = {
       ...(query.status ? { status: query.status } : {}),
       ...(query.categoryId ? { categoryId: query.categoryId } : {}),
+      ...(query.authorId ? { authorId: query.authorId } : {}),
       ...(query.q
         ? {
             OR: [

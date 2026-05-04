@@ -363,7 +363,7 @@ Persist object storage volumes (`coderoster_minio_data`) via snapshots or `mc mi
 | **snapshot**                   | Activity snapshot cron job                                            |
 | **db, redis, rabbitmq, minio** | Postgres, cache, AMQP, S3-compatible storage                          |
 
-On **app** container start, **`infra/docker/app-entrypoint.sh`** runs **`prisma migrate deploy`** when migrations exist. Other Node services use `SKIP_MIGRATIONS=true`.
+On **`APP_ENV=prod`** app container start, **`infra/docker/prod-entrypoint.sh`** runs **`prisma migrate deploy`** when migrations exist. Worker containers use the same image with **`SKIP_MIGRATIONS=true`** so they skip migrate/db push and only refresh the Prisma client, then run the process command. Local **dev compose** uses a one-shot **`app-prepare`** job for `npm ci` + Prisma instead of a shared entrypoint on every container.
 
 ---
 
@@ -399,12 +399,12 @@ On **app** container start, **`infra/docker/app-entrypoint.sh`** runs **`prisma 
 
 ## 17. Reference files
 
-| File                                                                | Purpose             |
-| ------------------------------------------------------------------- | ------------------- |
-| [docker-compose.vm-prod.yml](../docker-compose.vm-prod.yml)         | Production VM stack |
-| [docker-compose.yml](../docker-compose.yml)                         | Local dev           |
-| [infra/docker/app-entrypoint.sh](../infra/docker/app-entrypoint.sh) | Migrations on boot  |
-| [.env.example](../.env.example)                                     | Variable catalogue  |
+| File                                                                  | Purpose                                   |
+| --------------------------------------------------------------------- | ----------------------------------------- |
+| [docker-compose.vm-prod.yml](../docker-compose.vm-prod.yml)           | Production VM stack                       |
+| [docker-compose.yml](../docker-compose.yml)                           | Local dev                                 |
+| [infra/docker/prod-entrypoint.sh](../infra/docker/prod-entrypoint.sh) | Prod migrations + prisma generate on boot |
+| [.env.example](../.env.example)                                       | Variable catalogue                        |
 
 Product behaviour: [product-analysis-ru.md](./product-analysis-ru.md).
 

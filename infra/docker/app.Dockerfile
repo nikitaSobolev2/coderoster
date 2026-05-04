@@ -16,10 +16,9 @@ RUN for attempt in 1 2 3 4 5; do \
       echo "[dockerfile] prisma generate failed (attempt ${attempt}/5), retrying in 5s"; \
       sleep 5; \
     done
-COPY infra/docker/app-entrypoint.sh /usr/local/bin/app-entrypoint.sh
-RUN chmod +x /usr/local/bin/app-entrypoint.sh
+COPY infra/docker/app-dev-prepare.sh /usr/local/bin/app-dev-prepare.sh
+RUN chmod +x /usr/local/bin/app-dev-prepare.sh
 EXPOSE 3000
-ENTRYPOINT ["/usr/local/bin/app-entrypoint.sh"]
 CMD ["npm", "run", "dev"]
 
 FROM deps AS builder
@@ -44,9 +43,9 @@ WORKDIR /app
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1
 RUN addgroup -S app && adduser -S -u 1001 -G app app
 COPY --from=builder --chown=app:app /app ./
-COPY infra/docker/app-entrypoint.sh /usr/local/bin/app-entrypoint.sh
-RUN chmod +x /usr/local/bin/app-entrypoint.sh
+COPY infra/docker/prod-entrypoint.sh /usr/local/bin/prod-entrypoint.sh
+RUN chmod +x /usr/local/bin/prod-entrypoint.sh
 USER app
 EXPOSE 3000
-ENTRYPOINT ["/usr/local/bin/app-entrypoint.sh"]
+ENTRYPOINT ["/usr/local/bin/prod-entrypoint.sh"]
 CMD ["node", "node_modules/next/dist/bin/next", "start"]

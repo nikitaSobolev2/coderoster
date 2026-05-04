@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import { api, HydrateClient } from '~/trpc/server'
+import { requireBackofficePageRole } from '~/server/auth/requireBackofficeRole'
 import AdminPageHeader from '~/features/admin/_shared/AdminPageHeader'
 import CourseEditorShell from '~/features/admin/course-editor/CourseEditorShell'
 
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export default async function AdminCourseEditorPage({ params }: Props) {
+  await requireBackofficePageRole(['admin', 'author'])
   const { id } = await params
   const [tree, languages, categories] = await Promise.all([
     api.admin.courseEditor.get({ courseId: id }).catch(() => null),

@@ -1,10 +1,12 @@
 import { HydrateClient, api } from '~/trpc/server'
+import { requireBackofficePageRole } from '~/server/auth/requireBackofficeRole'
 import AdminPageHeader from '~/features/admin/_shared/AdminPageHeader'
 import AiCodeImproveSettingsPanel from '~/features/admin/ai-code-improve/AiCodeImproveSettingsPanel'
 
 export const dynamic = 'force-dynamic'
 
 export default async function AdminAiCodeImprovePage() {
+  await requireBackofficePageRole(['admin'])
   await api.admin.aiCodeImprove.get.prefetch()
   return (
     <>

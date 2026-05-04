@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { Role } from '@prisma/client'
 import { withAuth } from '@workos-inc/authkit-nextjs'
 import { env } from '~/env'
 import { isTruthyFlag } from '~/server/lib/featureFlags'
@@ -91,7 +92,7 @@ async function resolveViewer(): Promise<ViewerUser | null> {
         username,
         displayName,
         avatarUrl: session.user.profilePictureUrl ?? null,
-        isAdmin: false
+        hasBackofficeAccess: false
       }
     }
 
@@ -117,7 +118,8 @@ async function resolveViewer(): Promise<ViewerUser | null> {
       username: local.username,
       displayName: local.displayName,
       avatarUrl: local.avatarUrl,
-      isAdmin: local.role === 'ADMIN'
+      hasBackofficeAccess:
+        local.role === Role.ADMIN || local.role === Role.MODERATOR || local.role === Role.AUTHOR
     }
   } catch (error) {
     console.error('[header] resolveViewer failed', error)

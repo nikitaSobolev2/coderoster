@@ -32,6 +32,38 @@ export interface Props {
   collapsedRail?: boolean
 }
 
+interface TaskExplanationBodyProps {
+  explanationMarkdown: string | null | undefined
+  explanationWhenEmpty: 'waiting' | 'no_lang'
+}
+
+function TaskExplanationBody({
+  explanationMarkdown,
+  explanationWhenEmpty
+}: Readonly<TaskExplanationBodyProps>) {
+  const trimmed = explanationMarkdown?.trim()
+  if (trimmed) {
+    return (
+      <div className={styles.pane__explanationMarkdown}>
+        <Markdown source={trimmed} />
+      </div>
+    )
+  }
+  if (explanationWhenEmpty === 'no_lang') {
+    return (
+      <Text size="sm" c="dimmed">
+        Для текущего языка ИИ ещё не делал разбор. Переключи язык, для которого улучшение уже есть,
+        или запусти «Улучши код» для этого языка.
+      </Text>
+    )
+  }
+  return (
+    <Text size="sm" c="dimmed">
+      Когда ИИ закончит разбор для выбранного языка, здесь появится пояснение к улучшенному коду.
+    </Text>
+  )
+}
+
 export default function TaskPane({
   lesson,
   lessonOrdinalLabel,
@@ -41,7 +73,7 @@ export default function TaskPane({
   showExplanationTab,
   explanationWhenEmpty = 'waiting',
   collapsedRail = false
-}: Props) {
+}: Readonly<Props>) {
   const compactTaskPane = collapsedRail
 
   const onExplanation = showExplanationTab && paneTab === 'explanation'
@@ -110,21 +142,10 @@ export default function TaskPane({
 
           {onExplanation ? (
             <div className={styles.pane__bodyExplanation}>
-              {explanationMarkdown?.trim() ? (
-                <div className={styles.pane__explanationMarkdown}>
-                  <Markdown source={explanationMarkdown} />
-                </div>
-              ) : explanationWhenEmpty === 'no_lang' ? (
-                <Text size="sm" c="dimmed">
-                  Для текущего языка ИИ ещё не делал разбор. Переключи язык, для которого улучшение
-                  уже есть, или запусти «Улучши код» для этого языка.
-                </Text>
-              ) : (
-                <Text size="sm" c="dimmed">
-                  Когда ИИ закончит разбор для выбранного языка, здесь появится пояснение к
-                  улучшенному коду.
-                </Text>
-              )}
+              <TaskExplanationBody
+                explanationMarkdown={explanationMarkdown}
+                explanationWhenEmpty={explanationWhenEmpty}
+              />
             </div>
           ) : (
             <div className={styles.pane__body}>

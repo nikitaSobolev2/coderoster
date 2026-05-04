@@ -23,7 +23,7 @@ export interface Props {
   user: ViewerUser | null
 }
 
-export default function UserMenu({ user }: Props) {
+export default function UserMenu({ user }: Readonly<Props>) {
   if (!user) {
     return (
       <Link href="/login" className={styles.signInLink} prefetch={false}>

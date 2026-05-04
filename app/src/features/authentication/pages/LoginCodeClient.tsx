@@ -84,6 +84,7 @@ export default function LoginCodeClient({ email, mode }: Readonly<LoginCodeClien
         <Button
           variant="default"
           fullWidth
+          size="lg"
           className={styles.btnGhost}
           loading={busy}
           disabled={code.length !== 6}

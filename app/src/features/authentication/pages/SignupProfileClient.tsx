@@ -109,7 +109,7 @@ export default function SignupProfileClient({
             label="Я согласен на обработку персональных данных"
             {...form.getInputProps('acceptPersonalDataProcessing', { type: 'checkbox' })}
           />
-          <Button type="submit" fullWidth className={styles.btnPrimary} loading={busy}>
+          <Button type="submit" fullWidth size="lg" className={styles.btnPrimary} loading={busy}>
             Продолжить
           </Button>
           <Anchor component={Link} href="/login" size="sm" c="dimmed" ta="center" display="block">

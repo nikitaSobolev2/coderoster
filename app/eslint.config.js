@@ -1,11 +1,12 @@
 import { FlatCompat } from '@eslint/eslintrc'
+import { defineConfig } from 'eslint/config'
 import tseslint from 'typescript-eslint'
 
 const compat = new FlatCompat({
   baseDirectory: import.meta.dirname
 })
 
-export default tseslint.config(
+export default defineConfig(
   {
     ignores: ['.next']
   },

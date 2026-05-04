@@ -32,7 +32,7 @@ export default function WorkspaceEditorExecutionSplit({
   desktopPanels,
   editorSlot,
   executionSlot
-}: WorkspaceEditorExecutionSplitProps) {
+}: Readonly<WorkspaceEditorExecutionSplitProps>) {
   const verticalGroupRef = useRef<ImperativePanelGroupHandle>(null)
   const editorPanelRef = useRef<ImperativePanelHandle>(null)
   const executionPanelRef = useRef<ImperativePanelHandle>(null)

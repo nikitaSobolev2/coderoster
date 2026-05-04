@@ -1,4 +1,4 @@
-/** Where learners land after successful AuthKit session creation (matches `handleAuth` default). */
+/** Post-login / post-sign-up default: `handleAuth` `returnPathname`, authed guests on `/login`/`/signup` layouts. */
 export const POST_AUTH_REDIRECT_PATH = '/courses'
 
 export const AUTH_FLOW_COOKIE = 'cr_auth_flow'

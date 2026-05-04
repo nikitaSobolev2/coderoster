@@ -32,7 +32,7 @@ export default function SignupPasswordClient({
   email,
   firstName,
   lastName
-}: SignupPasswordClientProps) {
+}: Readonly<SignupPasswordClientProps>) {
   const router = useRouter()
   const [busy, setBusy] = useState(false)
   const [hostedPathReady, setHostedPathReady] = useState(false)
@@ -135,7 +135,7 @@ export default function SignupPasswordClient({
             {...form.getInputProps('confirm')}
           />
 
-          <Button type="submit" fullWidth className={styles.btnPrimary} loading={busy}>
+          <Button type="submit" fullWidth size="lg" className={styles.btnPrimary} loading={busy}>
             Создать аккаунт с паролем
           </Button>
 
@@ -145,6 +145,7 @@ export default function SignupPasswordClient({
             type="button"
             variant="default"
             fullWidth
+            size="lg"
             className={styles.btnGhost}
             loading={busy}
             onClick={() => void sendMagic()}
@@ -158,6 +159,7 @@ export default function SignupPasswordClient({
               href={oauthHref}
               variant="default"
               fullWidth
+              size="lg"
               className={styles.btnGhost}
             >
               OAuth / passkey через AuthKit

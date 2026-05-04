@@ -15,7 +15,12 @@ export interface AuthChromeProps {
   children: React.ReactNode
 }
 
-export default function AuthChrome({ title, subtitle, backHref, children }: AuthChromeProps) {
+export default function AuthChrome({
+  title,
+  subtitle,
+  backHref,
+  children
+}: Readonly<AuthChromeProps>) {
   return (
     <div className={styles.root}>
       <Container fluid className={styles.chromeShell} py={{ base: 'lg', sm: 'xl' }} px="md">
@@ -43,17 +48,17 @@ export default function AuthChrome({ title, subtitle, backHref, children }: Auth
           </Group>
 
           <Stack gap={4}>
-            <Title order={2} size="h3" fw={600}>
+            <Title order={2} size="h3" fw={600} className={styles.title}>
               {title}
             </Title>
             {subtitle ? (
-              <Text size="sm" c="dimmed">
+              <Text size="sm" className={styles.paperSubtitle}>
                 {subtitle}
               </Text>
             ) : null}
           </Stack>
 
-          <Paper className={styles.paper} p={{ base: 'md', sm: 'xl' }} radius="md">
+          <Paper className={styles.paper} p={{ base: 'md', sm: 'xl' }}>
             {children}
           </Paper>
         </Stack>

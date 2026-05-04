@@ -1,4 +1,6 @@
 import { handleAuth } from '@workos-inc/authkit-nextjs'
+
+import { POST_AUTH_REDIRECT_PATH } from '~/features/authentication/constants'
 import { canonicalPublicOrigin } from '~/lib/requestOrigin'
 
 /**
@@ -11,5 +13,5 @@ import { canonicalPublicOrigin } from '~/lib/requestOrigin'
  */
 export const GET = handleAuth({
   baseURL: canonicalPublicOrigin(),
-  returnPathname: '/courses'
+  returnPathname: POST_AUTH_REDIRECT_PATH
 })

@@ -113,6 +113,17 @@ func (r *Runner) Run(ctx context.Context, request contracts.ExecutionRequested) 
 	return r.runOnce(ctx, request, image, cmd)
 }
 
+// runOnceDockerArgs builds argv and stdin for one non-submit execution (run / preview).
+func runOnceDockerArgs(request contracts.ExecutionRequested, defaultCmd []string) (execCmd []string, stdin string) {
+	if preview := stdinForRunPreview(request); preview != nil {
+		if request.Language == "php" {
+			return phpDecodeToFileCmd(request.Code), *preview
+		}
+		return defaultCmd, buildStdin(request.Code, preview, request.Language)
+	}
+	return defaultCmd, request.Code
+}
+
 func (r *Runner) runOnce(
 	ctx context.Context,
 	request contracts.ExecutionRequested,
@@ -123,16 +134,7 @@ func (r *Runner) runOnce(
 	runCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
-	stdin := request.Code
-	execCmd := cmd
-	if preview := stdinForRunPreview(request); preview != nil {
-		if request.Language == "php" {
-			stdin = *preview
-			execCmd = phpDecodeToFileCmd(request.Code)
-		} else {
-			stdin = buildStdin(request.Code, preview, request.Language)
-		}
-	}
+	execCmd, stdin := runOnceDockerArgs(request, cmd)
 
 	stdout, stderr, runtimeMs, status, runErr := r.execute(runCtx, image, execCmd, stdin)
 
@@ -153,6 +155,18 @@ func (r *Runner) runOnce(
 	return completed
 }
 
+// submitTestDockerArgs returns argv and stdin for one submit-mode autotest.
+func submitTestDockerArgs(
+	request contracts.ExecutionRequested,
+	defaultCmd []string,
+	test contracts.TestSpec,
+) (execCmd []string, stdin string) {
+	if request.Language == "php" && testHasStdinBytes(test.Input) {
+		return phpDecodeToFileCmd(request.Code), *test.Input
+	}
+	return defaultCmd, buildStdin(request.Code, test.Input, request.Language)
+}
+
 func (r *Runner) runSubmit(
 	ctx context.Context,
 	request contracts.ExecutionRequested,
@@ -169,15 +183,7 @@ func (r *Runner) runSubmit(
 
 	for _, test := range request.Tests {
 		runCtx, cancel := context.WithTimeout(ctx, timeout)
-		var execCmd []string
-		stdin := request.Code
-		if request.Language == "php" && testHasStdinBytes(test.Input) {
-			stdin = *test.Input
-			execCmd = phpDecodeToFileCmd(request.Code)
-		} else {
-			execCmd = cmd
-			stdin = buildStdin(request.Code, test.Input, request.Language)
-		}
+		execCmd, stdin := submitTestDockerArgs(request, cmd, test)
 		stdout, stderr, runtimeMs, status, _ := r.execute(runCtx, image, execCmd, stdin)
 		cancel()
 

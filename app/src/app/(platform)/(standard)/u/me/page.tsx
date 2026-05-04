@@ -4,8 +4,9 @@ import { env } from '~/env'
 import { isTruthyFlag } from '~/server/lib/featureFlags'
 import {
   clearSignupAuthFlowCookie,
-  pendingSignupConsentForSync
+  resolvePendingSignupConsentOptions
 } from '~/server/auth/pendingSignupConsentSync'
+import { normalizeWorkosSessionEmail } from '~/server/auth/workosSessionEmail'
 import { userSyncService } from '~/server/services/UserSyncService'
 
 export const dynamic = 'force-dynamic'
@@ -20,15 +21,19 @@ export default async function MyProfileRedirect() {
   if (!session.user) redirect('/login')
 
   if (isTruthyFlag(env.USE_FAKE_DATA)) {
-    const username = session.user.email.split('@')[0] ?? 'me'
+    const email = normalizeWorkosSessionEmail(session.user.email) ?? 'me@local'
+    const username = email.split('@')[0] ?? 'me'
     redirect(`/u/${username}`)
   }
 
-  const consentOpts = await pendingSignupConsentForSync(session.user.email)
+  const sessionEmail = normalizeWorkosSessionEmail(session.user.email)
+  if (!sessionEmail) redirect('/login')
+
+  const consentOpts = await resolvePendingSignupConsentOptions(sessionEmail)
   const user = await userSyncService.syncFromSession(
     {
       id: session.user.id,
-      email: session.user.email,
+      email: sessionEmail,
       firstName: session.user.firstName ?? null,
       lastName: session.user.lastName ?? null,
       profilePictureUrl: session.user.profilePictureUrl ?? null

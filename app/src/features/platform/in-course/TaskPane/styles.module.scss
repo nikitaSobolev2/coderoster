@@ -12,7 +12,6 @@
 .viewport[data-task-pane-variant='compact'] {
   container-type: inline-size;
   container-name: taskPaneViewport;
-  align-items: flex-start;
   box-sizing: border-box;
   align-items: center;
 }
@@ -181,7 +180,6 @@
   overflow-y: auto;
   gap: 0.35rem;
   @include scrollbarSlim;
-  width: 100%;
 }
 
 .pane__compactOrdinal {

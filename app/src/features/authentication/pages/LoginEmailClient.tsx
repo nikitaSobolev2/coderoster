@@ -93,7 +93,7 @@ export default function LoginEmailClient() {
             {...form.getInputProps('email')}
           />
 
-          <Button type="submit" fullWidth className={styles.btnPrimary} loading={busy}>
+          <Button type="submit" fullWidth size="lg" className={styles.btnPrimary} loading={busy}>
             Продолжить
           </Button>
 

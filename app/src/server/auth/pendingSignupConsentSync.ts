@@ -19,6 +19,13 @@ export async function pendingSignupConsentForSync(
   return { personalDataProcessingConsentAt: consentAt }
 }
 
+/** Prefer after `normalizeWorkosSessionEmail` — keeps consent lookup consistent. */
+export function resolvePendingSignupConsentOptions(
+  sessionEmail: string
+): Promise<UserSyncOptions | undefined> {
+  return pendingSignupConsentForSync(sessionEmail)
+}
+
 export async function clearSignupAuthFlowCookie(): Promise<void> {
   const flow = await getAuthFlowCookie()
   if (flow?.kind === 'signup') await clearAuthFlowCookie()

@@ -7,7 +7,7 @@ import { useAuth } from '@workos-inc/authkit-nextjs/components'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faXmark } from '@fortawesome/free-solid-svg-icons'
 import type { CoursesQuery } from '~/server/repositories/types'
-import { COURSE_FILTERS_TOUCH_UI_MEDIA_QUERY } from './courseFiltersConfig'
+import { COURSE_FILTERS_TOUCH_UI_MEDIA_QUERY } from './courseFiltersConstants'
 import styles from './LevelFilterPopover.module.scss'
 
 export interface Props {

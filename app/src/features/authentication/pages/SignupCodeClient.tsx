@@ -74,6 +74,7 @@ export default function SignupCodeClient({ email }: Readonly<SignupCodeClientPro
         <Button
           variant="default"
           fullWidth
+          size="lg"
           className={styles.btnGhost}
           loading={busy}
           disabled={code.length !== 6}

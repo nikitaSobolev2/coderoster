@@ -1,11 +1,10 @@
 import type { CoursesQuery, Difficulty, Language } from '~/server/repositories/types'
 
-export const FILTER_ALL = 'all' as const
-
-/** Matches SCSS `$bp-nav`; touch-first sizing for filter popovers only below this width */
-export const COURSE_FILTERS_TOUCH_UI_MEDIA_QUERY = '(max-width: 768px)' as const
-
-export const DURATION_BOUNDS: [number, number] = [0, 50]
+export {
+  COURSE_FILTERS_TOUCH_UI_MEDIA_QUERY,
+  DURATION_BOUNDS,
+  FILTER_ALL
+} from './courseFiltersConstants'
 
 export const LANGUAGE_OPTIONS: { value: Language; label: string }[] = [
   { value: 'python', label: 'Python' },

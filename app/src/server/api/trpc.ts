@@ -11,8 +11,9 @@ import { env } from '~/env'
 import { db } from '~/server/db'
 import {
   clearSignupAuthFlowCookie,
-  pendingSignupConsentForSync
+  resolvePendingSignupConsentOptions
 } from '~/server/auth/pendingSignupConsentSync'
+import { normalizeWorkosSessionEmail } from '~/server/auth/workosSessionEmail'
 import { isTruthyFlag } from '~/server/lib/featureFlags'
 import { getAppRepositories, type Repositories } from '~/server/repositories'
 import type { AuthenticatedUser } from '~/server/repositories/types'
@@ -68,11 +69,14 @@ export async function resolveCurrentUser(): Promise<AuthenticatedUser | null> {
       }
     }
 
-    const consentOpts = await pendingSignupConsentForSync(session.user.email)
+    const sessionEmail = normalizeWorkosSessionEmail(session.user.email)
+    if (!sessionEmail) return null
+
+    const consentOpts = await resolvePendingSignupConsentOptions(sessionEmail)
     const local = await userSyncService.syncFromSession(
       {
         id: session.user.id,
-        email: session.user.email,
+        email: sessionEmail,
         firstName: session.user.firstName ?? null,
         lastName: session.user.lastName ?? null,
         profilePictureUrl: session.user.profilePictureUrl ?? null

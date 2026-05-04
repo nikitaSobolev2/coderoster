@@ -66,7 +66,7 @@ export default function ForgotPasswordClient() {
             Если этот адрес привязан к аккаунту, проверь почту: мы отправили ссылку для сброса
             пароля. Письмо может попасть в «Спам».
           </Text>
-          <Button component={Link} href="/login" fullWidth className={styles.btnPrimary}>
+          <Button component={Link} href="/login" fullWidth size="lg" className={styles.btnPrimary}>
             На страницу входа
           </Button>
         </Stack>
@@ -87,7 +87,7 @@ export default function ForgotPasswordClient() {
               classNames={{ input: styles.inputMin }}
               {...form.getInputProps('email')}
             />
-            <Button type="submit" fullWidth className={styles.btnPrimary} loading={busy}>
+            <Button type="submit" fullWidth size="lg" className={styles.btnPrimary} loading={busy}>
               Отправить инструкции
             </Button>
           </Stack>

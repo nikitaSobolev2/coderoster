@@ -8,6 +8,7 @@
     "prebuild": "node scripts/copy-monaco.mjs",
     "predev": "node scripts/copy-monaco.mjs",
     "monaco:copy": "node scripts/copy-monaco.mjs",
+    "test": "vitest run",
     "check": "next lint && tsc --noEmit",
     "db:generate": "node scripts/run-prisma.mjs migrate dev",
     "db:migrate": "node scripts/run-prisma.mjs migrate deploy",
@@ -116,7 +117,8 @@
     "sass": "^1.99.0",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.59.0"
+    "typescript-eslint": "^8.59.0",
+    "vitest": "^3.2.4"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

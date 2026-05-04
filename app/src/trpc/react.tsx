@@ -2,17 +2,18 @@
 
 import { QueryClientProvider, type QueryClient } from '@tanstack/react-query'
 import { httpBatchStreamLink, loggerLink, TRPCClientError } from '@trpc/client'
-import { createTRPCReact } from '@trpc/react-query'
-import { type inferRouterInputs, type inferRouterOutputs } from '@trpc/server'
 import { useState } from 'react'
 import SuperJSON from 'superjson'
 
-import { type AppRouter } from '~/server/api/root'
+import { api } from './create-react-api'
 import { createQueryClient } from './query-client'
+
+export { api } from './create-react-api'
+export type { RouterInputs, RouterOutputs } from './create-react-api'
 
 let clientQueryClientSingleton: QueryClient | undefined = undefined
 const getQueryClient = () => {
-  if (typeof window === 'undefined') {
+  if (globalThis.window === undefined) {
     // Server: always make a new query client
     return createQueryClient()
   }
@@ -22,23 +23,7 @@ const getQueryClient = () => {
   return clientQueryClientSingleton
 }
 
-export const api = createTRPCReact<AppRouter>()
-
-/**
- * Inference helper for inputs.
- *
- * @example type HelloInput = RouterInputs['example']['hello']
- */
-export type RouterInputs = inferRouterInputs<AppRouter>
-
-/**
- * Inference helper for outputs.
- *
- * @example type HelloOutput = RouterOutputs['example']['hello']
- */
-export type RouterOutputs = inferRouterOutputs<AppRouter>
-
-export function TRPCReactProvider(props: { children: React.ReactNode }) {
+export function TRPCReactProvider(props: Readonly<{ children: React.ReactNode }>) {
   const queryClient = getQueryClient()
 
   const [trpcClient] = useState(() =>
@@ -78,7 +63,7 @@ export function TRPCReactProvider(props: { children: React.ReactNode }) {
 }
 
 function getBaseUrl() {
-  if (typeof window !== 'undefined') return window.location.origin
+  if (globalThis.window !== undefined) return globalThis.window.location.origin
   if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`
   return `http://localhost:${process.env.PORT ?? 3000}`
 }

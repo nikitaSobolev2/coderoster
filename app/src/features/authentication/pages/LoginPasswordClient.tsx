@@ -14,7 +14,7 @@ export interface LoginPasswordClientProps {
   email: string
 }
 
-export default function LoginPasswordClient({ email }: LoginPasswordClientProps) {
+export default function LoginPasswordClient({ email }: Readonly<LoginPasswordClientProps>) {
   const router = useRouter()
   const [busy, setBusy] = useState(false)
 
@@ -108,7 +108,7 @@ export default function LoginPasswordClient({ email }: LoginPasswordClientProps)
             </Anchor>
           </Group>
 
-          <Button type="submit" fullWidth className={styles.btnPrimary} loading={busy}>
+          <Button type="submit" fullWidth size="lg" className={styles.btnPrimary} loading={busy}>
             Войти
           </Button>
 
@@ -119,6 +119,7 @@ export default function LoginPasswordClient({ email }: LoginPasswordClientProps)
               type="button"
               variant="default"
               fullWidth
+              size="lg"
               className={styles.btnGhost}
               loading={busy}
               onClick={sendMagic}

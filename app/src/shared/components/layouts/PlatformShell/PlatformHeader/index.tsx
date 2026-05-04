@@ -4,8 +4,9 @@ import { env } from '~/env'
 import { isTruthyFlag } from '~/server/lib/featureFlags'
 import {
   clearSignupAuthFlowCookie,
-  pendingSignupConsentForSync
+  resolvePendingSignupConsentOptions
 } from '~/server/auth/pendingSignupConsentSync'
+import { normalizeWorkosSessionEmail } from '~/server/auth/workosSessionEmail'
 import { getAppRepositories } from '~/server/repositories'
 import { userSyncService } from '~/server/services/UserSyncService'
 import Logo from '~/shared/components/common/Logo'
@@ -79,14 +80,13 @@ async function resolveViewer(): Promise<ViewerUser | null> {
     if (!session.user) return null
 
     if (isTruthyFlag(env.USE_FAKE_DATA)) {
-      console.log('[header] FAKE branch hit', {
-        workosId: session.user.id,
-        email: session.user.email
-      })
-      const username = session.user.email.split('@')[0] ?? session.user.id
+      const fakeEmail = normalizeWorkosSessionEmail(session.user.email) ?? `${session.user.id}@fake`
+      if (env.NODE_ENV === 'development') {
+        console.log('[header] FAKE branch hit', { workosId: session.user.id })
+      }
+      const username = fakeEmail.split('@')[0] ?? session.user.id
       const displayName =
-        [session.user.firstName, session.user.lastName].filter(Boolean).join(' ') ||
-        session.user.email
+        [session.user.firstName, session.user.lastName].filter(Boolean).join(' ') || fakeEmail
       return {
         username,
         displayName,
@@ -95,11 +95,14 @@ async function resolveViewer(): Promise<ViewerUser | null> {
       }
     }
 
-    const consentOpts = await pendingSignupConsentForSync(session.user.email)
+    const sessionEmail = normalizeWorkosSessionEmail(session.user.email)
+    if (!sessionEmail) return null
+
+    const consentOpts = await resolvePendingSignupConsentOptions(sessionEmail)
     const local = await userSyncService.syncFromSession(
       {
         id: session.user.id,
-        email: session.user.email,
+        email: sessionEmail,
         firstName: session.user.firstName ?? null,
         lastName: session.user.lastName ?? null,
         profilePictureUrl: session.user.profilePictureUrl ?? null
@@ -107,12 +110,9 @@ async function resolveViewer(): Promise<ViewerUser | null> {
       consentOpts
     )
     if (consentOpts) await clearSignupAuthFlowCookie()
-    console.log('[header] resolved viewer', {
-      workosId: session.user.id,
-      localId: local.id,
-      username: local.username,
-      email: local.email
-    })
+    if (env.NODE_ENV === 'development') {
+      console.log('[header] resolved viewer', { localId: local.id, username: local.username })
+    }
     return {
       username: local.username,
       displayName: local.displayName,

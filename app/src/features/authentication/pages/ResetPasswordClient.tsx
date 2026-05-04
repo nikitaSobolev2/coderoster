@@ -12,7 +12,7 @@ export interface ResetPasswordClientProps {
   initialToken: string
 }
 
-export default function ResetPasswordClient({ initialToken }: ResetPasswordClientProps) {
+export default function ResetPasswordClient({ initialToken }: Readonly<ResetPasswordClientProps>) {
   const router = useRouter()
   const [busy, setBusy] = useState(false)
 
@@ -22,8 +22,7 @@ export default function ResetPasswordClient({ initialToken }: ResetPasswordClien
       confirm: ''
     },
     validate: {
-      password: value =>
-        value.length >= 8 ? null : 'Минимум 8 символов',
+      password: value => (value.length >= 8 ? null : 'Минимум 8 символов'),
       confirm: (value, values) => (value === values.password ? null : 'Пароли не совпадают')
     }
   })
@@ -53,7 +52,11 @@ export default function ResetPasswordClient({ initialToken }: ResetPasswordClien
   }
 
   return (
-    <AuthChrome title="Новый пароль" subtitle="Придумай новый пароль для аккаунта." backHref="/login">
+    <AuthChrome
+      title="Новый пароль"
+      subtitle="Придумай новый пароль для аккаунта."
+      backHref="/login"
+    >
       <form onSubmit={form.onSubmit(submit)}>
         <Stack gap="md">
           <PasswordInput
@@ -72,7 +75,7 @@ export default function ResetPasswordClient({ initialToken }: ResetPasswordClien
             classNames={{ input: styles.inputMin }}
             {...form.getInputProps('confirm')}
           />
-          <Button type="submit" fullWidth className={styles.btnPrimary} loading={busy}>
+          <Button type="submit" fullWidth size="lg" className={styles.btnPrimary} loading={busy}>
             Сохранить пароль
           </Button>
         </Stack>

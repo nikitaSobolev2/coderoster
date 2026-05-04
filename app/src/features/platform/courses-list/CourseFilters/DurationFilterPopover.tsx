@@ -5,7 +5,7 @@ import { useMediaQuery } from '@mantine/hooks'
 import { ActionIcon, Button, Group, Popover, RangeSlider, Stack, Text } from '@mantine/core'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faXmark } from '@fortawesome/free-solid-svg-icons'
-import { COURSE_FILTERS_TOUCH_UI_MEDIA_QUERY, DURATION_BOUNDS } from './courseFiltersConfig'
+import { COURSE_FILTERS_TOUCH_UI_MEDIA_QUERY, DURATION_BOUNDS } from './courseFiltersConstants'
 import type { CoursesQuery } from '~/server/repositories/types'
 import styles from './DurationFilterPopover.module.scss'
 

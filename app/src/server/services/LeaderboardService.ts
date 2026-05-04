@@ -27,6 +27,41 @@ export interface CourseLeaderboardInput {
   limit?: number
 }
 
+/** Stable shapes for Prisma `select` rows — avoids implicit-any when client typings lag IDE. */
+type AllTimeUserRow = {
+  id: string
+  username: string
+  displayName: string
+  avatarUrl: string | null
+  totalXp: number
+  _count: { taskAttempts: number }
+}
+
+type AttemptGroupRow = {
+  userId: string
+  _count: { _all: number }
+}
+
+type LookupUserRow = {
+  id: string
+  username: string
+  displayName: string
+  avatarUrl: string | null
+  totalXp: number
+}
+
+type CourseEnrollmentLeaderboardRow = {
+  progressPercent: number
+  user: {
+    id: string
+    username: string
+    displayName: string
+    avatarUrl: string | null
+    totalXp: number
+    _count: { taskAttempts: number }
+  }
+}
+
 const TTL_SECONDS = 60
 const DEFAULT_LIMIT = 50
 
@@ -54,7 +89,7 @@ export class LeaderboardService {
   }
 
   private async allTimeFromTotalXp(limit: number): Promise<LeaderboardEntry[]> {
-    const users = await db.user.findMany({
+    const usersRaw = await db.user.findMany({
       where: { deletionRequestedAt: null },
       orderBy: { totalXp: 'desc' },
       take: limit,
@@ -67,7 +102,8 @@ export class LeaderboardService {
         _count: { select: { taskAttempts: { where: { status: 'SUCCESS' } } } }
       }
     })
-    return users.map((user, index) => ({
+    const users: AllTimeUserRow[] = usersRaw
+    return users.map((user: AllTimeUserRow, index: number) => ({
       rank: index + 1,
       userId: user.id,
       username: user.username,
@@ -88,7 +124,7 @@ export class LeaderboardService {
     limit: number
   ): Promise<LeaderboardEntry[]> {
     const since = startOfWindow(input.window)
-    const grouped = await db.courseTaskAttempt.groupBy({
+    const groupedRaw = await db.courseTaskAttempt.groupBy({
       by: ['userId'],
       where: {
         status: 'SUCCESS',
@@ -105,18 +141,26 @@ export class LeaderboardService {
       },
       _count: { _all: true }
     })
+    const grouped: AttemptGroupRow[] = groupedRaw
     const sorted = grouped
-      .map(row => ({ userId: row.userId, count: row._count._all }))
-      .sort((a, b) => b.count - a.count || a.userId.localeCompare(b.userId))
+      .map((row: AttemptGroupRow) => ({ userId: row.userId, count: row._count._all }))
+      .sort(
+        (a: { userId: string; count: number }, b: { userId: string; count: number }) =>
+          b.count - a.count || a.userId.localeCompare(b.userId)
+      )
       .slice(0, limit)
     if (sorted.length === 0) return []
-    const users = await db.user.findMany({
-      where: { id: { in: sorted.map(row => row.userId) }, deletionRequestedAt: null },
+    const rankedUsersRaw = await db.user.findMany({
+      where: {
+        id: { in: sorted.map((row: { userId: string }) => row.userId) },
+        deletionRequestedAt: null
+      },
       select: { id: true, username: true, displayName: true, avatarUrl: true, totalXp: true }
     })
-    const byId = new Map(users.map(user => [user.id, user]))
+    const users: LookupUserRow[] = rankedUsersRaw
+    const byId = new Map<string, LookupUserRow>(users.map((u: LookupUserRow) => [u.id, u]))
     return sorted
-      .map((row, index) => {
+      .map((row: { userId: string; count: number }, index: number) => {
         const user = byId.get(row.userId)
         if (!user) return null
         return {
@@ -129,14 +173,14 @@ export class LeaderboardService {
           tasksSolved: row.count
         }
       })
-      .filter((row): row is LeaderboardEntry => row !== null)
+      .filter((entry): entry is LeaderboardEntry => entry !== null)
   }
 
   private async computeByCourse(
     input: CourseLeaderboardInput,
     limit: number
   ): Promise<LeaderboardEntry[]> {
-    const enrollments = await db.enrollment.findMany({
+    const enrollmentsRaw = await db.enrollment.findMany({
       where: {
         course: { slug: input.courseSlug },
         status: { in: ['ACTIVE', 'FINISHED'] },
@@ -157,7 +201,8 @@ export class LeaderboardService {
         }
       }
     })
-    return enrollments.map((row, index) => ({
+    const enrollments: CourseEnrollmentLeaderboardRow[] = enrollmentsRaw
+    return enrollments.map((row: CourseEnrollmentLeaderboardRow, index: number) => ({
       rank: index + 1,
       userId: row.user.id,
       username: row.user.username,

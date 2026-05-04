@@ -1,8 +1,12 @@
-import { AchievementStatus, AttemptStatus, EnrollmentStatus, Role } from '@prisma/client'
+/**
+ * Prisma enums via string literals — avoids `@prisma/client` enum exports when generate is stale.
+ */
 import { levelForActivityCount } from '../../../src/server/lib/activityHeatmapLevel'
 import type { SeedCourseMeta } from '../catalog/seedCourses'
 import { prisma } from '../lib/client'
 import { seedEmail } from '../lib/seedUser'
+
+type SeedDb = typeof prisma
 
 const BULK_COUNT = 100
 
@@ -96,6 +100,121 @@ export interface SeedDemoLearnersOptions {
   bioLine?: (index: number) => string
 }
 
+type AchievementSeedRow = { id: string; slug: string; goal: number | null }
+
+async function upsertEnrollmentsAndAttempts(
+  db: SeedDb,
+  userId: string,
+  learnerIndex: number,
+  courses: SeedCourseMeta[]
+): Promise<void> {
+  const nCourses = 1 + (learnerIndex % 4)
+  const startIdx = learnerIndex % courses.length
+  for (let c = 0; c < nCourses; c++) {
+    const meta = courses[(startIdx + c) % courses.length]!
+    const totalTasks = meta.taskIdsInOrder.length
+    const doneN =
+      totalTasks === 0
+        ? 0
+        : Math.min(totalTasks, ((learnerIndex + c * 3) % totalTasks) + Math.min(2, totalTasks))
+    const completedIds = meta.taskIdsInOrder.slice(0, doneN)
+    const pct = totalTasks === 0 ? 0 : Math.round((doneN / totalTasks) * 100)
+    const finished = pct >= 100
+    const enrollmentStatus = finished ? 'FINISHED' : 'ACTIVE'
+
+    await db.enrollment.upsert({
+      where: { userId_courseId: { userId, courseId: meta.id } },
+      update: {
+        progressPercent: pct,
+        completedLessonIds: completedIds,
+        status: enrollmentStatus,
+        finishedAt: finished ? new Date() : null
+      },
+      create: {
+        userId,
+        courseId: meta.id,
+        progressPercent: pct,
+        completedLessonIds: completedIds,
+        status: enrollmentStatus,
+        finishedAt: finished ? new Date() : null
+      }
+    })
+
+    for (const taskId of completedIds) {
+      await db.courseTaskAttempt.upsert({
+        where: { courseTaskId_userId: { courseTaskId: taskId, userId } },
+        update: { status: 'SUCCESS', tryN: 1 },
+        create: { courseTaskId: taskId, userId, status: 'SUCCESS', tryN: 1 }
+      })
+    }
+  }
+}
+
+async function upsertAchievementTracksForLearner(
+  db: SeedDb,
+  userId: string,
+  learnerIndex: number,
+  achievements: AchievementSeedRow[]
+): Promise<void> {
+  const nAch = 2 + (learnerIndex % 3)
+  for (let a = 0; a < nAch; a++) {
+    const ach = achievements[(learnerIndex + a * 5) % achievements.length]
+    if (!ach) continue
+    const goal = ach.goal ?? 1
+    await db.userAchievementTrack.upsert({
+      where: { userId_achievementId: { userId, achievementId: ach.id } },
+      update: {
+        status: 'SUCCESS',
+        currentN: goal,
+        earnedAt: new Date()
+      },
+      create: {
+        userId,
+        achievementId: ach.id,
+        status: 'SUCCESS',
+        currentN: goal,
+        earnedAt: new Date()
+      }
+    })
+  }
+}
+
+async function upsertHeatmapSnapshots(
+  db: SeedDb,
+  userId: string,
+  learnerIndex: number,
+  heatmapAnchor: string,
+  heatmapSpanDays: number
+): Promise<void> {
+  for (let d = 0; d < heatmapSpanDays; d++) {
+    if ((learnerIndex + d) % 2 === 0) continue
+    const date = addDaysIso(heatmapAnchor, d)
+    const activityCount = ((learnerIndex * 3 + d) % 8) + 1
+    const level = levelForActivityCount(activityCount)
+    await db.userActivitySnapshot.upsert({
+      where: { userId_date: { userId, date } },
+      update: { count: activityCount, level },
+      create: { userId, date, count: activityCount, level }
+    })
+  }
+}
+
+async function maybeCreateLessonPassedActivity(
+  db: SeedDb,
+  userId: string,
+  learnerIndex: number,
+  lessonActivityPayloadKey: string
+): Promise<void> {
+  if (learnerIndex % 4 !== 0) return
+  await db.userActivity.create({
+    data: {
+      userId,
+      type: 'lesson.passed',
+      payload: { [lessonActivityPayloadKey]: learnerIndex }
+    }
+  })
+}
+
 /**
  * Synthetic learners: enrollments, task attempts, achievements, heatmap snapshots, sporadic activity.
  * Idempotent per cohort via `deleteMany` on `workosIdPrefix`.
@@ -151,7 +270,7 @@ export async function seedDemoLearnersForCourses(
         email,
         displayName,
         bio: bioLine(i),
-        role: Role.LEARNER,
+        role: 'LEARNER',
         totalXp,
         streakDays,
         lastActiveDay,
@@ -159,100 +278,10 @@ export async function seedDemoLearnersForCourses(
       }
     })
 
-    const nCourses = 1 + (i % 4)
-    const startIdx = i % courses.length
-    for (let c = 0; c < nCourses; c++) {
-      const meta = courses[(startIdx + c) % courses.length]!
-      const totalTasks = meta.taskIdsInOrder.length
-      const doneN =
-        totalTasks === 0
-          ? 0
-          : Math.min(totalTasks, ((i + c * 3) % totalTasks) + Math.min(2, totalTasks))
-      const completedIds = meta.taskIdsInOrder.slice(0, doneN)
-      const pct = totalTasks === 0 ? 0 : Math.round((doneN / totalTasks) * 100)
-      const finished = pct >= 100
-
-      await prisma.enrollment.upsert({
-        where: { userId_courseId: { userId: user.id, courseId: meta.id } },
-        update: {
-          progressPercent: pct,
-          completedLessonIds: completedIds,
-          status: finished ? EnrollmentStatus.FINISHED : EnrollmentStatus.ACTIVE,
-          finishedAt: finished ? new Date() : null
-        },
-        create: {
-          userId: user.id,
-          courseId: meta.id,
-          progressPercent: pct,
-          completedLessonIds: completedIds,
-          status: finished ? EnrollmentStatus.FINISHED : EnrollmentStatus.ACTIVE,
-          finishedAt: finished ? new Date() : null
-        }
-      })
-
-      for (const taskId of completedIds) {
-        await prisma.courseTaskAttempt.upsert({
-          where: {
-            courseTaskId_userId: { courseTaskId: taskId, userId: user.id }
-          },
-          update: { status: AttemptStatus.SUCCESS, tryN: 1 },
-          create: {
-            courseTaskId: taskId,
-            userId: user.id,
-            status: AttemptStatus.SUCCESS,
-            tryN: 1
-          }
-        })
-      }
-    }
-
-    const nAch = 2 + (i % 3)
-    for (let a = 0; a < nAch; a++) {
-      const ach = achievements[(i + a * 5) % achievements.length]
-      if (!ach) continue
-      const goal = ach.goal ?? 1
-      await prisma.userAchievementTrack.upsert({
-        where: {
-          userId_achievementId: { userId: user.id, achievementId: ach.id }
-        },
-        update: {
-          status: AchievementStatus.SUCCESS,
-          currentN: goal,
-          earnedAt: new Date()
-        },
-        create: {
-          userId: user.id,
-          achievementId: ach.id,
-          status: AchievementStatus.SUCCESS,
-          currentN: goal,
-          earnedAt: new Date()
-        }
-      })
-    }
-
-    for (let d = 0; d < heatmapSpanDays; d++) {
-      if ((i + d) % 2 === 0) {
-        continue
-      }
-      const date = addDaysIso(heatmapAnchor, d)
-      const activityCount = ((i * 3 + d) % 8) + 1
-      const level = levelForActivityCount(activityCount)
-      await prisma.userActivitySnapshot.upsert({
-        where: { userId_date: { userId: user.id, date } },
-        update: { count: activityCount, level },
-        create: { userId: user.id, date, count: activityCount, level }
-      })
-    }
-
-    if (i % 4 === 0) {
-      await prisma.userActivity.create({
-        data: {
-          userId: user.id,
-          type: 'lesson.passed',
-          payload: { [lessonActivityPayloadKey]: i }
-        }
-      })
-    }
+    await upsertEnrollmentsAndAttempts(prisma, user.id, i, courses)
+    await upsertAchievementTracksForLearner(prisma, user.id, i, achievements)
+    await upsertHeatmapSnapshots(prisma, user.id, i, heatmapAnchor, heatmapSpanDays)
+    await maybeCreateLessonPassedActivity(prisma, user.id, i, lessonActivityPayloadKey)
   }
 }
 

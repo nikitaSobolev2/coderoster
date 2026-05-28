@@ -45,7 +45,7 @@ export function withIdempotency() {
     const existing = await db.idempotencyKey.findUnique({ where: { key: fingerprint } })
 
     if (existing?.status === 'COMPLETED' && existing.response !== null) {
-      return existing.response as never
+      return { ok: true, data: existing.response } as Awaited<ReturnType<typeof next>>
     }
     if (existing?.status === 'IN_PROGRESS' && existing.expiresAt > new Date()) {
       throw new TRPCError({

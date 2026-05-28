@@ -271,6 +271,26 @@ services:
     # Invoke explicitly: docker compose run --rm tests-load run /tests/load/<scenario>.js
     entrypoint: ["k6"]
 
+  tests-go-code-executor:
+    image: golang:1.25-alpine
+    profiles: ["tests"]
+    working_dir: /src
+    volumes:
+      - ./workers/code-executor:/src
+    # Runtime worker image has no `go` binary — use this service instead.
+    # docker compose run --rm tests-go-code-executor test ./...
+    entrypoint: ["go"]
+
+  tests-go-code-improve:
+    image: golang:1.25-alpine
+    profiles: ["tests"]
+    working_dir: /src
+    environment:
+      GOTOOLCHAIN: auto
+    volumes:
+      - ./workers/code-improve:/src
+    entrypoint: ["go"]
+
   worker-code-exec:
     build:
       context: ./workers/code-executor

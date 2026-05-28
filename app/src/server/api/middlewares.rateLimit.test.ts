@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const checkMock = vi.fn()
+const { checkMock } = vi.hoisted(() => ({
+  checkMock: vi.fn()
+}))
 
 vi.mock('~/server/rateLimit', () => ({
   RateLimiter: vi.fn().mockImplementation(() => ({ check: checkMock }))

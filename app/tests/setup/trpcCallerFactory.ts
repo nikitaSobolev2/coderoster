@@ -43,6 +43,7 @@ import type { AuthenticatedUser } from '~/server/repositories/types'
 import { createCaller } from '~/server/api/root'
 import { db } from '~/server/db'
 import { authenticatedUserFactory } from './fixtures/userFactory'
+import { buildFakeAdminBundle } from './repositories/fakeAdminBundle'
 
 /**
  * Hand-rolled tRPC test harness. Builds a typed in-process caller bound to a
@@ -100,23 +101,6 @@ export interface TestCaller {
   headers: Headers
 }
 
-const stubAdminRepositories: AdminRepositories = new Proxy({} as AdminRepositories, {
-  get(_target, prop) {
-    return new Proxy(
-      {},
-      {
-        get() {
-          return () => {
-            throw new Error(
-              `Admin repository ${String(prop)} accessed without injection. Provide adminOverrides in trpcCallerFactory.`
-            )
-          }
-        }
-      }
-    )
-  }
-})
-
 export function buildTestCaller(overrides: CallerOverrides = {}): TestCaller {
   const repositories = {
     ...buildFakeUserRepositoryBag(),
@@ -125,7 +109,7 @@ export function buildTestCaller(overrides: CallerOverrides = {}): TestCaller {
   const headers = new Headers(overrides.headers ?? {})
   const user = overrides.user === undefined ? authenticatedUserFactory() : overrides.user
   const adminRepositories: AdminRepositories = {
-    ...stubAdminRepositories,
+    ...buildFakeAdminBundle(),
     ...overrides.adminOverrides
   } as AdminRepositories
 

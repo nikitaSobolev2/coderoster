@@ -1,7 +1,5 @@
 import { faker } from '@faker-js/faker'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-
-vi.mock('~/server/db', () => ({ db: {} }))
+import { beforeEach, describe, expect, it } from 'vitest'
 
 import { FakeProgressRepository } from './progress.repository'
 

@@ -44,20 +44,22 @@ describe('FakeAdminCourseEditorRepository', () => {
   })
 
   it('setTaskPremium_flips_isPremium', async () => {
-    const task = repo.seedTask({ isPremium: false })
+    const module = repo.seedModule({ courseId })
+    const task = repo.seedTask({ moduleId: module.id, isPremium: false })
     await repo.setTaskPremium(task.id, true)
-    const reloaded = await repo.load(task.moduleId)
-    expect(reloaded[0]?.tasks[0]?.isPremium).toBe(false) // module not under courseId
+    const reloaded = await repo.load(courseId)
+    expect(reloaded[0]?.tasks.find(t => t.id === task.id)?.isPremium).toBe(true)
   })
 
   it('updateAutotests_replaces_full_list_with_provided_order', async () => {
-    const task = repo.seedTask()
+    const module = repo.seedModule({ courseId })
+    const task = repo.seedTask({ moduleId: module.id })
     await repo.updateAutotests(task.id, [
       { id: 't1', order: 0, name: 'a', expected: 'A', hidden: false },
       { id: 't2', order: 1, name: 'b', expected: 'B', hidden: true }
     ])
-    const reloaded = await repo.load(task.moduleId)
-    expect(reloaded[0]?.tasks[0]?.autotests).toHaveLength(2)
+    const reloaded = await repo.load(courseId)
+    expect(reloaded[0]?.tasks.find(t => t.id === task.id)?.autotests).toHaveLength(2)
   })
 
   it('updateAutotests_throws_for_unknown_task', async () => {

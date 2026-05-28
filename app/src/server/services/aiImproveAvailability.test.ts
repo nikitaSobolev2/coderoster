@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const redisGetMock = vi.fn()
+const { redisGetMock } = vi.hoisted(() => ({
+  redisGetMock: vi.fn()
+}))
 
 vi.mock('~/server/redis', () => ({
   redis: { get: redisGetMock }

@@ -18,6 +18,6 @@ describe('admin.catalog router (integration)', () => {
   it('catalog_routes_throw_FORBIDDEN_for_LEARNER', async () => {
     stubRole('LEARNER')
     const { caller } = buildTestCaller({ user: authenticatedUserFactory({ role: 'learner' }) })
-    await expect(caller.admin.catalog.listCourses({})).rejects.toThrow(/FORBIDDEN|denied/i)
+    await expect(caller.admin.catalog.courses.list({})).rejects.toThrow(/FORBIDDEN|denied/i)
   })
 })

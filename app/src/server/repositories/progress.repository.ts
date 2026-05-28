@@ -51,9 +51,14 @@ export class FakeProgressRepository implements ProgressRepository {
   async getDrafts(
     userId: string,
     lessonId: string,
-    _languages: Language[]
+    languages: Language[]
   ): Promise<Partial<Record<Language, string>>> {
-    return { ...(this.byLesson.get(this.draftKey(userId, lessonId)) ?? {}) }
+    const stored = this.byLesson.get(this.draftKey(userId, lessonId)) ?? {}
+    const out: Partial<Record<Language, string>> = {}
+    for (const lang of languages) {
+      if (stored[lang] !== undefined) out[lang] = stored[lang]
+    }
+    return out
   }
 
   async getTaskAttemptStatus(_userId: string, _lessonId: string): Promise<AttemptStatus | null> {

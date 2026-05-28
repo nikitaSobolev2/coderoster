@@ -1,15 +1,25 @@
 import { faker } from '@faker-js/faker'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const attemptFindUniqueMock = vi.fn()
-const taskFindFirstMock = vi.fn()
-const aiJobFindUniqueMock = vi.fn()
-const aiJobCreateMock = vi.fn()
-const outboxCreateMock = vi.fn()
-const txMock = vi.fn()
-
-const planGetEffectiveTier = vi.fn(async () => 0)
-const assertCircuit = vi.fn(async () => undefined)
+const {
+  attemptFindUniqueMock,
+  taskFindFirstMock,
+  aiJobFindUniqueMock,
+  aiJobCreateMock,
+  outboxCreateMock,
+  txMock,
+  planGetEffectiveTier,
+  assertCircuit
+} = vi.hoisted(() => ({
+  attemptFindUniqueMock: vi.fn(),
+  taskFindFirstMock: vi.fn(),
+  aiJobFindUniqueMock: vi.fn(),
+  aiJobCreateMock: vi.fn(),
+  outboxCreateMock: vi.fn(),
+  txMock: vi.fn(),
+  planGetEffectiveTier: vi.fn(async () => 0),
+  assertCircuit: vi.fn(async () => undefined)
+}))
 
 vi.mock('~/server/db', () => ({
   db: {

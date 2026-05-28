@@ -1,9 +1,11 @@
 import { faker } from '@faker-js/faker'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const upsertMock = vi.fn()
-const dailyFindUniqueMock = vi.fn()
-const attemptCountMock = vi.fn()
+const { upsertMock, dailyFindUniqueMock, attemptCountMock } = vi.hoisted(() => ({
+  upsertMock: vi.fn(),
+  dailyFindUniqueMock: vi.fn(),
+  attemptCountMock: vi.fn()
+}))
 
 vi.mock('~/server/db', () => ({
   db: {

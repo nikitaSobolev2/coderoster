@@ -13,6 +13,12 @@ interface TxStub {
   }
   user: { findUnique: ReturnType<typeof vi.fn> }
   courseTaskAttempt: { count: ReturnType<typeof vi.fn> }
+  enrollment: { count: ReturnType<typeof vi.fn> }
+  execution: { findMany: ReturnType<typeof vi.fn> }
+  userActivity: {
+    count: ReturnType<typeof vi.fn>
+    findFirst: ReturnType<typeof vi.fn>
+  }
 }
 
 function buildTx(seed: {
@@ -34,6 +40,16 @@ function buildTx(seed: {
     },
     courseTaskAttempt: {
       count: vi.fn(async () => seed.passedCount ?? 0)
+    },
+    enrollment: {
+      count: vi.fn(async () => 0)
+    },
+    execution: {
+      findMany: vi.fn(async () => [])
+    },
+    userActivity: {
+      count: vi.fn(async () => 0),
+      findFirst: vi.fn(async () => null)
     }
   }
 }

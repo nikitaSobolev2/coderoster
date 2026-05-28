@@ -93,7 +93,9 @@ vi.mock('ioredis', () => {
 
 if (typeof process !== 'undefined') {
   process.env.SKIP_ENV_VALIDATION = process.env.SKIP_ENV_VALIDATION ?? '1'
-  process.env.USE_FAKE_DATA = process.env.USE_FAKE_DATA ?? 'true'
+  // Always fixture mode in Vitest — ignore host `.env` so sandbox/livechat routers
+  // and Fake repositories behave consistently in CI and local docker exec.
+  process.env.USE_FAKE_DATA = 'true'
   process.env.NODE_ENV = process.env.NODE_ENV ?? 'test'
   process.env.RATE_LIMIT_REDIS_PREFIX = process.env.RATE_LIMIT_REDIS_PREFIX ?? 'rl:'
   process.env.WORKOS_API_KEY = process.env.WORKOS_API_KEY ?? 'sk_test_workos'

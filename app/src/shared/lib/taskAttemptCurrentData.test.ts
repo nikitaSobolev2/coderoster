@@ -9,11 +9,11 @@ import {
 
 describe('parseAttemptCurrentData', () => {
   it('drafts_returns_empty_for_null_data', () => {
-    expect(parseAttemptCurrentData(null)).toEqual({ code: undefined, drafts: {} })
+    expect(parseAttemptCurrentData(null)).toEqual({})
   })
 
   it('drafts_returns_empty_for_array_input', () => {
-    expect(parseAttemptCurrentData([1, 2, 3])).toEqual({ code: undefined, drafts: {} })
+    expect(parseAttemptCurrentData([1, 2, 3])).toEqual({})
   })
 
   it('drafts_returns_python_when_present', () => {

@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const checkMock = vi.fn(async () => ({ allowed: true, remaining: 9, retryAfterSeconds: 60 }))
+const { checkMock } = vi.hoisted(() => ({
+  checkMock: vi.fn(async () => ({ allowed: true, remaining: 9, retryAfterSeconds: 60 }))
+}))
 
 vi.mock('~/server/rateLimit', () => ({
   RateLimiter: vi.fn().mockImplementation(() => ({ check: checkMock }))

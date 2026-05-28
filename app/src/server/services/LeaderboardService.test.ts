@@ -1,9 +1,11 @@
 import { faker } from '@faker-js/faker'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const userFindManyMock = vi.fn()
-const attemptGroupByMock = vi.fn()
-const enrollmentFindManyMock = vi.fn()
+const { userFindManyMock, attemptGroupByMock, enrollmentFindManyMock } = vi.hoisted(() => ({
+  userFindManyMock: vi.fn(),
+  attemptGroupByMock: vi.fn(),
+  enrollmentFindManyMock: vi.fn()
+}))
 
 vi.mock('~/server/db', () => ({
   db: {

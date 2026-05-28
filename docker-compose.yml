@@ -70,34 +70,33 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
     healthcheck:
-      test:
-        [
+      test: [
           "CMD-SHELL",
           "pg_isready -U ${POSTGRES_USER:-postgres} -d
-            ${POSTGRES_DB:-coderoster}",
+          ${POSTGRES_DB:-coderoster}",
         ]
       interval: 5s
       timeout: 3s
       retries: 10
-    networks: [ coderoster ]
+    networks: [coderoster]
 
   redis:
     image: redis:7-alpine
     restart: unless-stopped
-    command: [ "redis-server", "--save", "60", "1", "--loglevel", "warning" ]
+    command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
     volumes:
       - redis_data:/data
     healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
+      test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 3s
       retries: 10
-    networks: [ coderoster ]
+    networks: [coderoster]
 
   minio:
     image: minio/minio:latest
     restart: unless-stopped
-    command: [ "server", "/data", "--console-address", ":9001" ]
+    command: ["server", "/data", "--console-address", ":9001"]
     environment:
       MINIO_ROOT_USER: ${S3_ACCESS_KEY:-minioadmin}
       MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY:-minioadmin}
@@ -107,11 +106,11 @@ services:
     volumes:
       - minio_data:/data
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 10s
       timeout: 5s
       retries: 10
-    networks: [ coderoster ]
+    networks: [coderoster]
 
   rabbitmq:
     image: rabbitmq:3-management-alpine
@@ -124,11 +123,11 @@ services:
       - ./infra/compose/rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
       - ./infra/compose/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
     healthcheck:
-      test: [ "CMD", "rabbitmq-diagnostics", "ping" ]
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
       interval: 10s
       timeout: 5s
       retries: 12
-    networks: [ coderoster ]
+    networks: [coderoster]
 
   app-prepare:
     build: *app_build
@@ -138,14 +137,14 @@ services:
       <<: *app_env
     depends_on:
       db: { condition: service_healthy }
-    command: [ "/usr/local/bin/app-dev-prepare.sh" ]
-    networks: [ coderoster ]
+    command: ["/usr/local/bin/app-dev-prepare.sh"]
+    networks: [coderoster]
 
   app:
     build: *app_build
     restart: unless-stopped
     # Webpack dev + polling: Turbopack + bind-mount + anonymous node_modules produces bogus watch roots (`/app/@mantine` …) and broken HMR on Docker Desktop (Windows).
-    command: [ "npm", "run", "dev:docker" ]
+    command: ["npm", "run", "dev:docker"]
     environment:
       <<: *app_env
       # Bind mounts: host fs events often invisible inside container; webpack dev respects this.
@@ -162,7 +161,7 @@ services:
       redis: { condition: service_healthy }
       rabbitmq: { condition: service_healthy }
       minio: { condition: service_healthy }
-    networks: [ coderoster ]
+    networks: [coderoster]
 
   outbox:
     build: *app_build
@@ -181,7 +180,7 @@ services:
       app-prepare: { condition: service_completed_successfully }
       db: { condition: service_healthy }
       rabbitmq: { condition: service_healthy }
-    networks: [ coderoster ]
+    networks: [coderoster]
 
   result-consumer:
     build: *app_build
@@ -201,7 +200,7 @@ services:
       db: { condition: service_healthy }
       rabbitmq: { condition: service_healthy }
       redis: { condition: service_healthy }
-    networks: [ coderoster ]
+    networks: [coderoster]
 
   code-improve-worker:
     build:
@@ -221,7 +220,7 @@ services:
       db: { condition: service_healthy }
       rabbitmq: { condition: service_healthy }
       redis: { condition: service_healthy }
-    networks: [ coderoster ]
+    networks: [coderoster]
 
   account-deletion-consumer:
     build: *app_build
@@ -241,7 +240,7 @@ services:
       db: { condition: service_healthy }
       rabbitmq: { condition: service_healthy }
       redis: { condition: service_healthy }
-    networks: [ coderoster ]
+    networks: [coderoster]
 
   snapshot:
     build: *app_build
@@ -259,7 +258,18 @@ services:
     depends_on:
       app-prepare: { condition: service_completed_successfully }
       db: { condition: service_healthy }
-    networks: [ coderoster ]
+    networks: [coderoster]
+
+  tests-load:
+    image: grafana/k6:0.55.0
+    profiles: ["tests"]
+    environment:
+      BASE_URL: ${BASE_URL:-http://app:3000}
+    volumes:
+      - ./tests/load:/tests/load:ro
+    networks: [coderoster]
+    # Invoke explicitly: docker compose run --rm tests-load run /tests/load/<scenario>.js
+    entrypoint: ["k6"]
 
   worker-code-exec:
     build:
@@ -282,7 +292,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       rabbitmq: { condition: service_healthy }
-    networks: [ coderoster ]
+    networks: [coderoster]
 
 volumes:
   db_data:

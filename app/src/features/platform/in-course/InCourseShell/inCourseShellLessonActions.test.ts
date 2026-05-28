@@ -111,6 +111,44 @@ describe('dispatchLessonExecution', () => {
     })
   })
 
+  it('dispatch_uses_canonical_when_solutionVariant_canonical', () => {
+    const runMutate = vi.fn()
+    dispatchLessonExecution('run', {
+      canUseEditor: true,
+      isAuthenticated: true,
+      pushHref: vi.fn(),
+      editorLanguage: 'python',
+      solutionVariant: 'improved',
+      improvedScratchByLang: {},
+      improvedCanonicalStr: 'print("canonical")',
+      drafts: { python: 'print("draft")' },
+      lesson: minimalLesson(),
+      courseSlug: 'course-a',
+      setExecutionMode: vi.fn(),
+      runMutate
+    })
+    expect(runMutate).toHaveBeenCalledWith(expect.objectContaining({ code: 'print("canonical")' }))
+  })
+
+  it('dispatch_uses_starterCode_when_drafts_empty', () => {
+    const runMutate = vi.fn()
+    dispatchLessonExecution('run', {
+      canUseEditor: true,
+      isAuthenticated: true,
+      pushHref: vi.fn(),
+      editorLanguage: 'python',
+      solutionVariant: 'draft',
+      improvedScratchByLang: {},
+      improvedCanonicalStr: '',
+      drafts: {},
+      lesson: minimalLesson(),
+      courseSlug: 'course-a',
+      setExecutionMode: vi.fn(),
+      runMutate
+    })
+    expect(runMutate).toHaveBeenCalledWith(expect.objectContaining({ code: 'print(1)' }))
+  })
+
   it('prefers improved scratch over canonical when variant improved', () => {
     const runMutate = vi.fn()
     dispatchLessonExecution('run', {

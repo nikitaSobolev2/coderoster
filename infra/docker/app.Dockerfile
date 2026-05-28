@@ -2,7 +2,12 @@ FROM node:22-alpine AS deps
 WORKDIR /app
 COPY app/package.json app/package-lock.json* ./
 # Lockfile is source of truth; matches CI. postinstall prisma is skipped here (DATABASE_URL absent at build).
-RUN npm ci --legacy-peer-deps --ignore-scripts
+# registry.npmjs.org occasionally drops TLS mid-download during image build — retry like prisma generate.
+RUN for attempt in 1 2 3 4 5; do \
+      npm ci --legacy-peer-deps --ignore-scripts && break; \
+      echo "[dockerfile] npm ci failed (attempt ${attempt}/5), retrying in 5s"; \
+      sleep 5; \
+    done
 RUN cp node_modules/server-only/empty.js node_modules/server-only/index.js
 
 FROM deps AS dev

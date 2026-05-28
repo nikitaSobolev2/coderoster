@@ -3,8 +3,10 @@ module github.com/coderoster/code-executor
 go 1.25.0
 
 require (
+	github.com/brianvoe/gofakeit/v7 v7.0.4
 	github.com/docker/docker v27.5.1+incompatible
 	github.com/rabbitmq/amqp091-go v1.10.0
+	github.com/stretchr/testify v1.9.0
 )
 
 require (

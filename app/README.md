@@ -551,22 +551,71 @@ This prevents SSR errors from browser-only WebGL APIs.
 
 Run from the `frontend/` directory.
 
-| Command                | Description                                              |
-| ---------------------- | -------------------------------------------------------- |
-| `npm run dev`          | Start dev server with Turbopack                          |
-| `npm run build`        | Production build                                         |
-| `npm run start`        | Start production server                                  |
-| `npm run preview`      | Build then start (production preview)                    |
-| `npm run check`        | ESLint + TypeScript typecheck                            |
-| `npm run typecheck`    | TypeScript typecheck only                                |
-| `npm run lint`         | ESLint only                                              |
-| `npm run lint:fix`     | ESLint with auto-fix                                     |
-| `npm run format:write` | Prettier — format all files                              |
-| `npm run format:check` | Prettier — check without writing                         |
-| `npm run db:generate`  | `prisma migrate dev` — generate and apply migration      |
-| `npm run db:push`      | `prisma db push` — push schema without migration file    |
-| `npm run db:migrate`   | `prisma migrate deploy` — apply migrations in production |
-| `npm run db:studio`    | Open Prisma Studio in the browser                        |
+| Command                 | Description                                              |
+| ----------------------- | -------------------------------------------------------- |
+| `npm run dev`           | Start dev server with Turbopack                          |
+| `npm run build`         | Production build                                         |
+| `npm run start`         | Start production server                                  |
+| `npm run preview`       | Build then start (production preview)                    |
+| `npm run check`         | ESLint + TypeScript typecheck                            |
+| `npm run typecheck`     | TypeScript typecheck only                                |
+| `npm run lint`          | ESLint only                                              |
+| `npm run lint:fix`      | ESLint with auto-fix                                     |
+| `npm run format:write`  | Prettier — format all files                              |
+| `npm run format:check`  | Prettier — check without writing                         |
+| `npm run db:generate`   | `prisma migrate dev` — generate and apply migration      |
+| `npm run db:push`       | `prisma db push` — push schema without migration file    |
+| `npm run db:migrate`    | `prisma migrate deploy` — apply migrations in production |
+| `npm run db:studio`     | Open Prisma Studio in the browser                        |
+| `npm run test`          | Vitest — unit + integration (Fake repos, no real stack)  |
+| `npm run test:watch`    | Vitest watch mode                                        |
+| `npm run test:coverage` | Vitest with v8 coverage report                           |
+
+### Testing
+
+The repository ships a tri-tier test suite:
+
+| Tier            | Runner                        | Scope                                                                                          |
+| --------------- | ----------------------------- | ---------------------------------------------------------------------------------------------- |
+| **Unit**        | Vitest                        | Pure functions, services, Fake repositories — no DB/Redis/Rabbit                               |
+| **Integration** | Vitest + tRPC `createCaller`  | Full router stack against Fake repositories seeded with [@faker-js/faker](https://fakerjs.dev) |
+| **Load**        | k6 in its own compose service | Real stack via HTTP, see [`tests/load/`](../tests/load)                                        |
+| **Workers**     | `go test`                     | Sandbox runner helpers, AMQP wire, OpenAI client                                               |
+
+Run from the repository root once the stack is up:
+
+```bash
+# Unit + integration (in-memory, fast)
+docker compose exec app npm run test
+
+# Coverage report
+docker compose exec app npm run test:coverage
+
+# Load scenarios (one at a time)
+docker compose run --rm tests-load run /tests/load/catalog_browse.js
+docker compose run --rm tests-load run /tests/load/course_detail.js
+docker compose run --rm tests-load run /tests/load/execution_run.js
+docker compose run --rm tests-load run /tests/load/search_global.js
+docker compose run --rm tests-load run /tests/load/profile_read.js
+docker compose run --rm tests-load run /tests/load/livechat_read.js
+
+# Go workers
+docker compose exec worker-code-exec   go test ./...
+docker compose exec code-improve-worker go test ./...
+```
+
+**Faker seed convention.** [`app/tests/setup/vitest.setup.ts`](tests/setup/vitest.setup.ts)
+calls `faker.seed(42)` before every test file so randomised inputs stay
+deterministic across CI runs. Each factory in
+[`app/tests/setup/fixtures/`](tests/setup/fixtures) accepts a partial override
+so individual cases can pin only the field they care about.
+
+**FakeRepository coverage.** The faker gap noted by previous reviewers (admin
+sub-domains + livechat shipped Prisma-only) is closed in
+[`app/tests/setup/repositories/fakeAdmin.ts`](tests/setup/repositories/fakeAdmin.ts).
+Tests instantiate the relevant Fake directly and pass it to
+`buildTestCaller({ adminOverrides: { ... } })` when an admin router is under
+test.
 
 ### Environment setup
 

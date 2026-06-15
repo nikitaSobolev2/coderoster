@@ -44,5 +44,16 @@ export default defineConfig(
       'react-hooks/set-state-in-effect': 'warn',
       'react-hooks/purity': 'warn'
     }
+  },
+  {
+    files: ['**/*.test.ts', '**/*.test.tsx', 'tests/**/*.ts', 'tests/**/*.tsx'],
+    rules: {
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/prefer-promise-reject-errors': 'off'
+    }
   }
 )

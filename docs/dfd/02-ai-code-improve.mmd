@@ -1,0 +1,38 @@
+%% Рис. 2 — DFD ИИ-разбора кода (§5 product-analysis-ru.md)
+
+flowchart LR
+  user[Обучающийся]
+  ai[OpenAI-compatible API]
+
+  p1((1.0<br/>Постановка<br/>ИИ-задачи))
+
+  subgraph aiStack [ ]
+    direction TB
+    p2((2.0<br/>Outbox и<br/>code-improve-worker))
+    p3((3.0<br/>Опрос<br/>результата))
+    p2 --> p3
+  end
+
+  d1[(D1:<br/>PostgreSQL)]
+  d2[(D2:<br/>RabbitMQ)]
+  d3[(D3:<br/>Redis)]
+
+  user -->|codeImprove.start| p1
+  p1 -->|AiCodeImproveJob + OutboxEvent| d1
+  p1 -->|jobId · QUEUED| user
+  p1 --> p2
+  d1 -->|OutboxEvent PENDING| p2
+
+  p2 -->|ai.code_improve.requested| d2
+  d2 -->|сообщение| p2
+  p2 -->|prompt · stream| ai
+  ai -->|improvedCode · markdown| p2
+  p2 -->|UPDATE AiCodeImproveJob| d1
+  p2 -->|pub/sub статус| d3
+
+  d1 -->|строка джобы| p3
+  d3 -->|статус stream| p3
+  p3 -->|готовый разбор| user
+
+  d1 ~~~ d2
+  d2 ~~~ d3

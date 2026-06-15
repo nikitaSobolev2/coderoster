@@ -1,0 +1,29 @@
+%% Discussion threads & comments
+
+erDiagram
+    direction TB
+
+    User {
+        text id PK
+        text username
+        text commentsThreadId FK
+    }
+
+    Thread {
+        text id PK
+        int totalCount
+        timestamp updatedAt
+    }
+
+    Comment {
+        text id PK
+        text authorId FK
+        text threadId FK
+        text message
+        int likesN
+        int dislikesN
+    }
+
+    User }o--o| Thread : commentsThreadId
+    User ||--o{ Comment : authorId
+    Thread ||--o{ Comment : threadId

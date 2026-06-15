@@ -1,0 +1,26 @@
+%% Live chat: guest consent & messages
+
+erDiagram
+    direction TB
+
+    User {
+        text id PK
+        text username
+        timestamp livechatConsentAt
+    }
+
+    LivechatGuestConsent {
+        varchar guestSessionId PK
+        timestamp acceptedAt
+    }
+
+    LivechatMessage {
+        text id PK
+        text userId FK
+        text guestSessionId
+        LivechatAuthorKind authorKind
+        varchar body
+        varchar authorLabel
+    }
+
+    User }o--o| LivechatMessage : userId

@@ -1,0 +1,25 @@
+%% Рис. 5 — DFD снимка активности (§9 product-analysis-ru.md)
+
+flowchart LR
+  cron[Планировщик cron]
+
+  p1((1.0<br/>Выборка активности))
+
+  subgraph snapStack [ ]
+    direction TB
+    p2((2.0<br/>Агрегация по дню))
+    p3((3.0<br/>Запись снимка))
+    p2 --> p3
+  end
+
+  d1[(D1:<br/>UserActivity)]
+  d2[(D2:<br/>UserActivitySnapshot)]
+
+  cron -->|ACTIVITY_SNAPSHOT_CRON| p1
+  p1 -->|SELECT за вчера| d1
+  d1 -->|строки событий| p1
+  p1 --> p2
+  p2 -->|GROUP BY userId · date| p3
+  p3 -->|UPSERT count · level| d2
+
+  d1 ~~~ d2

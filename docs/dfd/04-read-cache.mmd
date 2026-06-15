@@ -1,0 +1,32 @@
+%% Рис. 4 — DFD чтения каталога и кеширования (§4, §9 product-analysis-ru.md)
+
+flowchart LR
+  user[Обучающийся]
+
+  p1((1.0<br/>tRPC read))
+
+  subgraph readStack [ ]
+    direction TB
+    p2((2.0<br/>Cached repository))
+    p3((3.0<br/>Формирование ответа))
+    p2 --> p3
+  end
+
+  d1[(D1:<br/>PostgreSQL)]
+  d2[(D2:<br/>Redis)]
+  d3[(D3:<br/>Prisma ORM)]
+
+  user -->|course · search · profile| p1
+  p1 --> p2
+  p2 -->|cache get| d2
+  d2 -->|hit| p2
+  p2 -->|miss| d3
+  d3 -->|SQL| d1
+  d1 -->|строки| d3
+  d3 -->|DTO| p2
+  p2 -->|cache set| d2
+
+  p3 -->|JSON ответ| user
+
+  d1 ~~~ d2
+  d2 ~~~ d3

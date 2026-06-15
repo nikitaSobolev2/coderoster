@@ -1,0 +1,46 @@
+%% Users, plans, profile thread, audit
+%% Source: app/prisma/sql/database-schema.sql
+
+erDiagram
+    direction TB
+
+    Plan {
+        text id PK
+        text slug
+        text name
+        int tierLevel
+        int xpBonusPercent
+        boolean isDefaultFree
+    }
+
+    User {
+        text id PK
+        text workosUserId
+        text email
+        text username
+        text displayName
+        Role role
+        text planId FK
+        text commentsThreadId FK
+        int totalXp
+        int streakDays
+    }
+
+    Thread {
+        text id PK
+        int totalCount
+        timestamp createdAt
+    }
+
+    AuditLog {
+        text id PK
+        text actorId FK
+        text action
+        text targetType
+        text targetId
+        jsonb diff
+    }
+
+    Plan ||--o{ User : planId
+    User }o--o| Thread : commentsThreadId
+    User }o--o| AuditLog : actorId

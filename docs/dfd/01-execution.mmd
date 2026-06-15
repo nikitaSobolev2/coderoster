@@ -1,0 +1,39 @@
+%% Рис. 1 — DFD исполнения и проверки кода (§5 product-analysis-ru.md)
+%% Нотация: [сущность]  ((процесс))  [(хранилище)]
+
+flowchart LR
+  user[Обучающийся]
+  docker[Docker хост]
+
+  p1((1.0<br/>Постановка<br/>исполнения))
+
+  subgraph execStack [ ]
+    direction TB
+    p2((2.0<br/>Outbox и<br/>исполнение кода))
+    p3((3.0<br/>Применение<br/>результата))
+    p2 --> p3
+  end
+
+  d1[(D1:<br/>PostgreSQL)]
+  d2[(D2:<br/>RabbitMQ)]
+  d3[(D3:<br/>Redis)]
+
+  user -->|run / submit| p1
+  p1 -->|Execution + OutboxEvent| d1
+  p1 -->|executionId · QUEUED| user
+  p1 --> p2
+  d1 -->|OutboxEvent PENDING| p2
+
+  p2 -->|execution.requested| d2
+  d2 -->|сообщение| p2
+  p2 -->|код · лимиты| docker
+  docker -->|stdout · testResults| p2
+  p2 -->|execution.completed| d2
+
+  d2 -->|событие завершения| p3
+  p3 -->|Execution · Attempt · XP| d1
+  p3 -->|инвалидация кеша| d3
+  p3 -->|результат проверки| user
+
+  d1 ~~~ d2
+  d2 ~~~ d3

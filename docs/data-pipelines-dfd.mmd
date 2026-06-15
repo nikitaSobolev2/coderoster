@@ -1,0 +1,14 @@
+%% CodeRoster — DFD потоков данных (классическая нотация Yourdon)
+%% Source: docs/product-analysis-ru.md §4–§5, §9
+%%
+%% Открывайте по одному файлу:
+%%   dfd/01-execution.mmd         — run / submit → outbox → worker → result-consumer
+%%   dfd/02-ai-code-improve.mmd   — codeImprove.start → Go worker → OpenAI
+%%   dfd/03-account-deletion.mmd  — deleteMine → account-deletion-consumer
+%%   dfd/04-read-cache.mmd        — чтение каталога через Redis + Prisma
+%%   dfd/05-activity-snapshot.mmd — cron UserActivity → UserActivitySnapshot
+%%
+%% Нотация (как в учебном DFD):
+%%   [Прямоугольник]  — внешняя сущность
+%%   ((n.0 круг))     — процесс
+%%   [(Dn: …)]        — хранилище данных (справа, вертикальная стопка через ~~~)

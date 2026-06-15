@@ -1,0 +1,35 @@
+%% Рис. 3 — DFD удаления аккаунта (§5 product-analysis-ru.md)
+
+flowchart LR
+  user[Обучающийся]
+  workos[WorkOS AuthKit]
+
+  p1((1.0<br/>Запрос<br/>удаления))
+
+  subgraph delStack [ ]
+    direction TB
+    p2((2.0<br/>Outbox и<br/>account-deletion))
+    p3((3.0<br/>Подтверждение<br/>удаления))
+    p2 --> p3
+  end
+
+  d1[(D1:<br/>PostgreSQL)]
+  d2[(D2:<br/>RabbitMQ)]
+  d3[(D3:<br/>Redis)]
+
+  user -->|account.deleteMine| p1
+  p1 -->|deletionRequestedAt + OutboxEvent| d1
+  p1 -->|queued: true| user
+  p1 --> p2
+  d1 -->|OutboxEvent PENDING| p2
+
+  p2 -->|account.deletion.requested| d2
+  d2 -->|сообщение| p2
+  p2 -->|DELETE User cascade| d1
+  p2 -->|удаление в WorkOS| workos
+  p2 -->|delPrefix кеша| d3
+
+  p3 -->|аккаунт удалён| user
+
+  d1 ~~~ d2
+  d2 ~~~ d3

@@ -1,0 +1,44 @@
+%% Daily & weekly challenge attempts
+
+erDiagram
+    direction TB
+
+    User {
+        text id PK
+        text username
+    }
+
+    DailyChallenge {
+        text id PK
+        text date
+    }
+
+    DailyChallengeAttempt {
+        text id PK
+        text userId FK
+        text date FK
+        int taskIndex
+        AttemptStatus status
+        text executionId
+        timestamp solvedAt
+    }
+
+    WeeklyChallenge {
+        text id PK
+        text isoWeek
+    }
+
+    WeeklyChallengeAttempt {
+        text id PK
+        text userId FK
+        text isoWeek FK
+        int taskIndex
+        AttemptStatus status
+        text executionId
+        timestamp solvedAt
+    }
+
+    User ||--o{ DailyChallengeAttempt : userId
+    DailyChallenge ||--o{ DailyChallengeAttempt : date
+    User ||--o{ WeeklyChallengeAttempt : userId
+    WeeklyChallenge ||--o{ WeeklyChallengeAttempt : isoWeek

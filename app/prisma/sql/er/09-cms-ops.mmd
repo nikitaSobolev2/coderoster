@@ -1,0 +1,55 @@
+%% CMS pages, contact form, app settings, idempotency, outbox, migrations
+%% No foreign keys in schema — vertical chain is layout-only (not real relations)
+
+erDiagram
+    direction TB
+
+    AppSetting {
+        text key PK
+        jsonb value
+        timestamp updatedAt
+    }
+
+    ContactMessage {
+        text id PK
+        ContactMessageSource source
+        text name
+        text email
+        text message
+    }
+
+    ContentPage {
+        text id PK
+        text slug
+        text title
+        ContentPagePlacement placement
+        boolean published
+    }
+
+    IdempotencyKey {
+        text key PK
+        text userId
+        text endpoint
+        IdempotencyStatus status
+        timestamp expiresAt
+    }
+
+    OutboxEvent {
+        text id PK
+        text topic
+        jsonb payload
+        OutboxStatus status
+        int retries
+    }
+
+    prisma_migrations {
+        varchar id PK
+        varchar migration_name
+        varchar checksum
+    }
+
+    AppSetting ||--o| ContactMessage : " "
+    ContactMessage ||--o| ContentPage : " "
+    ContentPage ||--o| IdempotencyKey : " "
+    IdempotencyKey ||--o| OutboxEvent : " "
+    OutboxEvent ||--o| prisma_migrations : " "

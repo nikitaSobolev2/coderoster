@@ -1,0 +1,32 @@
+%% Code execution queue & sandbox snippets
+
+erDiagram
+    direction TB
+
+    User {
+        text id PK
+        text username
+    }
+
+    Execution {
+        text id PK
+        text userId FK
+        text taskId
+        text language
+        ExecutionStatus status
+        ExecutionContext contextKind
+        ExecutionMode mode
+        boolean passed
+        jsonb testResults
+    }
+
+    SandboxSnippet {
+        text id PK
+        text userId FK
+        text language
+        text title
+        text code
+    }
+
+    User ||--o{ Execution : userId
+    User ||--o{ SandboxSnippet : userId

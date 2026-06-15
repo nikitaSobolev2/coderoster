@@ -1,0 +1,70 @@
+%% CodeRoster — взаимодействие ключевых фич (вертикальная раскладка)
+%% Source: docs/product-analysis-ru.md §12
+%% Сквозной сценарий: каталог → запись → урок → run/submit → async execution → прогресс
+%% Легенда: проверки тарифа, rate-limit и идемпотентности — до записи в Postgres;
+%%          при ошибке очередь не задействуется, клиент показывает ответ tRPC.
+
+flowchart TB
+  startNode((старт))
+
+  browse[Просмотр каталога и поиск]
+  tRpcDiscover["tRPC course · search · plan"]
+  reposRead[(Репозитории и Redis-кеш)]
+
+  enrollAction[Запись на курс]
+  tRpcEnroll[tRPC enrollment · lesson · progress]
+  reposWrite[(Транзакции Prisma)]
+
+  openLesson[Открытие урока и редактирование кода]
+  tRpcDraft[tRPC progress · saveDraft]
+
+  runOrSubmit{Запустить или Проверить}
+  tRpcExec[tRPC execution · run]
+  execTx["Транзакция Execution + OutboxEvent"]
+
+  outboxSvc[outbox dispatcher]
+  rmq{{RabbitMQ}}
+  goExec[worker-code-exec]
+  isolatedCtr[Ephemeral Docker sandbox]
+  resultCons[result-consumer]
+
+  waitResult[Ожидание результата в UI]
+  tRpcPoll[tRPC execution · get]
+  reposExec[(Чтение Execution)]
+
+  viewProgress[Просмотр прогресса и профиля]
+  tRpcSocial[tRPC profile · comment · leaderboard]
+
+  errUi[Сообщение об ошибке в UI]
+  endNode((конец))
+
+  startNode --> browse
+  browse --> tRpcDiscover --> reposRead
+  reposRead --> enrollAction
+  enrollAction --> tRpcEnroll --> reposWrite
+  reposWrite --> openLesson
+  openLesson --> tRpcDraft --> reposWrite
+  reposWrite --> runOrSubmit
+
+  runOrSubmit -->|run / submit| tRpcExec --> execTx
+  execTx --> outboxSvc --> rmq --> goExec
+  goExec --> isolatedCtr
+  goExec --> rmq --> resultCons
+  resultCons --> reposWrite
+  resultCons --> reposRead
+
+  runOrSubmit --> waitResult
+  runOrSubmit -.->|ошибка тарифа · лимита · валидации| errUi
+  errUi --> waitResult
+
+  waitResult --> tRpcPoll --> reposExec
+  reposExec --> viewProgress
+  viewProgress --> tRpcSocial --> reposRead
+  reposRead --> endNode
+
+  browse ~~~ tRpcDiscover
+  enrollAction ~~~ tRpcEnroll
+  openLesson ~~~ tRpcDraft
+  runOrSubmit ~~~ tRpcExec
+  waitResult ~~~ tRpcPoll
+  viewProgress ~~~ tRpcSocial

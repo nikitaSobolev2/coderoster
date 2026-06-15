@@ -1,0 +1,72 @@
+%% CodeRoster — стек и взаимодействие сервисов (вертикальная раскладка)
+%% Source: docs/product-analysis-ru.md §13
+%% Containers: docker-compose.yml — user code runs in worker-code-exec containers, not in app
+
+flowchart TB
+  Browser[Браузер]
+
+  App[app сервис · Next.js]
+
+  WorkOS[WorkOS AuthKit]
+
+  subgraph nodeWorkers [Node-процессы того же образа]
+    direction TB
+    Outbox[outbox]
+    ResultC[result-consumer]
+    AccDel[account-deletion-consumer]
+    Snapshot[snapshot]
+    Outbox ~~~ ResultC
+    ResultC ~~~ AccDel
+    AccDel ~~~ Snapshot
+  end
+
+  subgraph goWorkers [Go-воркеры]
+    direction TB
+    CodeExec[worker-code-exec]
+    CodeImprove[code-improve-worker]
+    CodeExec ~~~ CodeImprove
+  end
+
+  subgraph dataPlane [Данные в Compose]
+    direction TB
+    PG[(PostgreSQL)]
+    Redis[(Redis)]
+    RMQ{{RabbitMQ}}
+    MinIO[(MinIO S3)]
+    PG ~~~ Redis
+    Redis ~~~ RMQ
+    RMQ ~~~ MinIO
+  end
+
+  DockerHost[Docker демон хоста]
+  AiVendor[OpenAI-compatible API]
+
+  Browser -->|HTTPS · SameSite cookies| App
+  App -->|OAuth сессия| WorkOS
+
+  App -->|SQL · outbox write| PG
+  App -->|TCP| Redis
+  App -->|presigned S3| MinIO
+
+  App ~~~ Outbox
+  Snapshot ~~~ CodeExec
+  CodeImprove ~~~ PG
+  MinIO ~~~ DockerHost
+  DockerHost ~~~ AiVendor
+
+  Outbox -->|OutboxEvent SQL| PG
+  Outbox -->|AMQP publish| RMQ
+  ResultC -->|AMQP consume| RMQ
+  ResultC -->|SQL · инвалидация| PG
+  ResultC --> Redis
+  AccDel -->|AMQP| RMQ
+  AccDel --> PG
+  AccDel --> Redis
+  Snapshot -->|cron SQL| PG
+
+  CodeExec -->|AMQP| RMQ
+  CodeExec -->|Docker API · socket| DockerHost
+  CodeImprove -->|AMQP| RMQ
+  CodeImprove --> PG
+  CodeImprove --> Redis
+  CodeImprove -->|HTTPS| AiVendor

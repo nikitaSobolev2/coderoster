@@ -1,0 +1,56 @@
+%% Enrollments, task attempts, AI code-improve jobs
+
+erDiagram
+    direction TB
+
+    User {
+        text id PK
+        text username
+    }
+
+    Course {
+        text id PK
+        text slug
+        text title
+    }
+
+    CourseTask {
+        text id PK
+        text title
+        TaskKind kind
+    }
+
+    Enrollment {
+        text id PK
+        text userId FK
+        text courseId FK
+        EnrollmentStatus status
+        int progressPercent
+        text currentLessonId
+    }
+
+    CourseTaskAttempt {
+        text id PK
+        text userId FK
+        text courseTaskId FK
+        AttemptStatus status
+        int tryN
+        jsonb currentData
+    }
+
+    AiCodeImproveJob {
+        text id PK
+        text userId FK
+        text taskId FK
+        text courseId FK
+        AiCodeImproveJobStatus status
+        text language
+    }
+
+    User ||--o{ Enrollment : userId
+    Course ||--o{ Enrollment : courseId
+    User ||--o{ CourseTaskAttempt : userId
+    CourseTask ||--o{ CourseTaskAttempt : courseTaskId
+    User ||--o{ AiCodeImproveJob : userId
+    CourseTask ||--o{ AiCodeImproveJob : taskId
+    Course ||--o{ AiCodeImproveJob : courseId

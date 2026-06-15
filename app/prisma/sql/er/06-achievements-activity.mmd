@@ -1,0 +1,49 @@
+%% Achievements, XP tracking, activity feed & snapshots
+
+erDiagram
+    direction TB
+
+    User {
+        text id PK
+        text username
+        int totalXp
+    }
+
+    Achievement {
+        text id PK
+        text slug
+        text title
+        text category
+        text rarity
+        boolean hidden
+    }
+
+    UserAchievementTrack {
+        text id PK
+        text userId FK
+        text achievementId FK
+        AchievementStatus status
+        int currentN
+        timestamp earnedAt
+    }
+
+    UserActivity {
+        text id PK
+        text userId FK
+        text type
+        jsonb payload
+        timestamp createdAt
+    }
+
+    UserActivitySnapshot {
+        text id PK
+        text userId FK
+        text date
+        int count
+        int level
+    }
+
+    User ||--o{ UserAchievementTrack : userId
+    Achievement ||--o{ UserAchievementTrack : achievementId
+    User ||--o{ UserActivity : userId
+    User ||--o{ UserActivitySnapshot : userId

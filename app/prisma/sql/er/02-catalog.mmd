@@ -1,0 +1,75 @@
+%% Course catalog: categories, courses, modules, tasks, autotests
+%% Challenge task slots (DailyChallenge / WeeklyChallenge) included here
+
+erDiagram
+    direction TB
+
+    User {
+        text id PK
+        text username
+    }
+
+    CourseCategory {
+        text id PK
+        text slug
+        text title
+        text parentCategoryId FK
+        text authorId FK
+        int order
+    }
+
+    Course {
+        text id PK
+        text slug
+        text title
+        text language
+        CourseStatus status
+        text authorId FK
+        text categoryId FK
+        int tierRequired
+    }
+
+    CourseModule {
+        text id PK
+        text courseId FK
+        text title
+        int order
+    }
+
+    CourseTask {
+        text id PK
+        text moduleId FK
+        text title
+        TaskKind kind
+        text dailyChallengeId FK
+        text weeklyChallengeId FK
+        boolean isPremium
+    }
+
+    CourseTaskAutotest {
+        text id PK
+        text courseTaskId FK
+        int order
+        text expected
+        boolean hidden
+    }
+
+    DailyChallenge {
+        text id PK
+        text date
+    }
+
+    WeeklyChallenge {
+        text id PK
+        text isoWeek
+    }
+
+    User ||--o{ CourseCategory : authorId
+    User ||--o{ Course : authorId
+    CourseCategory }o--o| CourseCategory : parentCategoryId
+    CourseCategory }o--o| Course : categoryId
+    Course ||--o{ CourseModule : courseId
+    CourseModule ||--o{ CourseTask : moduleId
+    CourseTask ||--o{ CourseTaskAutotest : courseTaskId
+    DailyChallenge ||--o{ CourseTask : dailyChallengeId
+    WeeklyChallenge ||--o{ CourseTask : weeklyChallengeId

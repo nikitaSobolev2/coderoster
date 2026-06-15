@@ -17,24 +17,24 @@ const SOLUTIONS: Solution[] = [
   {
     title: 'писать код, а не смотреть',
     description: 'Каждый урок — задача, которую ты решаешь сам. Видео и теория идут в нагрузку.',
-    imageSrc: '/assets/solutions-images/editor.webp'
+    imageSrc: '/assets/solutions-images/editor.png'
   },
   {
     title: 'получать обратную связь',
     description:
       'Тесты прогоняют твоё решение и показывают, где сломалось. Никаких "посмотрите в комментариях".',
-    imageSrc: '/assets/solutions-images/tests.webp'
+    imageSrc: '/assets/solutions-images/tests.png'
   },
   {
     title: 'видеть прогресс ежедневно',
     description: 'XP, стрики и уровни превращают практику в петлю, к которой хочется возвращаться.',
-    imageSrc: '/assets/solutions-images/xp.webp'
+    imageSrc: '/assets/solutions-images/xp.png'
   },
   {
     title: 'усиливать решение с ии',
     description:
       'ИИ-разбор: аккуратный вариант кода и короткое пояснение. Не подмена практики на уроке — отдельный шаг после того, как ты справился сам.',
-    imageSrc: '/assets/solutions-images/ai.gif'
+    imageSrc: '/assets/solutions-images/20260502-2259-37.5872465.gif'
   }
 ]
 

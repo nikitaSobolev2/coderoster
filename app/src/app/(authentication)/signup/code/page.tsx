@@ -9,5 +9,5 @@ export default async function SignupCodePage() {
     redirect('/signup')
   }
 
-  return <SignupCodeClient email={flow.email} />
+  return <SignupCodeClient email={flow.email} mode={flow.verificationMode ?? 'magic'} />
 }

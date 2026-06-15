@@ -75,9 +75,17 @@ export default function SignupPasswordClient({
           password: values.password
         })
       })
-      const data = (await res.json()) as { error?: string; redirectTo?: string }
+      const data = (await res.json()) as {
+        error?: string
+        redirectTo?: string
+        nextPath?: string
+      }
       if (!res.ok) {
         form.setErrors({ password: data.error ?? 'Не удалось завершить регистрацию' })
+        return
+      }
+      if (data.nextPath) {
+        router.push(data.nextPath)
         return
       }
       if (data.redirectTo) globalThis.location.assign(data.redirectTo)

@@ -342,7 +342,7 @@ export const workOsAuthService = {
     req: NextRequest,
     code: string,
     pendingAuthenticationToken: string
-  ): Promise<void> {
+  ): Promise<WorkosUserSnapshot> {
     const workos = getWorkOS()
     const ctx = requestContext(req)
     const authenticationResponse = await workos.userManagement.authenticateWithEmailVerification({
@@ -352,6 +352,7 @@ export const workOsAuthService = {
       ...ctx
     })
     await saveSession(authenticationResponse, req)
+    return workosUserFromAuthenticationResponse(authenticationResponse)
   },
 
   async requestPasswordReset(email: string): Promise<void> {
@@ -370,7 +371,10 @@ export const workOsAuthService = {
   async completeSignupWithPassword(
     req: NextRequest,
     input: { email: string; password: string; firstName: string; lastName: string }
-  ): Promise<WorkosUserSnapshot> {
+  ): Promise<
+    | { outcome: 'ok'; snapshot: WorkosUserSnapshot }
+    | { outcome: 'needs_email_verification'; pendingAuthenticationToken: string }
+  > {
     const workos = getWorkOS()
     const ctx = requestContext(req)
     await workos.userManagement.createUser({
@@ -379,14 +383,25 @@ export const workOsAuthService = {
       firstName: input.firstName,
       lastName: input.lastName
     })
-    const authenticationResponse = await workos.userManagement.authenticateWithPassword({
-      clientId: env.WORKOS_CLIENT_ID,
-      email: input.email,
-      password: input.password,
-      ...ctx
-    })
-    await saveSession(authenticationResponse, req)
-    return workosUserFromAuthenticationResponse(authenticationResponse)
+    try {
+      const authenticationResponse = await workos.userManagement.authenticateWithPassword({
+        clientId: env.WORKOS_CLIENT_ID,
+        email: input.email,
+        password: input.password,
+        ...ctx
+      })
+      await saveSession(authenticationResponse, req)
+      return {
+        outcome: 'ok',
+        snapshot: workosUserFromAuthenticationResponse(authenticationResponse)
+      }
+    } catch (error: unknown) {
+      const pending = extractPendingAuthenticationToken(error)
+      if (pending) {
+        return { outcome: 'needs_email_verification', pendingAuthenticationToken: pending }
+      }
+      throw error
+    }
   },
 
   async prepareSignupWithMagic(input: {

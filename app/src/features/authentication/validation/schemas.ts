@@ -72,7 +72,9 @@ export const authFlowCookieSchema = z.discriminatedUnion('kind', [
     firstName: z.string(),
     lastName: z.string(),
     /** ISO-8601 timestamp when the user accepted personal-data processing (profile step). */
-    personalDataProcessingConsentAt: z.string().min(1)
+    personalDataProcessingConsentAt: z.string().min(1),
+    verificationMode: z.enum(['magic', 'email_verify']).optional(),
+    pendingAuthenticationToken: z.string().optional()
   }),
   z.object({
     kind: z.literal('signup_hint'),

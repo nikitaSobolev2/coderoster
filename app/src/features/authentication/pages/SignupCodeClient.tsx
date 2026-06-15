@@ -9,9 +9,10 @@ import styles from '~/features/authentication/components/authChrome.module.scss'
 
 export interface SignupCodeClientProps {
   email: string
+  mode: 'magic' | 'email_verify'
 }
 
-export default function SignupCodeClient({ email }: Readonly<SignupCodeClientProps>) {
+export default function SignupCodeClient({ email, mode }: Readonly<SignupCodeClientProps>) {
   const [code, setCode] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -38,12 +39,13 @@ export default function SignupCodeClient({ email }: Readonly<SignupCodeClientPro
     }
   }
 
+  const subtitle =
+    mode === 'magic'
+      ? `Код отправлен на ${email}. Введи 6 цифр.`
+      : `Подтверди почту ${email}. Введи код из письма.`
+
   return (
-    <AuthChrome
-      title="Проверь почту"
-      subtitle={`Код отправлен на ${email}. Введи 6 цифр.`}
-      backHref="/signup/password"
-    >
+    <AuthChrome title="Проверь почту" subtitle={subtitle} backHref="/signup/password">
       <Stack gap="md" align="center">
         <PinInput
           length={6}
@@ -63,14 +65,20 @@ export default function SignupCodeClient({ email }: Readonly<SignupCodeClientPro
             {error}
           </Text>
         ) : null}
-        <AuthResendCodeButton
-          endpoint="/api/auth/signup/send-magic"
-          initialCooldownSeconds={60}
-          onResendTriggered={() => {
-            setCode('')
-            setError(null)
-          }}
-        />
+        {mode === 'magic' ? (
+          <AuthResendCodeButton
+            endpoint="/api/auth/signup/send-magic"
+            initialCooldownSeconds={60}
+            onResendTriggered={() => {
+              setCode('')
+              setError(null)
+            }}
+          />
+        ) : (
+          <Text size="sm" c="dimmed" ta="center">
+            Письмо отправлено при регистрации. Проверь спам или вернись назад и попробуй снова.
+          </Text>
+        )}
         <Button
           variant="default"
           fullWidth

@@ -4,7 +4,11 @@ import { NextResponse } from 'next/server'
 import { POST_AUTH_REDIRECT_PATH } from '~/features/authentication/constants'
 import { signupCompletePasswordSchema } from '~/features/authentication/validation/schemas'
 import { checkAuthRateLimit } from '~/server/auth/authRateLimit'
-import { clearAuthFlowCookie, getAuthFlowCookie } from '~/server/auth/authFlowCookie'
+import {
+  clearAuthFlowCookie,
+  getAuthFlowCookie,
+  setAuthFlowCookie
+} from '~/server/auth/authFlowCookie'
 import { clientIpFromHeaders } from '~/server/auth/clientIp'
 import { mapAuthKitErrorToMessage, workOsAuthService } from '~/server/auth/workOsAuthService'
 import { consentAtFromSignupFlowCookie } from '~/server/auth/signupFlowConsent'
@@ -54,13 +58,27 @@ export async function POST(req: NextRequest) {
   if (consentAtOrError instanceof NextResponse) return consentAtOrError
 
   try {
-    const snapshot = await workOsAuthService.completeSignupWithPassword(req, {
+    const result = await workOsAuthService.completeSignupWithPassword(req, {
       email: emailLower,
       password: parsed.data.password,
       firstName: parsed.data.firstName.trim(),
       lastName: parsed.data.lastName.trim()
     })
-    await userSyncService.syncFromSession(snapshot, {
+
+    if (result.outcome === 'needs_email_verification') {
+      await setAuthFlowCookie({
+        kind: 'signup',
+        email: flow.email,
+        firstName: flow.firstName,
+        lastName: flow.lastName,
+        personalDataProcessingConsentAt: flow.personalDataProcessingConsentAt,
+        verificationMode: 'email_verify',
+        pendingAuthenticationToken: result.pendingAuthenticationToken
+      })
+      return NextResponse.json({ ok: true, nextPath: '/signup/code' as const })
+    }
+
+    await userSyncService.syncFromSession(result.snapshot, {
       personalDataProcessingConsentAt: consentAtOrError
     })
     await clearAuthFlowCookie()

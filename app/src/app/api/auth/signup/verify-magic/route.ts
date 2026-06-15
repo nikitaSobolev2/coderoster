@@ -44,7 +44,16 @@ export async function POST(req: NextRequest) {
   if (consentAtOrError instanceof NextResponse) return consentAtOrError
 
   try {
-    const snapshot = await workOsAuthService.verifySignupMagic(req, flow.email, parsed.data.code)
+    let snapshot
+    if (flow.verificationMode === 'email_verify') {
+      const pending = flow.pendingAuthenticationToken
+      if (!pending) {
+        return NextResponse.json({ error: 'Нет активного запроса верификации.' }, { status: 400 })
+      }
+      snapshot = await workOsAuthService.verifyEmailVerification(req, parsed.data.code, pending)
+    } else {
+      snapshot = await workOsAuthService.verifySignupMagic(req, flow.email, parsed.data.code)
+    }
     await userSyncService.syncFromSession(snapshot, {
       personalDataProcessingConsentAt: consentAtOrError
     })

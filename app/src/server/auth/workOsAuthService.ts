@@ -127,7 +127,62 @@ function collectWorkOsErrorCodes(
 const WORKOS_AUTH_ERROR_RU: Record<string, string> = {
   invalid_credentials: 'Неверный email или пароль.',
   invalid_one_time_code:
-    'Неверный или просроченный код из письма. Проверь цифры или запроси новый код (он действует около 10 минут).'
+    'Неверный или просроченный код из письма. Проверь цифры или запроси новый код (он действует около 10 минут).',
+  entity_already_exists: 'Этот email уже зарегистрирован — войди или используй другой адрес.',
+  email_not_available: 'Этот email уже зарегистрирован — войди или используй другой адрес.',
+  user_already_exists: 'Этот email уже зарегистрирован — войди или используй другой адрес.',
+  password_pwned: 'Этот пароль замечен в утечках данных. Выбери другой, более уникальный пароль.',
+  passwordpwned: 'Этот пароль замечен в утечках данных. Выбери другой, более уникальный пароль.',
+  password_too_short:
+    'Пароль слишком короткий. WorkOS требует более длинный пароль — попробуй от 12 символов.',
+  passwordtooshort:
+    'Пароль слишком короткий. WorkOS требует более длинный пароль — попробуй от 12 символов.',
+  password_too_long: 'Пароль слишком длинный. Сократи его и попробуй снова.',
+  passwordtoolong: 'Пароль слишком длинный. Сократи его и попробуй снова.',
+  password_too_weak:
+    'Пароль слишком простой. Добавь буквы, цифры и символы или сделай его длиннее.',
+  passwordtooweak: 'Пароль слишком простой. Добавь буквы, цифры и символы или сделай его длиннее.',
+  password_contains_email: 'Пароль не должен содержать email.',
+  passwordcontainsemail: 'Пароль не должен содержать email.',
+  password_missing_character_type:
+    'Пароль должен содержать разные типы символов (буквы, цифры или спецсимволы).',
+  passwordmissingcharactertype:
+    'Пароль должен содержать разные типы символов (буквы, цифры или спецсимволы).',
+  password_history_violation: 'Нельзя повторять один из недавних паролей. Придумай новый.',
+  password_history_reused: 'Нельзя повторять один из недавних паролей. Придумай новый.'
+}
+
+function isDuplicateUserErrorCode(code: string): boolean {
+  return (
+    code === 'entity_already_exists' ||
+    code === 'email_not_available' ||
+    code === 'user_already_exists' ||
+    code.includes('already_exists') ||
+    (code.includes('already') && (code.includes('user') || code.includes('email')))
+  )
+}
+
+function mapDuplicateUserError(codes: string[]): string | undefined {
+  if (codes.some(isDuplicateUserErrorCode)) {
+    return WORKOS_AUTH_ERROR_RU.entity_already_exists
+  }
+  return undefined
+}
+
+function isPasswordValidationErrorCode(code: string): boolean {
+  return code.includes('password')
+}
+
+function mapPasswordValidationError(codes: string[]): string | undefined {
+  const passwordCodes = codes.filter(isPasswordValidationErrorCode)
+  if (passwordCodes.length === 0) return undefined
+
+  for (const code of passwordCodes) {
+    const mapped = WORKOS_AUTH_ERROR_RU[code]
+    if (mapped) return mapped
+  }
+
+  return 'Пароль не соответствует требованиям безопасности. Сделай его длиннее и сложнее.'
 }
 
 /**
@@ -154,6 +209,8 @@ function mapWorkOsHttpStatusToUserMessage(status: number): string | undefined {
       return 'Доступ к этому действию запрещён.'
     case 404:
       return 'Запрошенный ресурс не найден.'
+    case 409:
+      return 'Этот email уже зарегистрирован — войди или используй другой адрес.'
     case 422:
       return 'Данные не прошли проверку. Проверь ввод.'
     case 429:
@@ -188,6 +245,12 @@ export function mapAuthKitErrorToMessage(error: unknown): string {
     if (mapped) return mapped
   }
 
+  const duplicateUser = mapDuplicateUserError(codes)
+  if (duplicateUser) return duplicateUser
+
+  const passwordValidation = mapPasswordValidationError(codes)
+  if (passwordValidation) return passwordValidation
+
   if (codes.some(c => c.includes('email_verification') || c === 'email_verification_required')) {
     return 'Подтверди email — мы отправили код.'
   }
@@ -206,6 +269,9 @@ export function mapAuthKitErrorToMessage(error: unknown): string {
 
   const status = readWorkOsHttpStatus(error)
   if (codes.length === 0 && status !== undefined) {
+    if (status === 422) {
+      return 'Пароль или другие данные не прошли проверку. Проверь ввод.'
+    }
     const byStatus = mapWorkOsHttpStatusToUserMessage(status)
     if (byStatus) return byStatus
   }

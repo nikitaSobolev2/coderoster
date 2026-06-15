@@ -153,25 +153,6 @@ export default function SignupPasswordClient({
             Продолжить с кодом из email
           </Button>
 
-          {hostedPathReady ? (
-            <Button
-              component="a"
-              href={oauthHref}
-              variant="default"
-              fullWidth
-              size="lg"
-              className={styles.btnGhost}
-            >
-              OAuth / passkey через AuthKit
-            </Button>
-          ) : (
-            <HostedAuthKitButtonSkeleton />
-          )}
-
-          <Text size="xs" c="dimmed">
-            Hosted AuthKit нужен для SAML/OIDC-провайдеров и passkey на домене WorkOS.
-          </Text>
-
           <Anchor component={Link} href="/login" size="sm" c="dimmed" ta="center" display="block">
             Уже есть аккаунт? Войти
           </Anchor>

@@ -433,5 +433,36 @@ export const workOsAuthService = {
     })
     await saveSession(authenticationResponse, req)
     return workosUserFromAuthenticationResponse(authenticationResponse)
+  },
+
+  async authenticateAfterOtpBypass(
+    req: NextRequest,
+    email: string,
+    options: { password: string; setPasswordOnUser: boolean }
+  ): Promise<WorkosUserSnapshot> {
+    const workos = getWorkOS()
+    const ctx = requestContext(req)
+    const listed = await workos.userManagement.listUsers({ email, limit: 1 })
+    const workosUser = listed.data[0]
+    if (!workosUser) {
+      throw new Error(
+        'Пользователь не найден в WorkOS. Сначала отправь код на почту или заверши шаг с паролем.'
+      )
+    }
+
+    await workos.userManagement.updateUser({
+      userId: workosUser.id,
+      emailVerified: true,
+      ...(options.setPasswordOnUser ? { password: options.password } : {})
+    })
+
+    const authenticationResponse = await workos.userManagement.authenticateWithPassword({
+      clientId: env.WORKOS_CLIENT_ID,
+      email,
+      password: options.password,
+      ...ctx
+    })
+    await saveSession(authenticationResponse, req)
+    return workosUserFromAuthenticationResponse(authenticationResponse)
   }
 }

@@ -4,9 +4,10 @@ import { NextResponse } from 'next/server'
 import { POST_AUTH_REDIRECT_PATH } from '~/features/authentication/constants'
 import { otpSchema } from '~/features/authentication/validation/schemas'
 import { checkAuthRateLimit } from '~/server/auth/authRateLimit'
+import { completeSignupAfterOtp } from '~/server/auth/authOtpBypass'
 import { clearAuthFlowCookie, getAuthFlowCookie } from '~/server/auth/authFlowCookie'
 import { clientIpFromHeaders } from '~/server/auth/clientIp'
-import { mapAuthKitErrorToMessage, workOsAuthService } from '~/server/auth/workOsAuthService'
+import { mapAuthKitErrorToMessage } from '~/server/auth/workOsAuthService'
 import { consentAtFromSignupFlowCookie } from '~/server/auth/signupFlowConsent'
 import { userSyncService } from '~/server/services/UserSyncService'
 
@@ -43,17 +44,17 @@ export async function POST(req: NextRequest) {
   const consentAtOrError = consentAtFromSignupFlowCookie(flow)
   if (consentAtOrError instanceof NextResponse) return consentAtOrError
 
+  const mode = flow.verificationMode ?? 'magic'
+
   try {
-    let snapshot
-    if (flow.verificationMode === 'email_verify') {
-      const pending = flow.pendingAuthenticationToken
-      if (!pending) {
-        return NextResponse.json({ error: 'Нет активного запроса верификации.' }, { status: 400 })
-      }
-      snapshot = await workOsAuthService.verifyEmailVerification(req, parsed.data.code, pending)
-    } else {
-      snapshot = await workOsAuthService.verifySignupMagic(req, flow.email, parsed.data.code)
-    }
+    const snapshot = await completeSignupAfterOtp({
+      req,
+      code: parsed.data.code,
+      email: flow.email,
+      mode,
+      bypassAuthPassword: flow.bypassAuthPassword,
+      pendingAuthenticationToken: flow.pendingAuthenticationToken
+    })
     await userSyncService.syncFromSession(snapshot, {
       personalDataProcessingConsentAt: consentAtOrError
     })

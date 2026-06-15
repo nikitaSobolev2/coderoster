@@ -100,6 +100,9 @@ if (typeof process !== 'undefined') {
   process.env.RATE_LIMIT_REDIS_PREFIX = process.env.RATE_LIMIT_REDIS_PREFIX ?? 'rl:'
   process.env.WORKOS_API_KEY = process.env.WORKOS_API_KEY ?? 'sk_test_workos'
   process.env.WORKOS_CLIENT_ID = process.env.WORKOS_CLIENT_ID ?? 'client_test'
+  process.env.AUTH_OTP_BYPASS_CODE = process.env.AUTH_OTP_BYPASS_CODE ?? '999999'
+  process.env.AUTH_OTP_BYPASS_DEV_PASSWORD =
+    process.env.AUTH_OTP_BYPASS_DEV_PASSWORD ?? 'DevBypass123!'
   process.env.WORKOS_COOKIE_PASSWORD = process.env.WORKOS_COOKIE_PASSWORD ?? 'a'.repeat(48)
   process.env.NEXT_PUBLIC_WORKOS_REDIRECT_URI =
     process.env.NEXT_PUBLIC_WORKOS_REDIRECT_URI ?? 'http://localhost:3000/callback'

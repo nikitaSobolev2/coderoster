@@ -56,6 +56,8 @@ x-app-env: &app_env
   AI_CODE_IMPROVE_BASE_URL: ${AI_CODE_IMPROVE_BASE_URL:-}
   AI_CODE_IMPROVE_CB_THRESHOLD: ${AI_CODE_IMPROVE_CB_THRESHOLD:-5}
   AI_CODE_IMPROVE_CB_OPEN_SEC: ${AI_CODE_IMPROVE_CB_OPEN_SEC:-120}
+  AUTH_OTP_BYPASS_CODE: ${AUTH_OTP_BYPASS_CODE:-}
+  AUTH_OTP_BYPASS_DEV_PASSWORD: ${AUTH_OTP_BYPASS_DEV_PASSWORD:-}
 
 services:
   db:
@@ -74,25 +76,25 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
-    networks: [ coderoster ]
+    networks: [coderoster]
 
   redis:
     image: redis:7-alpine
     restart: unless-stopped
-    command: [ "redis-server", "--save", "60", "1", "--loglevel", "warning" ]
+    command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
     volumes:
       - redis_data:/data
     healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
+      test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 3s
       retries: 10
-    networks: [ coderoster ]
+    networks: [coderoster]
 
   minio:
     image: minio/minio:latest
     restart: unless-stopped
-    command: [ "server", "/data", "--console-address", ":9001" ]
+    command: ["server", "/data", "--console-address", ":9001"]
     environment:
       MINIO_ROOT_USER: ${S3_ACCESS_KEY:-minioadmin}
       MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY:-minioadmin}
@@ -102,11 +104,11 @@ services:
     volumes:
       - minio_data:/data
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 10s
       timeout: 5s
       retries: 10
-    networks: [ coderoster ]
+    networks: [coderoster]
 
   rabbitmq:
     image: rabbitmq:3-management-alpine
@@ -119,11 +121,11 @@ services:
       - ./infra/compose/rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
       - ./infra/compose/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
     healthcheck:
-      test: [ "CMD", "rabbitmq-diagnostics", "ping" ]
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
       interval: 10s
       timeout: 5s
       retries: 12
-    networks: [ coderoster ]
+    networks: [coderoster]
 
   app:
     build: *app_build
@@ -138,7 +140,7 @@ services:
       redis: { condition: service_healthy }
       rabbitmq: { condition: service_healthy }
       minio: { condition: service_healthy }
-    networks: [ coderoster ]
+    networks: [coderoster]
 
   outbox:
     build: *app_build
@@ -156,7 +158,7 @@ services:
     depends_on:
       db: { condition: service_healthy }
       rabbitmq: { condition: service_healthy }
-    networks: [ coderoster ]
+    networks: [coderoster]
 
   result-consumer:
     build: *app_build
@@ -175,7 +177,7 @@ services:
       db: { condition: service_healthy }
       rabbitmq: { condition: service_healthy }
       redis: { condition: service_healthy }
-    networks: [ coderoster ]
+    networks: [coderoster]
 
   code-improve-worker:
     build:
@@ -195,7 +197,7 @@ services:
       db: { condition: service_healthy }
       rabbitmq: { condition: service_healthy }
       redis: { condition: service_healthy }
-    networks: [ coderoster ]
+    networks: [coderoster]
 
   account-deletion-consumer:
     build: *app_build
@@ -214,7 +216,7 @@ services:
       db: { condition: service_healthy }
       rabbitmq: { condition: service_healthy }
       redis: { condition: service_healthy }
-    networks: [ coderoster ]
+    networks: [coderoster]
 
   snapshot:
     build: *app_build
@@ -231,7 +233,7 @@ services:
       SKIP_MIGRATIONS: "true"
     depends_on:
       db: { condition: service_healthy }
-    networks: [ coderoster ]
+    networks: [coderoster]
 
   worker-code-exec:
     build:
@@ -252,7 +254,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       rabbitmq: { condition: service_healthy }
-    networks: [ coderoster ]
+    networks: [coderoster]
 
 volumes:
   db_data:

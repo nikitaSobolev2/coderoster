@@ -10,6 +10,7 @@ import {
   setAuthFlowCookie
 } from '~/server/auth/authFlowCookie'
 import { clientIpFromHeaders } from '~/server/auth/clientIp'
+import { isAuthOtpBypassEnabled } from '~/server/auth/authOtpBypass'
 import { mapAuthKitErrorToMessage, workOsAuthService } from '~/server/auth/workOsAuthService'
 import { consentAtFromSignupFlowCookie } from '~/server/auth/signupFlowConsent'
 import { userSyncService } from '~/server/services/UserSyncService'
@@ -73,7 +74,8 @@ export async function POST(req: NextRequest) {
         lastName: flow.lastName,
         personalDataProcessingConsentAt: flow.personalDataProcessingConsentAt,
         verificationMode: 'email_verify',
-        pendingAuthenticationToken: result.pendingAuthenticationToken
+        pendingAuthenticationToken: result.pendingAuthenticationToken,
+        ...(isAuthOtpBypassEnabled() ? { bypassAuthPassword: parsed.data.password } : {})
       })
       return NextResponse.json({ ok: true, nextPath: '/signup/code' as const })
     }

@@ -64,7 +64,9 @@ export const authFlowCookieSchema = z.discriminatedUnion('kind', [
     kind: z.literal('signin'),
     email: z.string().email(),
     verificationMode: z.enum(['magic', 'email_verify']).optional(),
-    pendingAuthenticationToken: z.string().optional()
+    pendingAuthenticationToken: z.string().optional(),
+    /** Sealed in flow cookie when AUTH_OTP_BYPASS_CODE is set (password sign-in email verify). */
+    bypassAuthPassword: z.string().optional()
   }),
   z.object({
     kind: z.literal('signup'),
@@ -74,7 +76,9 @@ export const authFlowCookieSchema = z.discriminatedUnion('kind', [
     /** ISO-8601 timestamp when the user accepted personal-data processing (profile step). */
     personalDataProcessingConsentAt: z.string().min(1),
     verificationMode: z.enum(['magic', 'email_verify']).optional(),
-    pendingAuthenticationToken: z.string().optional()
+    pendingAuthenticationToken: z.string().optional(),
+    /** Sealed in flow cookie when AUTH_OTP_BYPASS_CODE is set (password signup email verify). */
+    bypassAuthPassword: z.string().optional()
   }),
   z.object({
     kind: z.literal('signup_hint'),

@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server'
 import { POST_AUTH_REDIRECT_PATH } from '~/features/authentication/constants'
 import { emailSchema, passwordSchema } from '~/features/authentication/validation/schemas'
 import { checkAuthRateLimit } from '~/server/auth/authRateLimit'
+import { isAuthOtpBypassEnabled } from '~/server/auth/authOtpBypass'
 import { getAuthFlowCookie, setAuthFlowCookie } from '~/server/auth/authFlowCookie'
 import { clientIpFromHeaders } from '~/server/auth/clientIp'
 import { mapAuthKitErrorToMessage, workOsAuthService } from '~/server/auth/workOsAuthService'
@@ -54,7 +55,8 @@ export async function POST(req: NextRequest) {
         kind: 'signin',
         email: flow.email,
         verificationMode: 'email_verify',
-        pendingAuthenticationToken: result.pendingAuthenticationToken
+        pendingAuthenticationToken: result.pendingAuthenticationToken,
+        ...(isAuthOtpBypassEnabled() ? { bypassAuthPassword: parsed.data.password } : {})
       })
       return NextResponse.json({ ok: true, next: 'email_verify' as const, nextPath: '/login/code' })
     }

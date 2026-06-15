@@ -92,7 +92,26 @@ export const env = createEnv({
     AI_CODE_IMPROVE_API_KEY: z.string().optional(),
     AI_CODE_IMPROVE_BASE_URL: z.string().url().optional(),
     AI_CODE_IMPROVE_CB_THRESHOLD: z.coerce.number().int().positive().default(5),
-    AI_CODE_IMPROVE_CB_OPEN_SEC: z.coerce.number().int().positive().default(120)
+    AI_CODE_IMPROVE_CB_OPEN_SEC: z.coerce.number().int().positive().default(120),
+    /**
+     * Dev/staging: when set, users may enter this exact 6-digit code instead of a real WorkOS OTP.
+     * Leave unset in production.
+     */
+    AUTH_OTP_BYPASS_CODE: z.preprocess(
+      val => (val === '' || val === undefined || val === null ? undefined : val),
+      z
+        .string()
+        .regex(/^\d{6}$/)
+        .optional()
+    ),
+    /**
+     * Fallback password for OTP bypass on magic-only flows (no password stored in flow cookie).
+     * Also used when bypass sets a password on users created without one.
+     */
+    AUTH_OTP_BYPASS_DEV_PASSWORD: z.preprocess(
+      val => (val === '' || val === undefined || val === null ? undefined : val),
+      z.string().min(8).max(128).optional()
+    )
   },
 
   /**
@@ -175,6 +194,8 @@ export const env = createEnv({
     AI_CODE_IMPROVE_BASE_URL: process.env.AI_CODE_IMPROVE_BASE_URL,
     AI_CODE_IMPROVE_CB_THRESHOLD: process.env.AI_CODE_IMPROVE_CB_THRESHOLD,
     AI_CODE_IMPROVE_CB_OPEN_SEC: process.env.AI_CODE_IMPROVE_CB_OPEN_SEC,
+    AUTH_OTP_BYPASS_CODE: process.env.AUTH_OTP_BYPASS_CODE,
+    AUTH_OTP_BYPASS_DEV_PASSWORD: process.env.AUTH_OTP_BYPASS_DEV_PASSWORD,
     NEXT_PUBLIC_WORKOS_REDIRECT_URI: process.env.NEXT_PUBLIC_WORKOS_REDIRECT_URI,
     NEXT_PUBLIC_USE_FAKE_DATA: process.env.NEXT_PUBLIC_USE_FAKE_DATA,
     NEXT_PUBLIC_SELF_SERVE_PLANS: process.env.NEXT_PUBLIC_SELF_SERVE_PLANS,
